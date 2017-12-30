@@ -1,0 +1,5 @@
+﻿<root>
+  <source>image.csx</source>
+  <name>Image</name>
+  <description>Displays an image</description>
+</root>
