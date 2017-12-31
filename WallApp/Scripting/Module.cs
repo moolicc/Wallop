@@ -9,6 +9,8 @@ namespace WallApp.Scripting
 {
     public abstract class Module
     {
+        public Version Version { get; private set; }
+
         public string File { get; private set; }
         public string SourceFile { get; private set; }
         public string Name { get; private set; }
@@ -22,8 +24,9 @@ namespace WallApp.Scripting
         public bool AllowsCustomEffect { get; private set; }
 
 
-        internal virtual void Init(string file, string sourceFile, string name, string description, int minWidth, int minHeight, int maxWidth, int maxHeight, bool allowsCustomEffects)
+        internal void Init(Version version, string file, string sourceFile, string name, string description, int minWidth, int minHeight, int maxWidth, int maxHeight, bool allowsCustomEffects)
         {
+            Version = version;
             File = file;
             SourceFile = sourceFile;
             Name = name;
@@ -35,11 +38,13 @@ namespace WallApp.Scripting
             MaxHeight = maxHeight;
 
             AllowsCustomEffect = allowsCustomEffects;
+
+            Initialize();
         }
 
         public abstract SettingsController CreateSettingsController();
-        public abstract string GetName();
-        public abstract string GetDescription();
         public abstract Controller CreateController();
+
+        protected abstract void Initialize();
     }
 }

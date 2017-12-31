@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Runtime.Remoting;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -17,6 +19,30 @@ namespace WallApp.Scripting
         {
             Cache = new Dictionary<string, Module>();
         }
+
+
+        public static Module[] LoadRemoteModules(string baseUrl)
+        {
+            List<Module> remoteModules = new List<Module>();
+
+            using (var webClient = new WebClient())
+            {
+                webClient.BaseAddress = baseUrl;
+                string indexSource = "";
+                indexSource = webClient.DownloadString("moduleindex.xml");
+
+                XDocument document = XDocument.Parse(indexSource);
+                var moduleElements = document.Root.Elements("module");
+
+                foreach (var moduleElement in moduleElements)
+                {
+                    remoteModules.Add(ScanRemoteManifest(moduleElement.Value, webClient));
+                }
+            }
+            
+            return remoteModules.ToArray();
+        }
+
 
         public static void LoadModules(string rootDirectory)
         {
@@ -45,10 +71,36 @@ namespace WallApp.Scripting
             }
             return ScanManifest(manifestPath);
         }
+        
 
-        public static Module ScanManifest(string manifestFile)
+        public static Module ScanRemoteManifest(string url, WebClient clientReuse = null)
         {
-            var doc = XDocument.Load(manifestFile);
+            string xml = "";
+            if (clientReuse == null)
+            {
+                using (var client = new WebClient())
+                {
+                    xml = client.DownloadString(url);
+                }
+            }
+            else
+            {
+                xml = clientReuse.DownloadString(url);
+            }
+            return ScanManifest(url, xml, true);
+        }
+
+        public static Module ScanManifest(string manifestFile, string manifestSource = "", bool isRemote = false)
+        {
+            XDocument doc = null;
+            if (string.IsNullOrWhiteSpace(manifestSource))
+            {
+                doc = XDocument.Load(manifestFile);
+            }
+            else
+            {
+                doc = XDocument.Parse(manifestSource);
+            }
             var root = doc.Root;
 
             string sourceFile = "";
@@ -59,6 +111,7 @@ namespace WallApp.Scripting
             int maxWidth = int.MaxValue;
             int maxHeight = int.MaxValue;
             bool allowsCustomEffects = false;
+            Version version = new Version(0, 0, 0, 0);
 
             foreach (var xElement in root.Elements())
             {
@@ -109,6 +162,13 @@ namespace WallApp.Scripting
                         //TODO: Warning
                     }
                 }
+                else if (xElement.Name == "version")
+                {
+                    if (!Version.TryParse(xElement.Value, out version))
+                    {
+                        //TODO: Warning
+                    }
+                }
             }
 
             if (string.IsNullOrEmpty(sourceFile) || string.IsNullOrEmpty(name))
@@ -125,11 +185,20 @@ namespace WallApp.Scripting
                 }
             }
 
-            string kind = Path.GetExtension(sourceFile).TrimStart('.');
+            string kind = "";
+            if (isRemote)
+            {
+                kind = "remote";
+            }
+            else
+            {
+                kind = Path.GetExtension(sourceFile).TrimStart('.');
+            }
             var module = Resolve(kind);
-            module.Init(manifestFile, sourceFile, name, description, minWidth, minHeight, maxWidth, maxHeight, allowsCustomEffects);
+            module.Init(version, manifestFile, sourceFile, name, description, minWidth, minHeight, maxWidth, maxHeight, allowsCustomEffects);
             return module;
         }
+
 
         private static Module Resolve(string kind)
         {
@@ -137,6 +206,10 @@ namespace WallApp.Scripting
             if (kind == "csx" || kind == "cs")
             {
                 module = new CsModule();
+            }
+            else if (kind == "remote")
+            {
+                module = new RemoteModule();
             }
             return module;
         }

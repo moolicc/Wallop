@@ -14,10 +14,8 @@ namespace WallApp.Scripting.Cs
         public Func<SettingsController> GetSettingsController { get; set; }
         public Func<Controller> GetController { get; set; }
         
-        internal override void Init(string file, string sourceFile, string name, string description, int minWidth, int minHeight, int maxWidth,
-            int maxHeight, bool allowsCustomEffects)
+        protected override void Initialize()
         {
-            base.Init(file, sourceFile, name, description, minWidth, minHeight, maxWidth, maxHeight, allowsCustomEffects);
             try
             {
                 var options = ScriptOptions.Default
@@ -26,10 +24,10 @@ namespace WallApp.Scripting.Cs
                     .AddImports("WallApp", "WallApp.Scripting", "System", "System.Linq", "System.IO")
                     .AddImports("Microsoft.Xna.Framework", "Microsoft.Xna.Framework.Graphics")
                     .AddImports("System.Windows.Forms")
-                    .AddReferences(Directory.GetFiles(Path.GetDirectoryName(file), "*.dll", SearchOption.TopDirectoryOnly));
+                    .AddReferences(Directory.GetFiles(Path.GetDirectoryName(File), "*.dll", SearchOption.TopDirectoryOnly));
 
 
-                CSharpScript.RunAsync(System.IO.File.ReadAllText(sourceFile), globals: this, options: options).Wait();
+                CSharpScript.RunAsync(System.IO.File.ReadAllText(SourceFile), globals: this, options: options).Wait();
                 if (GetController == null)
                 {
                     //TODO: Error
@@ -39,16 +37,6 @@ namespace WallApp.Scripting.Cs
             {
                 throw e;
             }
-        }
-
-        public override string GetName()
-        {
-            return Name;
-        }
-
-        public override string GetDescription()
-        {
-            return Description;
         }
 
         public override SettingsController CreateSettingsController()
