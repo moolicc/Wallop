@@ -32,14 +32,10 @@ namespace WallApp.Windows
             pictureBox1.BackColor = Color.FromArgb(layerSettings.TintColor.R, layerSettings.TintColor.G,
                 layerSettings.TintColor.B);
 
-            //Load screens
-            comboBox1.Items.Add("[Extend]");
-            comboBox1.SelectedIndex = 0;
-
+            //Load screens into the combobox.
+            //This will cause the CalculateNumericValues function to be called.
             comboBox1.Items.AddRange(Screen.AllScreens.Select(s => s.DeviceName).ToArray());
-
-            if (!string.IsNullOrEmpty(layerSettings.Dimensions.MonitorName) &&
-                layerSettings.Dimensions.MonitorName != "[Extend]")
+            if (!string.IsNullOrEmpty(layerSettings.Dimensions.MonitorName))
             {
                 for (int i = 0; i < Screen.AllScreens.Length; i++)
                 {
@@ -140,25 +136,10 @@ namespace WallApp.Windows
             }
 
             var screen = Screen.AllScreens.FirstOrDefault(s => s.DeviceName == comboBox1.SelectedItem.ToString());
-            int x = 0;
-            int y = 0;
             int width = 0;
             int height = 0;
-            if (screen == null)
+            if (screen != null)
             {
-                if (comboBox1.SelectedItem.ToString() == "[Extend]")
-                {
-                    var bounds = SystemInformation.WorkingArea;
-                    x = bounds.X;
-                    y = bounds.Y;
-                    width = bounds.Width;
-                    height = bounds.Height;
-                }
-            }
-            else
-            {
-                x = screen.WorkingArea.X;
-                y = screen.WorkingArea.Y;
                 width = screen.WorkingArea.Width;
                 height = screen.WorkingArea.Height;
             }
