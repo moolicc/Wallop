@@ -8,7 +8,7 @@ namespace WallApp.Scripting
 {
     public abstract class Controller
     {
-        public LayerSettings LayerSettings { get; set; }
+        public LayerSettings Settings { get; set; }
         public Module Module { get; internal set; }
         public GraphicsDevice GraphicsDevice { get; internal set; }
         public RenderTarget2D RenderTarget { get; internal set; }

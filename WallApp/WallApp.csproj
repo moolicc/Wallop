@@ -156,6 +156,7 @@
     <Compile Include="Scripting\Cs\CsModule.cs" />
     <Compile Include="Scripting\Module.cs" />
     <Compile Include="Scripting\Resolver.cs" />
+    <Compile Include="Scripting\SettingsController.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="Win32.cs" />
     <Compile Include="WindowHandler.cs" />

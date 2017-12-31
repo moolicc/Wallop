@@ -11,10 +11,9 @@ namespace WallApp.Scripting.Cs
 {
     public class CsModule : Module
     {
-        public Func<LayerSettings, Panel> GetOptionsControl { get; set; }
+        public Func<SettingsController> GetSettingsController { get; set; }
         public Func<Controller> GetController { get; set; }
-
-
+        
         internal override void Init(string file, string sourceFile, string name, string description, int minWidth, int minHeight, int maxWidth,
             int maxHeight, bool allowsCustomEffects)
         {
@@ -52,9 +51,9 @@ namespace WallApp.Scripting.Cs
             return Description;
         }
 
-        public override Panel GetOptionsPanel(LayerSettings layerSettings)
+        public override SettingsController CreateSettingsController()
         {
-            return GetOptionsControl?.Invoke(layerSettings);
+            return GetSettingsController?.Invoke();
         }
 
         public override Controller CreateController()

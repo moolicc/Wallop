@@ -83,7 +83,7 @@ namespace WallApp
                 (int x, int y, int width, int height) = layer.Dimensions.GetBounds();
 
                 //Pass the layer's configuration to the controller.
-                controller.LayerSettings = layer;
+                controller.Settings = layer;
                 controller.GraphicsDevice = GraphicsDevice;
                 controller.Module = module;
                 controller.ScaledLayerBounds = new Rectangle(
@@ -117,7 +117,7 @@ namespace WallApp
             //Update enabled controllers.
             foreach (var controller in _controllers)
             {
-                if (!controller.LayerSettings.Enabled)
+                if (!controller.Settings.Enabled)
                 {
                     continue;
                 }
@@ -138,7 +138,7 @@ namespace WallApp
             //Draw each controller onto its own rendertarget.
             foreach (var controller in _controllers)
             {
-                if (!controller.LayerSettings.Enabled)
+                if (!controller.Settings.Enabled)
                 {
                     continue;
                 }
@@ -157,19 +157,19 @@ namespace WallApp
             //Draw each controller's rendertarget onto the screen.
             foreach (var controller in _controllers)
             {
-                if (!controller.LayerSettings.Enabled)
+                if (!controller.Settings.Enabled)
                 {
                     continue;
                 }
                 //Get the dimensions of the layer, applying the scale factor.
-                var rect = controller.LayerSettings.Dimensions.GetBoundsRectangle();
+                var rect = controller.Settings.Dimensions.GetBoundsRectangle();
                 rect.X = (int) (rect.X * _settings.BackBufferWidthFactor);
                 rect.Y = (int)(rect.Y * _settings.BackBufferHeightFactor);
                 rect.Width = (int)(rect.Width * _settings.BackBufferWidthFactor);
                 rect.Height = (int)(rect.Height * _settings.BackBufferHeightFactor);
                 
                 //Draw the controller.
-                _spriteBatch.Draw(controller.RenderTarget, rect, controller.LayerSettings.TintColor);
+                _spriteBatch.Draw(controller.RenderTarget, rect, controller.Settings.TintColor);
             }
             _spriteBatch.End();
         }

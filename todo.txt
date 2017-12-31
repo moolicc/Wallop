@@ -1,2 +1,6 @@
 Command line arguments
 Pong module
+Gif module
+Youtube module
+Audio Visualizer module
+Effects

@@ -17,6 +17,7 @@ namespace WallApp.Windows
 
         private Module _module;
         private bool _absFlipped;
+        private SettingsController _settingsController;
 
         public LayerSettingsWindow(LayerSettings layerSettings, Module module)
         {
@@ -25,6 +26,11 @@ namespace WallApp.Windows
 
             LayerSettings = layerSettings;
             _module = module;
+            _settingsController = _module.CreateSettingsController();
+            if (_settingsController != null)
+            {
+                _settingsController.Settings = layerSettings;
+            }
 
             textBox1.Text = layerSettings.Name;
             textBox2.Text = layerSettings.Description;
@@ -33,7 +39,7 @@ namespace WallApp.Windows
                 layerSettings.TintColor.B);
 
             //Load screens into the combobox.
-            //This will cause the CalculateNumericValues function to be called.
+            //This will cause the CalculateNumericValues function to be called as well.
             comboBox1.Items.AddRange(Screen.AllScreens.Select(s => s.DeviceName).ToArray());
             if (!string.IsNullOrEmpty(layerSettings.Dimensions.MonitorName))
             {
@@ -58,19 +64,30 @@ namespace WallApp.Windows
 
             label8.Text = $"Layer ID: {layerSettings.LayerId}";
 
-            var control = module.GetOptionsPanel(layerSettings);
-            if (control != null)
+            groupBox1.Controls.Add(new Label { Text = "There are no options specific to this controller.", Location = new Point(10, 32), AutoSize = true });
+            if (_settingsController != null)
             {
-                groupBox1.Controls.Add(_module.GetOptionsPanel(layerSettings));
-            }
-            else
-            {
-                groupBox1.Controls.Add(new Label { Text = "There are no options specific to this controller.", Location = new Point(10, 32), AutoSize = true});
+                var control = _settingsController.GetSettingsControl();
+                if (control != null)
+                {
+                    groupBox1.Controls.Clear();
+                    groupBox1.Controls.Add(control);
+                }
             }
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
+            if (_settingsController != null)
+            {
+                var result = _settingsController.ApplyClicked();
+                if (!string.IsNullOrWhiteSpace(result))
+                {
+                    MessageBox.Show(result, "WallApp", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+            }
+
             LayerSettings.Name = textBox1.Text;
             LayerSettings.Description = textBox2.Text;
             LayerSettings.Enabled = checkBox3.Checked;
@@ -92,6 +109,7 @@ namespace WallApp.Windows
 
         private void button2_Click(object sender, EventArgs e)
         {
+            _settingsController?.CancelClicked();
             DialogResult = DialogResult.Cancel;
             Close();
         }

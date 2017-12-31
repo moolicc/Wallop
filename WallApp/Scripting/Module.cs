@@ -37,7 +37,7 @@ namespace WallApp.Scripting
             AllowsCustomEffect = allowsCustomEffects;
         }
 
-        public abstract Panel GetOptionsPanel(LayerSettings layerSettings);
+        public abstract SettingsController CreateSettingsController();
         public abstract string GetName();
         public abstract string GetDescription();
         public abstract Controller CreateController();
