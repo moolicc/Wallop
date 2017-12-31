@@ -40,6 +40,7 @@ namespace WallApp.Windows
 
             //Load screens into the combobox.
             //This will cause the CalculateNumericValues function to be called as well.
+            //This will cause the CalculateNumericValues function to be called.
             comboBox1.Items.AddRange(Screen.AllScreens.Select(s => s.DeviceName).ToArray());
             if (!string.IsNullOrEmpty(layerSettings.Dimensions.MonitorName))
             {

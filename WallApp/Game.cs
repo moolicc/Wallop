@@ -13,6 +13,8 @@ namespace WallApp
 {
     class Game : Microsoft.Xna.Framework.Game
     {
+        private const double RADIAN_MULTIPLIER = 0.0174532925199433D;
+
         //Notes:
         //A 'module' is a script/extension.
         //A 'controller' is an active instance of a module.
@@ -28,7 +30,6 @@ namespace WallApp
 
         public Game()
         {
-            Console.WriteLine(Math.PI / 180);
             _settings = new Settings();
             _graphicsManager = new GraphicsDeviceManager(this);
 
@@ -179,11 +180,13 @@ namespace WallApp
                 rect.Y = (int)(rect.Y * _settings.BackBufferHeightFactor);
                 rect.Width = (int)(rect.Width * _settings.BackBufferWidthFactor);
                 rect.Height = (int)(rect.Height * _settings.BackBufferHeightFactor);
-                
+
                 //Draw the controller.
-                _spriteBatch.Draw(controller.RenderTarget, rect, null, controller.Settings.TintColor,
-                    (float) (controller.Settings.Rotation * (Math.PI / 180)), new Vector2(0.5F, 0.5F),
-                    SpriteEffects.None, 1.0F);
+
+                //Vector2 originVector = new Vector2(rect.X + rect.Width / 2, rect.Y + rect.Height / 2);
+                //_spriteBatch.Draw(controller.RenderTarget, rect, null, controller.Settings.TintColor, (float) (controller.Settings.Rotation * RADIAN_MULTIPLIER), originVector, SpriteEffects.None, 0.0F);
+
+                _spriteBatch.Draw(controller.RenderTarget, rect, controller.Settings.TintColor);
 
             }
             _spriteBatch.End();

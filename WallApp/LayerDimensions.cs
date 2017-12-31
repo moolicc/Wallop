@@ -84,7 +84,11 @@ namespace WallApp
                 x = screenBounds.X + (int)(screenBounds.Width * (XValue / 100.0F));
                 y = screenBounds.Y + (int)(screenBounds.Height * (YValue / 100.0F));
             }
-
+            else
+            {
+                x = screenBounds.X;
+                y = screenBounds.Y;
+            }
             
             return (x, y, width, height);
         }
