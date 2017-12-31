@@ -54,6 +54,11 @@ namespace WallApp.Scripting
             string sourceFile = "";
             string name = "";
             string description = "";
+            int minWidth = 0;
+            int minHeight = 0;
+            int maxWidth = int.MaxValue;
+            int maxHeight = int.MaxValue;
+            bool allowsCustomEffects = false;
 
             foreach (var xElement in root.Elements())
             {
@@ -68,6 +73,41 @@ namespace WallApp.Scripting
                 else if (xElement.Name == "description")
                 {
                     description = xElement.Value;
+                }
+                else if (xElement.Name == "minwidth")
+                {
+                    if (!int.TryParse(xElement.Value, out minWidth))
+                    {
+                        //TODO: Warning
+                    }
+                }
+                else if (xElement.Name == "minheight")
+                {
+                    if (!int.TryParse(xElement.Value, out minHeight))
+                    {
+                        //TODO: Warning
+                    }
+                }
+                else if (xElement.Name == "maxwidth")
+                {
+                    if (!int.TryParse(xElement.Value, out maxWidth))
+                    {
+                        //TODO: Warning
+                    }
+                }
+                else if (xElement.Name == "maxheight")
+                {
+                    if (!int.TryParse(xElement.Value, out maxHeight))
+                    {
+                        //TODO: Warning
+                    }
+                }
+                else if (xElement.Name == "customeffects")
+                {
+                    if (!bool.TryParse(xElement.Value, out allowsCustomEffects))
+                    {
+                        //TODO: Warning
+                    }
                 }
             }
 
@@ -86,25 +126,17 @@ namespace WallApp.Scripting
             }
 
             string kind = Path.GetExtension(sourceFile).TrimStart('.');
-            return Resolve(manifestFile, sourceFile, name, description, kind);
+            var module = Resolve(kind);
+            module.Init(manifestFile, sourceFile, name, description, minWidth, minHeight, maxWidth, maxHeight, allowsCustomEffects);
+            return module;
         }
 
-        private static Module Resolve(string moduleFile, string sourceFile, string name, string description,
-            string kind)
+        private static Module Resolve(string kind)
         {
             Module module = null;
             if (kind == "csx" || kind == "cs")
             {
                 module = new CsModule();
-            }
-
-            if (module == null)
-            {
-                //TODO
-            }
-            else
-            {
-                module.Init(moduleFile, sourceFile, name, description);
             }
             return module;
         }
