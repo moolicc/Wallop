@@ -13,11 +13,12 @@ namespace WallApp.Scripting.Cs
     {
         public Func<LayerSettings, Panel> GetOptionsControl { get; set; }
         public Func<Controller> GetController { get; set; }
-        
-        
-        internal override void Init(string file, string sourceFile, string name, string description)
+
+
+        internal override void Init(string file, string sourceFile, string name, string description, int minWidth, int minHeight, int maxWidth,
+            int maxHeight, bool allowsCustomEffects)
         {
-            base.Init(file, sourceFile, name, description);
+            base.Init(file, sourceFile, name, description, minWidth, minHeight, maxWidth, maxHeight, allowsCustomEffects);
             try
             {
                 var options = ScriptOptions.Default
@@ -27,7 +28,7 @@ namespace WallApp.Scripting.Cs
                     .AddImports("Microsoft.Xna.Framework", "Microsoft.Xna.Framework.Graphics")
                     .AddImports("System.Windows.Forms")
                     .AddReferences(Directory.GetFiles(Path.GetDirectoryName(file), "*.dll", SearchOption.TopDirectoryOnly));
-                
+
 
                 CSharpScript.RunAsync(System.IO.File.ReadAllText(sourceFile), globals: this, options: options).Wait();
                 if (GetController == null)
