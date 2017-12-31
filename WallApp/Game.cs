@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using WallApp.Scripting;
@@ -56,21 +57,31 @@ namespace WallApp
             _form.Width = SystemInformation.VirtualScreen.Width;
             _form.Height = SystemInformation.VirtualScreen.Height;
 
+            //Load the layout
+            if (!File.Exists("layout.json"))
+            {
+                Layout.New();
+                Layout.Save("layout.json");
+            }
+            else
+            {
+                Layout.Load("layout.json");
+            }
+            
             //Show the settings window.
             SettingsWindow window = new SettingsWindow();
-            window.LayerLayout = new Layout(); //Hardcoded initialization, will change later.
             window.ShowDialog();
 
             //Initialize the controllers the user enabled in the settings window.
-            InitializeControllers(window.LayerLayout);
+            InitializeControllers();
         }
 
-        private void InitializeControllers(Layout layout)
+        private void InitializeControllers()
         {
             //Setup our controller list.
             _controllers = new List<Controller>();
 
-            foreach (var layer in layout.Layers)
+            foreach (var layer in Layout.Layers)
             {
                 //Get the current layer's module out of the cache. This creates a clone instead of referencing
                 //the module in the layer.
