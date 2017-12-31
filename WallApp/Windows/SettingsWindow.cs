@@ -51,7 +51,7 @@ namespace WallApp.Windows
 
             var newItem = new ListViewItem()
             {
-                Text = module.GetName(),
+                Text = module.Name,
                 Tag = (module, settings)
             };
             newItem.SubItems.Add(_lastId.ToString());
@@ -60,7 +60,6 @@ namespace WallApp.Windows
             newItem.SubItems.Add(settings.Dimensions.MonitorName);
             newItem.SubItems.Add(settings.Enabled.ToString());
 
-            LayerListView.Items.Add(newItem);
 
             LayerSettingsWindow window = new LayerSettingsWindow(settings, module);
             if (window.ShowDialog() == DialogResult.OK)
@@ -70,6 +69,12 @@ namespace WallApp.Windows
                 newItem.SubItems[4].Text = settings.Dimensions.MonitorName;
                 newItem.SubItems[5].Text = settings.Enabled.ToString();
             }
+            else
+            {
+                return;
+            }
+
+            LayerListView.Items.Add(newItem);
             _lastId++;
         }
 
@@ -126,7 +131,7 @@ namespace WallApp.Windows
                 
                 var newItem = new ListViewItem()
                 {
-                    Text = module.GetName(),
+                    Text = module.Name,
                     Tag = (module, settings)
                 };
                 newItem.SubItems.Add(_lastId.ToString());

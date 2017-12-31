@@ -26,8 +26,8 @@ namespace WallApp.Windows
             Module[] modules = Resolver.Cache.Values.ToArray();
             foreach (var module in modules)
             {
-                ListViewItem item = new ListViewItem(module.GetName());
-                item.SubItems.Add(module.GetDescription());
+                ListViewItem item = new ListViewItem(module.Name);
+                item.SubItems.Add(module.Description);
                 item.SubItems.Add(Path.GetFileName(module.SourceFile));
                 item.Tag = module;
                 listView1.Items.Add(item);
