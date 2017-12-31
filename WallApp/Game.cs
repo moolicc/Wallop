@@ -28,6 +28,7 @@ namespace WallApp
 
         public Game()
         {
+            Console.WriteLine(Math.PI / 180);
             _settings = new Settings();
             _graphicsManager = new GraphicsDeviceManager(this);
 
@@ -180,7 +181,10 @@ namespace WallApp
                 rect.Height = (int)(rect.Height * _settings.BackBufferHeightFactor);
                 
                 //Draw the controller.
-                _spriteBatch.Draw(controller.RenderTarget, rect, controller.Settings.TintColor);
+                _spriteBatch.Draw(controller.RenderTarget, rect, null, controller.Settings.TintColor,
+                    (float) (controller.Settings.Rotation * (Math.PI / 180)), new Vector2(0.5F, 0.5F),
+                    SpriteEffects.None, 1.0F);
+
             }
             _spriteBatch.End();
         }

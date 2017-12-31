@@ -62,6 +62,8 @@ namespace WallApp.Windows
             numericUpDown3.Value = layerSettings.Dimensions.ZValue;
             numericUpDown4.Value = layerSettings.Dimensions.WValue;
 
+            numericUpDown5.Value = layerSettings.Rotation;
+
             label8.Text = $"Layer ID: {layerSettings.LayerId}";
 
             groupBox1.Controls.Add(new Label { Text = "There are no options specific to this controller.", Location = new Point(10, 32), AutoSize = true });
@@ -100,6 +102,8 @@ namespace WallApp.Windows
             LayerSettings.Dimensions.YValue = (int)numericUpDown2.Value;
             LayerSettings.Dimensions.ZValue = (int)numericUpDown3.Value;
             LayerSettings.Dimensions.WValue = (int)numericUpDown4.Value;
+
+            LayerSettings.Rotation = (int)numericUpDown5.Value;
 
             LayerSettings.TintColor = new Microsoft.Xna.Framework.Color(pictureBox1.BackColor.R, pictureBox1.BackColor.G, pictureBox1.BackColor.B);
             
