@@ -165,6 +165,12 @@
     <Compile Include="Windows\LayerSettingsWindow.Designer.cs">
       <DependentUpon>LayerSettingsWindow.cs</DependentUpon>
     </Compile>
+    <Compile Include="Windows\ModulesListWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Windows\ModulesListWindow.Designer.cs">
+      <DependentUpon>ModulesListWindow.cs</DependentUpon>
+    </Compile>
     <Compile Include="Windows\SettingsWindow.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -182,6 +188,9 @@
     </Compile>
     <EmbeddedResource Include="Windows\LayerSettingsWindow.resx">
       <DependentUpon>LayerSettingsWindow.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Windows\ModulesListWindow.resx">
+      <DependentUpon>ModulesListWindow.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Windows\SettingsWindow.resx">
       <DependentUpon>SettingsWindow.cs</DependentUpon>

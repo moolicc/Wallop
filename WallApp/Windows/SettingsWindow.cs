@@ -25,24 +25,17 @@ namespace WallApp.Windows
 
         private void SettingsWindow_Load(object sender, EventArgs e)
         {
-            Module[] modules = Resolver.Cache.Values.ToArray();
-            foreach (var module in modules)
-            {
-                ListViewItem item = new ListViewItem(module.GetName());
-                item.SubItems.Add(module.GetDescription());
-                item.SubItems.Add(module.File);
-                item.Tag = module;
-                listView1.Items.Add(item);
-            }
         }
+        
 
-        private void button1_Click(object sender, EventArgs e)
+        private void AddLayerButton_Click(object sender, EventArgs e)
         {
-            if (listView1.SelectedItems.Count == 0)
+            var moduleDialog = new ModulesListWindow();
+            if (moduleDialog.ShowDialog() == DialogResult.Cancel || moduleDialog.SelectedModule == null)
             {
                 return;
             }
-            var module = (Module) listView1.SelectedItems[0].Tag;
+            var module = moduleDialog.SelectedModule;
 
             LayerSettings settings = new LayerSettings();
             settings.LayerId = _lastId;
@@ -68,25 +61,31 @@ namespace WallApp.Windows
             newItem.SubItems.Add(settings.Dimensions.MonitorName);
             newItem.SubItems.Add(settings.Enabled.ToString());
 
-            listView2.Items.Add(newItem);
+            LayerListView.Items.Add(newItem);
+
+            LayerSettingsWindow window = new LayerSettingsWindow(settings, module);
+            if (window.ShowDialog() == DialogResult.OK)
+            {
+                newItem.SubItems[2].Text = settings.Name;
+                newItem.SubItems[3].Text = settings.Description;
+                newItem.SubItems[4].Text = settings.Dimensions.MonitorName;
+                newItem.SubItems[5].Text = settings.Enabled.ToString();
+            }
             _lastId++;
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void RemoveLayerButton_Click(object sender, EventArgs e)
         {
-            if (listView2.SelectedItems.Count == 0)
-            {
-                return;
-            }
+
         }
 
-        private void button6_Click(object sender, EventArgs e)
+        private void LayerOptionsButton_Click(object sender, EventArgs e)
         {
-            if (listView2.SelectedItems.Count == 0)
+            if (LayerListView.SelectedItems.Count == 0)
             {
                 return;
             }
-            var selectedItem = listView2.SelectedItems[0];
+            var selectedItem = LayerListView.SelectedItems[0];
             var tuple = ((Module, LayerSettings))selectedItem.Tag;
             var settings = tuple.Item2;
             LayerSettingsWindow window = new LayerSettingsWindow(tuple.Item2, tuple.Item1);
@@ -98,22 +97,22 @@ namespace WallApp.Windows
                 selectedItem.SubItems[5].Text = settings.Enabled.ToString();
             }
         }
-        
-        private void button7_Click(object sender, EventArgs e)
-        {
-            DialogResult = DialogResult.Cancel;
-            Close();
-        }
 
-        private void button8_Click(object sender, EventArgs e)
+        private void OkButton_Click(object sender, EventArgs e)
         {
             LayerLayout.Layers.Clear();
-            foreach (ListViewItem item in listView2.Items)
+            foreach (ListViewItem item in LayerListView.Items)
             {
                 var tuple = ((Module, LayerSettings))item.Tag;
                 LayerLayout.Layers.Add(tuple.Item2);
             }
             DialogResult = DialogResult.OK;
+            Close();
+        }
+
+        private void CancelButton_Click(object sender, EventArgs e)
+        {
+            DialogResult = DialogResult.Cancel;
             Close();
         }
     }
