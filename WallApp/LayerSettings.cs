@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework;
 
 namespace WallApp
 {
-    public class LayerSettings
+    public class LayerSettings : ICloneable
     {
         public Dictionary<string, string> CustomSettings { get; private set; }
 
@@ -58,6 +58,23 @@ namespace WallApp
                     CustomSettings.Add(key, value);
                 }
             }
+        }
+
+        public object Clone()
+        {
+            return new LayerSettings()
+            {
+                LayerId = this.LayerId,
+                Module = this.Module,
+                CustomSettings = this.CustomSettings,
+                Description = this.Description,
+                Dimensions = (LayerDimensions)this.Dimensions.Clone(),
+                Enabled = this.Enabled,
+                Name = this.Name,
+                Opacity = this.Opacity,
+                Rotation = this.Rotation,
+                TintColor = this.TintColor,
+            };
         }
     }
 }

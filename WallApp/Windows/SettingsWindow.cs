@@ -131,6 +131,8 @@ namespace WallApp.Windows
 
         private void LoadLayout()
         {
+            //TODO: Work some magic, _lastId should be the lowest possible (not taken) number that is greater than 0
+
             LayerListView.Items.Clear();
             foreach (var settings in WallApp.Layout.Layers)
             {
@@ -141,7 +143,7 @@ namespace WallApp.Windows
                     Text = module.Name,
                     Tag = (module, settings)
                 };
-                newItem.SubItems.Add(_lastId.ToString());
+                newItem.SubItems.Add(settings.LayerId.ToString());
                 newItem.SubItems.Add(settings.Name);
                 newItem.SubItems.Add(settings.Description);
                 newItem.SubItems.Add(settings.Dimensions.MonitorName);
@@ -223,6 +225,28 @@ namespace WallApp.Windows
                     LayerListView.Items.RemoveAt(item.Index);
                     LayerListView.Items.Insert(newIndex, item);
                 }
+            }
+        }
+
+        private void CloneLayerButton_Click(object sender, EventArgs e)
+        {
+            foreach (ListViewItem item in LayerListView.SelectedItems)
+            {
+                ListViewItem clonedItem = (ListViewItem)item.Clone();
+
+                (var module, var settings) = ((Module, LayerSettings))clonedItem.Tag;
+                settings = (LayerSettings)settings.Clone();
+
+                settings.LayerId = _lastId;
+                clonedItem.SubItems[1].Text = _lastId.ToString();
+                _lastId++;
+
+                settings.Name = "Clone of " + settings.Name;
+                clonedItem.SubItems[2].Text = settings.Name;
+
+                clonedItem.Tag = (module, settings);
+
+                LayerListView.Items.Add(clonedItem);
             }
         }
     }

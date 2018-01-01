@@ -72,6 +72,7 @@
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.tableLayoutPanel4 = new System.Windows.Forms.TableLayoutPanel();
             this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.CloneLayerButton = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             this.tableLayoutPanel3.SuspendLayout();
             this.tabControl1.SuspendLayout();
@@ -298,7 +299,7 @@
             this.LayerListView.GridLines = true;
             this.LayerListView.Location = new System.Drawing.Point(3, 3);
             this.LayerListView.Name = "LayerListView";
-            this.tableLayoutPanel4.SetRowSpan(this.LayerListView, 5);
+            this.tableLayoutPanel4.SetRowSpan(this.LayerListView, 6);
             this.LayerListView.Size = new System.Drawing.Size(567, 333);
             this.LayerListView.TabIndex = 0;
             this.LayerListView.UseCompatibleStateImageBehavior = false;
@@ -330,7 +331,7 @@
             // 
             // LayerUpButton
             // 
-            this.LayerUpButton.Location = new System.Drawing.Point(576, 138);
+            this.LayerUpButton.Location = new System.Drawing.Point(576, 167);
             this.LayerUpButton.Name = "LayerUpButton";
             this.LayerUpButton.Size = new System.Drawing.Size(89, 23);
             this.LayerUpButton.TabIndex = 1;
@@ -340,7 +341,7 @@
             // 
             // LayerDownButton
             // 
-            this.LayerDownButton.Location = new System.Drawing.Point(576, 167);
+            this.LayerDownButton.Location = new System.Drawing.Point(576, 196);
             this.LayerDownButton.Name = "LayerDownButton";
             this.LayerDownButton.Size = new System.Drawing.Size(89, 23);
             this.LayerDownButton.TabIndex = 2;
@@ -350,7 +351,7 @@
             // 
             // LayerOptionsButton
             // 
-            this.LayerOptionsButton.Location = new System.Drawing.Point(576, 85);
+            this.LayerOptionsButton.Location = new System.Drawing.Point(576, 114);
             this.LayerOptionsButton.Margin = new System.Windows.Forms.Padding(3, 27, 3, 27);
             this.LayerOptionsButton.Name = "LayerOptionsButton";
             this.LayerOptionsButton.Size = new System.Drawing.Size(89, 23);
@@ -433,16 +434,18 @@
             this.tableLayoutPanel4.ColumnCount = 2;
             this.tableLayoutPanel4.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel4.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 95F));
-            this.tableLayoutPanel4.Controls.Add(this.LayerUpButton, 1, 3);
-            this.tableLayoutPanel4.Controls.Add(this.RemoveLayerButton, 1, 1);
-            this.tableLayoutPanel4.Controls.Add(this.LayerDownButton, 1, 4);
+            this.tableLayoutPanel4.Controls.Add(this.CloneLayerButton, 1, 2);
             this.tableLayoutPanel4.Controls.Add(this.LayerListView, 0, 0);
-            this.tableLayoutPanel4.Controls.Add(this.LayerOptionsButton, 1, 2);
+            this.tableLayoutPanel4.Controls.Add(this.LayerOptionsButton, 1, 3);
             this.tableLayoutPanel4.Controls.Add(this.AddLayerButton, 1, 0);
+            this.tableLayoutPanel4.Controls.Add(this.LayerDownButton, 1, 5);
+            this.tableLayoutPanel4.Controls.Add(this.LayerUpButton, 1, 4);
+            this.tableLayoutPanel4.Controls.Add(this.RemoveLayerButton, 1, 1);
             this.tableLayoutPanel4.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel4.Location = new System.Drawing.Point(3, 3);
             this.tableLayoutPanel4.Name = "tableLayoutPanel4";
-            this.tableLayoutPanel4.RowCount = 4;
+            this.tableLayoutPanel4.RowCount = 6;
+            this.tableLayoutPanel4.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tableLayoutPanel4.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tableLayoutPanel4.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tableLayoutPanel4.RowStyles.Add(new System.Windows.Forms.RowStyle());
@@ -459,6 +462,16 @@
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "Effects";
             this.tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // CloneLayerButton
+            // 
+            this.CloneLayerButton.Location = new System.Drawing.Point(576, 61);
+            this.CloneLayerButton.Name = "CloneLayerButton";
+            this.CloneLayerButton.Size = new System.Drawing.Size(89, 23);
+            this.CloneLayerButton.TabIndex = 5;
+            this.CloneLayerButton.Text = "Clone Layer";
+            this.CloneLayerButton.UseVisualStyleBackColor = true;
+            this.CloneLayerButton.Click += new System.EventHandler(this.CloneLayerButton_Click);
             // 
             // SettingsWindow
             // 
@@ -529,5 +542,6 @@
         private System.Windows.Forms.TabPage tabPage1;
         private System.Windows.Forms.TabPage tabPage2;
         private System.Windows.Forms.TabPage tabPage3;
+        private System.Windows.Forms.Button CloneLayerButton;
     }
 }

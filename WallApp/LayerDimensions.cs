@@ -8,7 +8,7 @@ using System.Windows.Forms;
 
 namespace WallApp
 {
-    public class LayerDimensions
+    public class LayerDimensions : ICloneable
     {
         private static Point _primaryOffset;
 
@@ -110,6 +110,20 @@ namespace WallApp
             area.Offset(_primaryOffset);
 
             return area;
+        }
+
+        public object Clone()
+        {
+            return new LayerDimensions()
+            {
+                AbsoluteValues = this.AbsoluteValues,
+                MarginValues = this.MarginValues,
+                MonitorName = this.MonitorName,
+                WValue = this.WValue,
+                XValue = this.XValue,
+                YValue = this.YValue,
+                ZValue = this.ZValue,
+            };
         }
     }
 }
