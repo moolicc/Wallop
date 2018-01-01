@@ -80,7 +80,14 @@ namespace WallApp.Windows
 
         private void RemoveLayerButton_Click(object sender, EventArgs e)
         {
+            if (LayerListView.SelectedItems.Count == 0)
+            {
+                return;
+            }
+            LayerListView.Items.RemoveAt(LayerListView.SelectedIndices[0]);
 
+            //Recursively call this function to remove all selected items.
+            RemoveLayerButton_Click(sender, e);
         }
 
         private void LayerOptionsButton_Click(object sender, EventArgs e)
