@@ -336,6 +336,7 @@
             this.LayerUpButton.TabIndex = 1;
             this.LayerUpButton.Text = "Move Up";
             this.LayerUpButton.UseVisualStyleBackColor = true;
+            this.LayerUpButton.Click += new System.EventHandler(this.LayerUpButton_Click);
             // 
             // LayerDownButton
             // 
@@ -345,6 +346,7 @@
             this.LayerDownButton.TabIndex = 2;
             this.LayerDownButton.Text = "Move Down";
             this.LayerDownButton.UseVisualStyleBackColor = true;
+            this.LayerDownButton.Click += new System.EventHandler(this.LayerDownButton_Click);
             // 
             // LayerOptionsButton
             // 

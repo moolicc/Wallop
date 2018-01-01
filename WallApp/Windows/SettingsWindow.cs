@@ -199,5 +199,31 @@ namespace WallApp.Windows
                 File.Copy("layout.json", dialog.FileName);
             }
         }
+
+        private void LayerUpButton_Click(object sender, EventArgs e)
+        {
+            foreach (ListViewItem item in LayerListView.SelectedItems)
+            {
+                if (item.Index > 0)
+                {
+                    int newIndex = item.Index - 1;
+                    LayerListView.Items.RemoveAt(item.Index);
+                    LayerListView.Items.Insert(newIndex, item);
+                }
+            }
+        }
+
+        private void LayerDownButton_Click(object sender, EventArgs e)
+        {
+            foreach (ListViewItem item in LayerListView.SelectedItems)
+            {
+                if (item.Index < LayerListView.Items.Count - 1)
+                {
+                    int newIndex = item.Index + 1;
+                    LayerListView.Items.RemoveAt(item.Index);
+                    LayerListView.Items.Insert(newIndex, item);
+                }
+            }
+        }
     }
 }
