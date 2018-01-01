@@ -1,3 +1,8 @@
+using Image = System.Drawing.Image;
+using ImageFormat = System.Drawing.Imaging.ImageFormat;
+using FrameDimension = System.Drawing.Imaging.FrameDimension;
+using System.IO;
+using System.Collections.Generic;
 
 GetController = new Func<Controller>(() =>
 {
@@ -86,7 +91,7 @@ class SettingsControl : SettingsController
         var fileDialog = new OpenFileDialog();
         fileDialog.Title = "Select Image";
         fileDialog.FileName = textBox.Text;
-        fileDialog.Filter = "Image files (*.jpg *.jpeg *.png) | *.jpg; *.jpeg; *.png";
+        fileDialog.Filter = "GIF files (*.gif) | *.gif";
 
         if (fileDialog.ShowDialog() == DialogResult.OK)
         {
@@ -97,18 +102,24 @@ class SettingsControl : SettingsController
 
 class control : Controller
 {
-    private Rectangle _drawLocation;
+    private Microsoft.Xna.Framework.Rectangle _drawLocation;
+
     private SpriteBatch _spriteBatch;
     private Texture2D _texture;
+    private GifFrame[] _frames;
+    private int _curFrame;
+    private int _curFrameTime;
     
     public override void Setup()
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
-        using (var fs = new FileStream(Settings["imagefile"], FileMode.Open))
-        {
-            _texture = Texture2D.FromStream(GraphicsDevice, fs);
-        }
-        _drawLocation = new Microsoft.Xna.Framework.Rectangle(0, 0, RenderTarget.Width, RenderTarget.Height);
+        string file = Settings["imagefile"];
+        _frames = ExtractFrames(file);
+        _curFrame = 0;
+        _curFrameTime = 0;
+        _texture = _frames[0].Texture;
+
+        _drawLocation = new Rectangle(0, 0, RenderTarget.Width, RenderTarget.Height);
     }
     
     public override void EnabledChanged()
@@ -121,6 +132,18 @@ class control : Controller
     
     public override void Update(GameTime gameTime)
     {
+        _curFrameTime += gameTime.ElapsedGameTime.Milliseconds;
+        if(_frames[_curFrame].Duration <= _curFrameTime)
+        {
+            _curFrameTime = 0;
+            _texture = _frames[_curFrame].Texture;
+
+            _curFrame++;
+            if(_curFrame >= _frames.Length)
+            {
+                _curFrame = 0;
+            }
+        }
     }
     
     public override void Draw(GameTime gameTime)
@@ -128,5 +151,49 @@ class control : Controller
         _spriteBatch.Begin();
         _spriteBatch.Draw(_texture, _drawLocation, Color.White);
         _spriteBatch.End();
+    }
+
+
+    private GifFrame[] ExtractFrames(string path)
+    {
+        List<GifFrame> gifFrames = new List<GifFrame>();
+
+        Image image = Image.FromFile(path);
+        int frameCount = image.GetFrameCount(FrameDimension.Time);
+
+        byte[] times = image.GetPropertyItem(0x5100).Value;
+        for (int i = 0; i < frameCount; i++)
+        {
+            int duration = BitConverter.ToInt32(times, 4 * i) * 10;
+            gifFrames.Add(new GifFrame(TextureFromImage((Image)image.Clone()), duration));
+            image.SelectActiveFrame(FrameDimension.Time, i);
+        }
+        image.Dispose();
+
+        return gifFrames.ToArray();
+    }
+
+    private Texture2D TextureFromImage(Image image)
+    {
+        Texture2D texture;
+        using (MemoryStream stream = new MemoryStream())
+        {
+            image.Save(stream, ImageFormat.Bmp);
+            stream.Position = 0;
+            texture = Texture2D.FromStream(GraphicsDevice, stream);
+        }
+        return texture;
+    }
+
+    private class GifFrame
+    {
+        public Texture2D Texture { get; set; }
+        public int Duration { get; private set; }
+
+        public GifFrame(Texture2D texture, int duration)
+        {
+            Texture = texture;
+            Duration = duration;
+        }
     }
 }

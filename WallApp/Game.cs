@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Deployment.Application;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -7,6 +10,8 @@ using WallApp.Scripting;
 using WallApp.Windows;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Color = Microsoft.Xna.Framework.Color;
+using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using SystemInformation = System.Windows.Forms.SystemInformation;
 
 namespace WallApp
@@ -185,9 +190,8 @@ namespace WallApp
 
                 //Vector2 originVector = new Vector2(rect.X + rect.Width / 2, rect.Y + rect.Height / 2);
                 //_spriteBatch.Draw(controller.RenderTarget, rect, null, controller.Settings.TintColor, (float) (controller.Settings.Rotation * RADIAN_MULTIPLIER), originVector, SpriteEffects.None, 0.0F);
-
+                
                 _spriteBatch.Draw(controller.RenderTarget, rect, controller.Settings.TintColor);
-
             }
             _spriteBatch.End();
         }
