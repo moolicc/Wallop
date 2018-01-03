@@ -48,6 +48,9 @@ namespace WallApp
             _graphicsManager.PreferredBackBufferWidth = (int)(SystemInformation.VirtualScreen.Width * Settings.Instance.BackBufferWidthFactor);
             _graphicsManager.PreferredBackBufferHeight = (int)(SystemInformation.VirtualScreen.Height * Settings.Instance.BackBufferHeightFactor);
 
+            //Set the frame rate.
+            TargetElapsedTime = TimeSpan.FromSeconds(1.0F / Settings.Instance.FrameRate);
+
             //Load in extension modules.
             //This really just caches them for later use.
             Resolver.LoadModules(AppDomain.CurrentDomain.BaseDirectory + "modules\\");
@@ -80,11 +83,43 @@ namespace WallApp
             }
             
             //Show the settings window.
-            SettingsWindow window = new SettingsWindow();
-            window.ShowDialog();
+            ShowSettings();
 
-            //Initialize the controllers the user enabled in the settings window.
+            //Initialize the controllers the user has in the current layout.
             InitializeControllers();
+        }
+
+        private void ShowSettings()
+        {
+            //Show the settings window.
+            SettingsWindow window = new SettingsWindow();
+            if(window.ShowDialog() != DialogResult.OK)
+            {
+                return;
+            }
+
+            //Apply settings.
+            if (window.SettingsChanged)
+            {
+                _graphicsManager.PreferredBackBufferWidth = (int)(SystemInformation.VirtualScreen.Width * Settings.Instance.BackBufferWidthFactor);
+                _graphicsManager.PreferredBackBufferHeight = (int)(SystemInformation.VirtualScreen.Height * Settings.Instance.BackBufferHeightFactor);
+                TargetElapsedTime = TimeSpan.FromSeconds(1.0F / Settings.Instance.FrameRate);
+                _graphicsManager.ApplyChanges();
+            }
+            
+            //Apply new layout.
+            if (window.LayoutChanged)
+            {
+                //Dispose old controller rendertargets.
+                foreach (var controller in _controllers)
+                {
+                    controller.RenderTarget.Dispose();
+                }
+
+                //Initialize the new layout.
+                _controllers.Clear();
+                InitializeControllers();
+            }
         }
 
         private void InitializeControllers()

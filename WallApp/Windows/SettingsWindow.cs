@@ -14,12 +14,15 @@ namespace WallApp.Windows
 {
     internal partial class SettingsWindow : Form
     {
+        public bool SettingsChanged { get; set; }
+        public bool LayoutChanged { get; set; }
+
         private int _lastId;
 
         public SettingsWindow()
         {
             InitializeComponent();
-            _lastId = 0;
+            _lastId = FindNextLayerId();
         }
 
         private void SettingsWindow_Load(object sender, EventArgs e)
@@ -82,7 +85,9 @@ namespace WallApp.Windows
             }
 
             LayerListView.Items.Add(newItem);
-            _lastId++;
+            _lastId = FindNextLayerId();
+
+            LayoutChanged = true;
         }
 
         private void RemoveLayerButton_Click(object sender, EventArgs e)
@@ -95,6 +100,8 @@ namespace WallApp.Windows
 
             //Recursively call this function to remove all selected items.
             RemoveLayerButton_Click(sender, e);
+
+            LayoutChanged = true;
         }
 
         private void LayerOptionsButton_Click(object sender, EventArgs e)
@@ -114,6 +121,8 @@ namespace WallApp.Windows
                 selectedItem.SubItems[4].Text = settings.Dimensions.MonitorName;
                 selectedItem.SubItems[5].Text = settings.Enabled.ToString();
             }
+
+            LayoutChanged = true;
         }
 
         private void OkButton_Click(object sender, EventArgs e)
@@ -126,6 +135,15 @@ namespace WallApp.Windows
 
         private void SaveSettings()
         {
+            if (FpsNumericUpDown.Value == Settings.Instance.FrameRate
+                && BackBufferFactorUpDown.Value == (decimal)Settings.Instance.BackBufferWidthFactor
+                && BackBufferFactorUpDown.Value == (decimal)Settings.Instance.BackBufferHeightFactor)
+            {
+                return;
+            }
+
+            SettingsChanged = true;
+
             Settings.Instance.FrameRate = (int) FpsNumericUpDown.Value;
             Settings.Instance.BackBufferWidthFactor = (float) BackBufferFactorUpDown.Value;
             Settings.Instance.BackBufferHeightFactor = (float) BackBufferFactorUpDown.Value;
@@ -133,6 +151,11 @@ namespace WallApp.Windows
 
         private void SaveLayout()
         {
+            if (!LayoutChanged)
+            {
+                return;
+            }
+
             WallApp.Layout.Layers.Clear();
             foreach (ListViewItem item in LayerListView.Items)
             {
@@ -176,7 +199,7 @@ namespace WallApp.Windows
                 newItem.SubItems[4].Text = settings.Dimensions.MonitorName;
                 newItem.SubItems[5].Text = settings.Enabled.ToString();
 
-                _lastId++;
+                _lastId = FindNextLayerId();
             }
         }
 
@@ -233,6 +256,8 @@ namespace WallApp.Windows
                     LayerListView.Items.Insert(newIndex, item);
                 }
             }
+
+            LayoutChanged = true;
         }
 
         private void LayerDownButton_Click(object sender, EventArgs e)
@@ -246,6 +271,8 @@ namespace WallApp.Windows
                     LayerListView.Items.Insert(newIndex, item);
                 }
             }
+
+            LayoutChanged = true;
         }
 
         private void CloneLayerButton_Click(object sender, EventArgs e)
@@ -259,7 +286,8 @@ namespace WallApp.Windows
 
                 settings.LayerId = _lastId;
                 clonedItem.SubItems[1].Text = _lastId.ToString();
-                _lastId++;
+
+                _lastId = FindNextLayerId();
 
                 settings.Name = "Clone of " + settings.Name;
                 clonedItem.SubItems[2].Text = settings.Name;
@@ -268,6 +296,37 @@ namespace WallApp.Windows
 
                 LayerListView.Items.Add(clonedItem);
             }
+
+            LayoutChanged = true;
+        }
+
+        private int FindNextLayerId()
+        {
+            int id = -1;
+            for (int i = 0; i < LayerListView.Items.Count; i++)
+            {
+                bool any = false;
+                foreach (ListViewItem item in LayerListView.Items)
+                {
+                    (var module, var settings) = ((Module, LayerSettings))item.Tag;
+                    if (settings.LayerId == i)
+                    {
+                        any = true;
+                        break;
+                    }
+                }
+                if (!any)
+                {
+                    id = i;
+                    break;
+                }
+            }
+
+            if (id == -1)
+            {
+                id = LayerListView.Items.Count;
+            }
+            return id;
         }
     }
 }
