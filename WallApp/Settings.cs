@@ -1,16 +1,43 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace WallApp
 {
     class Settings
     {
-        public float BackBufferWidthFactor = 0.5F;
-        public float BackBufferHeightFactor = 0.5F;
-        public int FrameRate = 0;
-        public string OriginMonitor = @"\\\\.\\DISPLAY1";
+        public static Settings Instance { get; private set; }
+        
+        static Settings()
+        {
+            Instance = new Settings();
+        }
+
+        public static void Load(string file)
+        {
+            string data = File.ReadAllText(file);
+            Instance = JsonConvert.DeserializeObject<Settings>(data);
+        }
+
+        public static void Save(string file)
+        {
+            string data = JsonConvert.SerializeObject(Instance);
+            File.WriteAllText(file, data);
+        }
+
+        public float BackBufferWidthFactor { get; set; }
+        public float BackBufferHeightFactor { get; set; }
+        public int FrameRate { get; set; }
+
+        private Settings()
+        {
+            BackBufferWidthFactor = 0.5F;
+            BackBufferHeightFactor = 0.5F;
+            FrameRate = 60;
+        }
     }
 }

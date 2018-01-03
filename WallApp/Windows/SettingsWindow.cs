@@ -24,7 +24,14 @@ namespace WallApp.Windows
 
         private void SettingsWindow_Load(object sender, EventArgs e)
         {
+            LoadSettings();
             LoadLayout();
+        }
+
+        private void LoadSettings()
+        {
+            FpsNumericUpDown.Value = Settings.Instance.FrameRate;
+            BackBufferFactorUpDown.Value = (decimal)Settings.Instance.BackBufferWidthFactor;
         }
 
         private void AddLayerButton_Click(object sender, EventArgs e)
@@ -111,6 +118,21 @@ namespace WallApp.Windows
 
         private void OkButton_Click(object sender, EventArgs e)
         {
+            SaveSettings();
+            SaveLayout();
+            DialogResult = DialogResult.OK;
+            Close();
+        }
+
+        private void SaveSettings()
+        {
+            Settings.Instance.FrameRate = (int) FpsNumericUpDown.Value;
+            Settings.Instance.BackBufferWidthFactor = (float) BackBufferFactorUpDown.Value;
+            Settings.Instance.BackBufferHeightFactor = (float) BackBufferFactorUpDown.Value;
+        }
+
+        private void SaveLayout()
+        {
             WallApp.Layout.Layers.Clear();
             foreach (ListViewItem item in LayerListView.Items)
             {
@@ -118,8 +140,6 @@ namespace WallApp.Windows
                 WallApp.Layout.Layers.Add(tuple.Item2);
             }
             WallApp.Layout.Save("layout.json");
-            DialogResult = DialogResult.OK;
-            Close();
         }
 
         private void CancelButton_Click(object sender, EventArgs e)

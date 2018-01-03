@@ -27,22 +27,26 @@ namespace WallApp
 
         private GraphicsDeviceManager _graphicsManager;
         private SpriteBatch _spriteBatch;
-
-        private Settings _settings;
+    
         private List<Controller> _controllers;
 
         private Form _form;
 
         public Game()
         {
-            _settings = new Settings();
             _graphicsManager = new GraphicsDeviceManager(this);
+
+            //Load settings
+            if (File.Exists("settings.json"))
+            {
+                Settings.Load("settings.json");
+            }
 
             //Since the span of multiple monitors is probably too large, we use a scaling factor.
             //The scale factor defaults to 0.5. Which is enough to keep it from crashing on my system.
             //At a later time, this value will be changable by the user.
-            _graphicsManager.PreferredBackBufferWidth = (int)(SystemInformation.VirtualScreen.Width * _settings.BackBufferWidthFactor);
-            _graphicsManager.PreferredBackBufferHeight = (int)(SystemInformation.VirtualScreen.Height * _settings.BackBufferHeightFactor);
+            _graphicsManager.PreferredBackBufferWidth = (int)(SystemInformation.VirtualScreen.Width * Settings.Instance.BackBufferWidthFactor);
+            _graphicsManager.PreferredBackBufferHeight = (int)(SystemInformation.VirtualScreen.Height * Settings.Instance.BackBufferHeightFactor);
 
             //Load in extension modules.
             //This really just caches them for later use.
@@ -105,10 +109,10 @@ namespace WallApp
                 controller.GraphicsDevice = GraphicsDevice;
                 controller.Module = module;
                 controller.ScaledLayerBounds = new Rectangle(
-                    (int) (x * _settings.BackBufferWidthFactor),
-                    (int) (y * _settings.BackBufferHeightFactor),
-                    (int) (width * _settings.BackBufferWidthFactor),
-                    (int) (height * _settings.BackBufferHeightFactor));
+                    (int) (x * Settings.Instance.BackBufferWidthFactor),
+                    (int) (y * Settings.Instance.BackBufferHeightFactor),
+                    (int) (width * Settings.Instance.BackBufferWidthFactor),
+                    (int) (height * Settings.Instance.BackBufferHeightFactor));
                 controller.PlaceControl = c =>
                 {
                     if (!c.Bounds.Contains(new System.Drawing.Rectangle(controller.ScaledLayerBounds.X,
@@ -181,10 +185,10 @@ namespace WallApp
                 }
                 //Get the dimensions of the layer, applying the scale factor.
                 var rect = controller.Settings.Dimensions.GetBoundsRectangle();
-                rect.X = (int) (rect.X * _settings.BackBufferWidthFactor);
-                rect.Y = (int)(rect.Y * _settings.BackBufferHeightFactor);
-                rect.Width = (int)(rect.Width * _settings.BackBufferWidthFactor);
-                rect.Height = (int)(rect.Height * _settings.BackBufferHeightFactor);
+                rect.X = (int) (rect.X * Settings.Instance.BackBufferWidthFactor);
+                rect.Y = (int)(rect.Y * Settings.Instance.BackBufferHeightFactor);
+                rect.Width = (int)(rect.Width * Settings.Instance.BackBufferWidthFactor);
+                rect.Height = (int)(rect.Height * Settings.Instance.BackBufferHeightFactor);
 
                 //Draw the controller.
 

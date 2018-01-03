@@ -69,13 +69,22 @@
             this.OkButton = new System.Windows.Forms.Button();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+            this.label1 = new System.Windows.Forms.Label();
+            this.FpsNumericUpDown = new System.Windows.Forms.NumericUpDown();
+            this.label2 = new System.Windows.Forms.Label();
+            this.BackBufferFactorUpDown = new System.Windows.Forms.NumericUpDown();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.tableLayoutPanel4 = new System.Windows.Forms.TableLayoutPanel();
-            this.tabPage3 = new System.Windows.Forms.TabPage();
             this.CloneLayerButton = new System.Windows.Forms.Button();
+            this.tabPage3 = new System.Windows.Forms.TabPage();
             this.menuStrip1.SuspendLayout();
             this.tableLayoutPanel3.SuspendLayout();
             this.tabControl1.SuspendLayout();
+            this.tabPage1.SuspendLayout();
+            this.tableLayoutPanel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.FpsNumericUpDown)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.BackBufferFactorUpDown)).BeginInit();
             this.tabPage2.SuspendLayout();
             this.tableLayoutPanel4.SuspendLayout();
             this.SuspendLayout();
@@ -410,6 +419,7 @@
             // 
             // tabPage1
             // 
+            this.tabPage1.Controls.Add(this.tableLayoutPanel1);
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
@@ -417,6 +427,89 @@
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "General";
             this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // tableLayoutPanel1
+            // 
+            this.tableLayoutPanel1.ColumnCount = 2;
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.tableLayoutPanel1.Controls.Add(this.label1, 0, 0);
+            this.tableLayoutPanel1.Controls.Add(this.FpsNumericUpDown, 0, 1);
+            this.tableLayoutPanel1.Controls.Add(this.label2, 1, 0);
+            this.tableLayoutPanel1.Controls.Add(this.BackBufferFactorUpDown, 1, 1);
+            this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(3, 3);
+            this.tableLayoutPanel1.Name = "tableLayoutPanel1";
+            this.tableLayoutPanel1.RowCount = 2;
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(668, 339);
+            this.tableLayoutPanel1.TabIndex = 0;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(3, 0);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(57, 13);
+            this.label1.TabIndex = 0;
+            this.label1.Text = "Frame rate";
+            // 
+            // FpsNumericUpDown
+            // 
+            this.FpsNumericUpDown.Location = new System.Drawing.Point(3, 16);
+            this.FpsNumericUpDown.Maximum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
+            this.FpsNumericUpDown.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.FpsNumericUpDown.Name = "FpsNumericUpDown";
+            this.FpsNumericUpDown.Size = new System.Drawing.Size(120, 20);
+            this.FpsNumericUpDown.TabIndex = 1;
+            this.FpsNumericUpDown.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(138, 0);
+            this.label2.Margin = new System.Windows.Forms.Padding(12, 0, 3, 0);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(113, 13);
+            this.label2.TabIndex = 2;
+            this.label2.Text = "Back-buffer size factor";
+            // 
+            // BackBufferFactorUpDown
+            // 
+            this.BackBufferFactorUpDown.DecimalPlaces = 2;
+            this.BackBufferFactorUpDown.Location = new System.Drawing.Point(138, 16);
+            this.BackBufferFactorUpDown.Margin = new System.Windows.Forms.Padding(12, 3, 3, 3);
+            this.BackBufferFactorUpDown.Maximum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.BackBufferFactorUpDown.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            131072});
+            this.BackBufferFactorUpDown.Name = "BackBufferFactorUpDown";
+            this.BackBufferFactorUpDown.Size = new System.Drawing.Size(120, 20);
+            this.BackBufferFactorUpDown.TabIndex = 3;
+            this.BackBufferFactorUpDown.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            131072});
             // 
             // tabPage2
             // 
@@ -454,15 +547,6 @@
             this.tableLayoutPanel4.Size = new System.Drawing.Size(668, 339);
             this.tableLayoutPanel4.TabIndex = 0;
             // 
-            // tabPage3
-            // 
-            this.tabPage3.Location = new System.Drawing.Point(4, 22);
-            this.tabPage3.Name = "tabPage3";
-            this.tabPage3.Size = new System.Drawing.Size(674, 345);
-            this.tabPage3.TabIndex = 2;
-            this.tabPage3.Text = "Effects";
-            this.tabPage3.UseVisualStyleBackColor = true;
-            // 
             // CloneLayerButton
             // 
             this.CloneLayerButton.Location = new System.Drawing.Point(576, 61);
@@ -472,6 +556,15 @@
             this.CloneLayerButton.Text = "Clone Layer";
             this.CloneLayerButton.UseVisualStyleBackColor = true;
             this.CloneLayerButton.Click += new System.EventHandler(this.CloneLayerButton_Click);
+            // 
+            // tabPage3
+            // 
+            this.tabPage3.Location = new System.Drawing.Point(4, 22);
+            this.tabPage3.Name = "tabPage3";
+            this.tabPage3.Size = new System.Drawing.Size(674, 345);
+            this.tabPage3.TabIndex = 2;
+            this.tabPage3.Text = "Effects";
+            this.tabPage3.UseVisualStyleBackColor = true;
             // 
             // SettingsWindow
             // 
@@ -490,6 +583,11 @@
             this.menuStrip1.PerformLayout();
             this.tableLayoutPanel3.ResumeLayout(false);
             this.tabControl1.ResumeLayout(false);
+            this.tabPage1.ResumeLayout(false);
+            this.tableLayoutPanel1.ResumeLayout(false);
+            this.tableLayoutPanel1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.FpsNumericUpDown)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.BackBufferFactorUpDown)).EndInit();
             this.tabPage2.ResumeLayout(false);
             this.tableLayoutPanel4.ResumeLayout(false);
             this.ResumeLayout(false);
@@ -543,5 +641,10 @@
         private System.Windows.Forms.TabPage tabPage2;
         private System.Windows.Forms.TabPage tabPage3;
         private System.Windows.Forms.Button CloneLayerButton;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.NumericUpDown FpsNumericUpDown;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.NumericUpDown BackBufferFactorUpDown;
     }
 }
