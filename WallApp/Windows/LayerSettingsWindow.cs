@@ -42,6 +42,7 @@ namespace WallApp.Windows
             //This will cause the CalculateNumericValues function to be called as well.
             //This will cause the CalculateNumericValues function to be called.
             comboBox1.Items.AddRange(Screen.AllScreens.Select(s => s.DeviceName).ToArray());
+            comboBox1.SelectedIndex = 0;
             if (!string.IsNullOrEmpty(layerSettings.Dimensions.MonitorName))
             {
                 for (int i = 0; i < Screen.AllScreens.Length; i++)
@@ -77,6 +78,26 @@ namespace WallApp.Windows
                     groupBox1.Controls.Add(control);
                 }
             }
+
+            comboBox2.Items.Add("n/a");
+            comboBox2.SelectedIndex = 0;
+
+            if (module.AllowsCustomEffect)
+            {
+                string[] effects = Effects.GetEffects();
+                comboBox2.Items.AddRange(effects);
+                if (!string.IsNullOrWhiteSpace(layerSettings.Effect))
+                {
+                    for (int i = 0; i < effects.Length; i++)
+                    {
+                        if (effects[i] == layerSettings.Effect)
+                        {
+                            comboBox2.SelectedIndex = i + 1;
+                            break;
+                        }
+                    }
+                }
+            }
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -107,7 +128,8 @@ namespace WallApp.Windows
             LayerSettings.Rotation = (int)numericUpDown5.Value;
 
             LayerSettings.TintColor = new Microsoft.Xna.Framework.Color(pictureBox1.BackColor.R, pictureBox1.BackColor.G, pictureBox1.BackColor.B);
-            
+            LayerSettings.Effect = comboBox2.SelectedIndex == 0 ? "" : comboBox2.SelectedItem.ToString();
+
             DialogResult = DialogResult.OK;
             Close();
         }

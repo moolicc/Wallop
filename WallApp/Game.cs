@@ -4,6 +4,7 @@ using System.Deployment.Application;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using WallApp.Scripting;
@@ -27,6 +28,7 @@ namespace WallApp
 
         private GraphicsDeviceManager _graphicsManager;
         private SpriteBatch _spriteBatch;
+        private Dictionary<string, Effect> _effectsCache;
     
         private List<Controller> _controllers;
 
@@ -81,6 +83,9 @@ namespace WallApp
             {
                 Layout.Load("layout.json");
             }
+
+            //Instantiate the effects cache.
+            _effectsCache = new Dictionary<string, Effect>();
             
             //Show the settings window.
             ShowSettings();
@@ -110,14 +115,17 @@ namespace WallApp
             //Apply new layout.
             if (window.LayoutChanged)
             {
-                //Dispose old controller rendertargets.
-                foreach (var controller in _controllers)
+                if (_controllers != null)
                 {
-                    controller.RenderTarget.Dispose();
-                }
+                    //Dispose old controller rendertargets.
+                    foreach (var controller in _controllers)
+                    {
+                        controller.RenderTarget.Dispose();
+                    }
 
+                    _controllers.Clear();
+                }
                 //Initialize the new layout.
-                _controllers.Clear();
                 InitializeControllers();
             }
         }
@@ -165,6 +173,15 @@ namespace WallApp
                 //Allow the controller to handle any initialization is needs.
                 controller.Setup();
                 
+                //Cache any effects.
+                if (!string.IsNullOrWhiteSpace(layer.Effect))
+                {
+                    if (!_effectsCache.ContainsKey(layer.Effect))
+                    {
+                        _effectsCache.Add(layer.Effect, Effects.CreateEffect(layer.Effect, Content));
+                    }
+                }
+
                 _controllers.Add(controller);
             }
         }
@@ -209,7 +226,9 @@ namespace WallApp
         private void Present(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
-            _spriteBatch.Begin();
+
+            string lastEffect = "[n/a]";
+            bool beginCalled = false;
 
             //Draw each controller's rendertarget onto the screen.
             foreach (var controller in _controllers)
@@ -218,6 +237,26 @@ namespace WallApp
                 {
                     continue;
                 }
+                if (controller.Settings.Effect != lastEffect)
+                {
+                    if (beginCalled)
+                    {
+                        _spriteBatch.End();
+                    }
+                    if (controller.Settings.Effect == "")
+                    {
+                        lastEffect = "";
+                        _spriteBatch.Begin();
+                        beginCalled = true;
+                    }
+                    else
+                    {
+                        lastEffect = controller.Settings.Effect;
+                        _spriteBatch.Begin(effect: _effectsCache[controller.Settings.Effect]);
+                        beginCalled = true;
+                    }
+                }
+                
                 //Get the dimensions of the layer, applying the scale factor.
                 var rect = controller.Settings.Dimensions.GetBoundsRectangle();
                 rect.X = (int) (rect.X * Settings.Instance.BackBufferWidthFactor);

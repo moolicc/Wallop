@@ -3,4 +3,5 @@
   <name>GIF</name>
   <description>Displays an animated .gif image</description>
   <version>1.0</version>
+  <customeffects>true</customeffects>
 </root>

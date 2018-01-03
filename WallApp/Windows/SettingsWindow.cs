@@ -101,6 +101,8 @@ namespace WallApp.Windows
             //Recursively call this function to remove all selected items.
             RemoveLayerButton_Click(sender, e);
 
+            _lastId = FindNextLayerId();
+
             LayoutChanged = true;
         }
 
@@ -286,15 +288,15 @@ namespace WallApp.Windows
 
                 settings.LayerId = _lastId;
                 clonedItem.SubItems[1].Text = _lastId.ToString();
-
-                _lastId = FindNextLayerId();
-
+                
                 settings.Name = "Clone of " + settings.Name;
                 clonedItem.SubItems[2].Text = settings.Name;
 
                 clonedItem.Tag = (module, settings);
 
                 LayerListView.Items.Add(clonedItem);
+
+                _lastId = FindNextLayerId();
             }
 
             LayoutChanged = true;

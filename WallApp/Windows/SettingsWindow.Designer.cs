@@ -77,7 +77,6 @@
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.tableLayoutPanel4 = new System.Windows.Forms.TableLayoutPanel();
             this.CloneLayerButton = new System.Windows.Forms.Button();
-            this.tabPage3 = new System.Windows.Forms.TabPage();
             this.menuStrip1.SuspendLayout();
             this.tableLayoutPanel3.SuspendLayout();
             this.tabControl1.SuspendLayout();
@@ -409,7 +408,6 @@
             // 
             this.tabControl1.Controls.Add(this.tabPage1);
             this.tabControl1.Controls.Add(this.tabPage2);
-            this.tabControl1.Controls.Add(this.tabPage3);
             this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControl1.Location = new System.Drawing.Point(0, 24);
             this.tabControl1.Name = "tabControl1";
@@ -557,15 +555,6 @@
             this.CloneLayerButton.UseVisualStyleBackColor = true;
             this.CloneLayerButton.Click += new System.EventHandler(this.CloneLayerButton_Click);
             // 
-            // tabPage3
-            // 
-            this.tabPage3.Location = new System.Drawing.Point(4, 22);
-            this.tabPage3.Name = "tabPage3";
-            this.tabPage3.Size = new System.Drawing.Size(674, 345);
-            this.tabPage3.TabIndex = 2;
-            this.tabPage3.Text = "Effects";
-            this.tabPage3.UseVisualStyleBackColor = true;
-            // 
             // SettingsWindow
             // 
             this.AcceptButton = this.OkButton;
@@ -639,7 +628,6 @@
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tabPage1;
         private System.Windows.Forms.TabPage tabPage2;
-        private System.Windows.Forms.TabPage tabPage3;
         private System.Windows.Forms.Button CloneLayerButton;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private System.Windows.Forms.Label label1;

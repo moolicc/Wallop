@@ -150,6 +150,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Effects.cs" />
     <Compile Include="Game.cs" />
     <Compile Include="LayerDimensions.cs" />
     <Compile Include="LayerSettings.cs" />
@@ -201,6 +202,9 @@
     <EmbeddedResource Include="Windows\SettingsWindow.resx">
       <DependentUpon>SettingsWindow.cs</DependentUpon>
     </EmbeddedResource>
+    <None Include="effects\stock\blackwhite.xnb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="modules\Gif\gif.csx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

@@ -57,6 +57,8 @@
             this.label11 = new System.Windows.Forms.Label();
             this.label12 = new System.Windows.Forms.Label();
             this.numericUpDown5 = new System.Windows.Forms.NumericUpDown();
+            this.label13 = new System.Windows.Forms.Label();
+            this.comboBox2 = new System.Windows.Forms.ComboBox();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown3)).BeginInit();
@@ -238,7 +240,7 @@
             // 
             this.groupBox1.Location = new System.Drawing.Point(296, 12);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(246, 402);
+            this.groupBox1.Size = new System.Drawing.Size(246, 442);
             this.groupBox1.TabIndex = 17;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Controller Settings";
@@ -247,7 +249,7 @@
             // 
             this.label8.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(9, 468);
+            this.label8.Location = new System.Drawing.Point(9, 502);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(53, 13);
             this.label8.TabIndex = 18;
@@ -261,7 +263,7 @@
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableLayoutPanel1.Controls.Add(this.button1, 0, 0);
             this.tableLayoutPanel1.Controls.Add(this.button2, 1, 0);
-            this.tableLayoutPanel1.Location = new System.Drawing.Point(387, 449);
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(387, 483);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 1;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
@@ -361,13 +363,33 @@
             this.numericUpDown5.Size = new System.Drawing.Size(120, 20);
             this.numericUpDown5.TabIndex = 26;
             // 
+            // label13
+            // 
+            this.label13.AutoSize = true;
+            this.label13.Location = new System.Drawing.Point(30, 417);
+            this.label13.Name = "label13";
+            this.label13.Size = new System.Drawing.Size(35, 13);
+            this.label13.TabIndex = 28;
+            this.label13.Text = "Effect";
+            // 
+            // comboBox2
+            // 
+            this.comboBox2.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox2.FormattingEnabled = true;
+            this.comboBox2.Location = new System.Drawing.Point(33, 433);
+            this.comboBox2.Name = "comboBox2";
+            this.comboBox2.Size = new System.Drawing.Size(246, 21);
+            this.comboBox2.TabIndex = 27;
+            // 
             // LayerSettingsWindow
             // 
             this.AcceptButton = this.button1;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.button2;
-            this.ClientSize = new System.Drawing.Size(558, 490);
+            this.ClientSize = new System.Drawing.Size(558, 524);
+            this.Controls.Add(this.label13);
+            this.Controls.Add(this.comboBox2);
             this.Controls.Add(this.numericUpDown5);
             this.Controls.Add(this.label12);
             this.Controls.Add(this.label11);
@@ -445,5 +467,7 @@
         private System.Windows.Forms.Label label11;
         private System.Windows.Forms.Label label12;
         private System.Windows.Forms.NumericUpDown numericUpDown5;
+        private System.Windows.Forms.Label label13;
+        private System.Windows.Forms.ComboBox comboBox2;
     }
 }

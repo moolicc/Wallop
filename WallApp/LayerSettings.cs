@@ -17,7 +17,8 @@ namespace WallApp
         public string Description { get; set; }
         public bool Enabled { get; set; }
         public int Rotation { get; set; }
-        
+
+        public string Effect { get; set; }
         public Color TintColor { get; set; }
 
         public float Opacity { get; set; }
@@ -34,6 +35,7 @@ namespace WallApp
             Opacity = 1.0F;
             Dimensions = new LayerDimensions();
             Enabled = true;
+            Effect = "";
             CustomSettings = new Dictionary<string, string>();
         }
 
