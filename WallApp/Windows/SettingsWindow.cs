@@ -177,8 +177,6 @@ namespace WallApp.Windows
 
         private void LoadLayout()
         {
-            //TODO: Work some magic, _lastId should be the lowest possible (not taken) number that is greater than 0
-
             LayerListView.Items.Clear();
             foreach (var settings in WallApp.Layout.Layers)
             {
