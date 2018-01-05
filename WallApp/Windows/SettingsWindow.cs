@@ -40,6 +40,7 @@ namespace WallApp.Windows
         private void AddLayerButton_Click(object sender, EventArgs e)
         {
             var moduleDialog = new ModulesListWindow();
+            moduleDialog.StartPosition = FormStartPosition.CenterParent;
             if (moduleDialog.ShowDialog() == DialogResult.Cancel || moduleDialog.SelectedModule == null)
             {
                 return;
