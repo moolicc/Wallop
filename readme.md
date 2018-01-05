@@ -1,5 +1,8 @@
 # Wall Apparatus
 <https://drive.google.com/open?id=1TOFSUjcQ2Zz-TK9d31LgaUnILAN40g0E>
+
+#### Note that I've only tested it on Windows 10
+
 ## Also known as: WallApp, just so I can pronounce it "wallop".
 WallApp is an engine for "living" desktop wallpapers. It uses Monogame at its core to drive things. Built around extensions called *modules*, wallapp allows you to write-in new things using the familiar update/draw loop in c# script files. Backgrounds are built using one or more *layers*. Each layer is associated with a module and a specific set of settings.
 
