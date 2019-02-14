@@ -33,9 +33,9 @@ class control : Controller
 
         var elementHost = new System.Windows.Forms.Integration.ElementHost();
         System.Console.WriteLine("1");
-        elementHost.Size = new System.Drawing.Size(ScaledLayerBounds.Width, ScaledLayerBounds.Height);
+        elementHost.Size = new System.Drawing.Size(Rendering.ActualWidth, Rendering.ActualHeight);
         System.Console.WriteLine("1");
-        elementHost.Location = new System.Drawing.Point(ScaledLayerBounds.X, ScaledLayerBounds.Y);
+        elementHost.Location = new System.Drawing.Point(Rendering.ActualX, Rendering.ActualY);
         System.Console.WriteLine("1");
         elementHost.Child = mediaElement;
         System.Console.WriteLine("1");

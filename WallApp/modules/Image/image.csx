@@ -103,12 +103,12 @@ class control : Controller
     
     public override void Setup()
     {
-        _spriteBatch = new SpriteBatch(GraphicsDevice);
+        _spriteBatch = new SpriteBatch(Rendering.GraphicsDevice);
         using (var fs = new FileStream(Settings["imagefile"], FileMode.Open))
         {
-            _texture = Texture2D.FromStream(GraphicsDevice, fs);
+            _texture = Texture2D.FromStream(Rendering.GraphicsDevice, fs);
         }
-        _drawLocation = new Microsoft.Xna.Framework.Rectangle(0, 0, RenderTarget.Width, RenderTarget.Height);
+        _drawLocation = new Microsoft.Xna.Framework.Rectangle(0, 0, Rendering.ActualWidth, Rendering.ActualHeight);
     }
     
     public override void EnabledChanged()

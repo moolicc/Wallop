@@ -11,6 +11,7 @@ using WallApp.Scripting;
 using WallApp.Windows;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using WallApp.UI.ViewModels;
 using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using SystemInformation = System.Windows.Forms.SystemInformation;
@@ -56,6 +57,11 @@ namespace WallApp
             //Load in extension modules.
             //This really just caches them for later use.
             Resolver.LoadModules(AppDomain.CurrentDomain.BaseDirectory + "modules\\");
+
+
+
+
+            var win = new WallApp.UI.Views.SettingsWindow(new SettingsViewModel(new SettingsModel()));
         }
 
         protected override void Initialize()
@@ -120,7 +126,7 @@ namespace WallApp
                     //Dispose old controller rendertargets.
                     foreach (var controller in _controllers)
                     {
-                        controller.RenderTarget.Dispose();
+                        controller.Rendering.RenderTarget.Dispose();
                     }
 
                     _controllers.Clear();
@@ -149,18 +155,17 @@ namespace WallApp
 
                 //Pass the layer's configuration to the controller.
                 controller.Settings = layer;
-                controller.GraphicsDevice = GraphicsDevice;
                 controller.Module = module;
-                controller.ScaledLayerBounds = new Rectangle(
+                var scaledLayerBounds = new Rectangle(
                     (int) (x * Settings.Instance.BackBufferWidthFactor),
                     (int) (y * Settings.Instance.BackBufferHeightFactor),
                     (int) (width * Settings.Instance.BackBufferWidthFactor),
                     (int) (height * Settings.Instance.BackBufferHeightFactor));
                 controller.PlaceControl = c =>
                 {
-                    if (!c.Bounds.Contains(new System.Drawing.Rectangle(controller.ScaledLayerBounds.X,
-                        controller.ScaledLayerBounds.Y, controller.ScaledLayerBounds.Width,
-                        controller.ScaledLayerBounds.Height)))
+                    if (!c.Bounds.Contains(new System.Drawing.Rectangle(scaledLayerBounds.X,
+                        scaledLayerBounds.Y, scaledLayerBounds.Width,
+                        scaledLayerBounds.Height)))
                     {
                         return;
                     }
@@ -168,7 +173,14 @@ namespace WallApp
                 };
 
                 //We setup the rendertarget that the controller will draw to.
-                controller.RenderTarget = new RenderTarget2D(GraphicsDevice, width, height);
+                var renderTarget = new RenderTarget2D(GraphicsDevice, width, height);
+
+                //Init the controller's rendering parameters.
+                controller.Rendering = new Rendering(GraphicsDevice, renderTarget);
+                controller.Rendering.ActualX = scaledLayerBounds.X;
+                controller.Rendering.ActualY = scaledLayerBounds.Y;
+                controller.Rendering.ActualWidth = scaledLayerBounds.Width;
+                controller.Rendering.ActualHeight = scaledLayerBounds.Height;
 
                 //Allow the controller to handle any initialization is needs.
                 controller.Setup();
@@ -216,7 +228,7 @@ namespace WallApp
                 {
                     continue;
                 }
-                GraphicsDevice.SetRenderTarget(controller.RenderTarget);
+                GraphicsDevice.SetRenderTarget(controller.Rendering.RenderTarget);
                 GraphicsDevice.Clear(Color.Transparent);
                 controller.Draw(gameTime);
             }
@@ -269,7 +281,7 @@ namespace WallApp
                 //Vector2 originVector = new Vector2(rect.X + rect.Width / 2, rect.Y + rect.Height / 2);
                 //_spriteBatch.Draw(controller.RenderTarget, rect, null, controller.Settings.TintColor, (float) (controller.Settings.Rotation * RADIAN_MULTIPLIER), originVector, SpriteEffects.None, 0.0F);
                 
-                _spriteBatch.Draw(controller.RenderTarget, rect, controller.Settings.TintColor);
+                _spriteBatch.Draw(controller.Rendering.RenderTarget, rect, controller.Settings.TintColor);
             }
             _spriteBatch.End();
         }

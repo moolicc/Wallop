@@ -112,14 +112,14 @@ class control : Controller
     
     public override void Setup()
     {
-        _spriteBatch = new SpriteBatch(GraphicsDevice);
+        _spriteBatch = new SpriteBatch(Rendering.GraphicsDevice);
         string file = Settings["imagefile"];
         _frames = ExtractFrames(file);
         _curFrame = 0;
         _curFrameTime = 0;
         _texture = _frames[0].Texture;
 
-        _drawLocation = new Rectangle(0, 0, RenderTarget.Width, RenderTarget.Height);
+        _drawLocation = new Rectangle(0, 0, Rendering.ActualWidth, Rendering.ActualHeight);
     }
     
     public override void EnabledChanged()
@@ -180,7 +180,7 @@ class control : Controller
         {
             image.Save(stream, ImageFormat.Bmp);
             stream.Position = 0;
-            texture = Texture2D.FromStream(GraphicsDevice, stream);
+            texture = Texture2D.FromStream(Rendering.GraphicsDevice, stream);
         }
         return texture;
     }

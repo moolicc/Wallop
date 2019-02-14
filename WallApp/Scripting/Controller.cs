@@ -10,9 +10,7 @@ namespace WallApp.Scripting
     {
         public LayerSettings Settings { get; set; }
         public Module Module { get; internal set; }
-        public GraphicsDevice GraphicsDevice { get; internal set; }
-        public RenderTarget2D RenderTarget { get; internal set; }
-        public Rectangle ScaledLayerBounds { get; internal set; }
+        public Rendering Rendering { get; internal set; }
         public Action<Control> PlaceControl { get; internal set; }
         
         public abstract void Setup();
