@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Deployment.Application;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -8,19 +7,27 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using WallApp.Scripting;
-using WallApp.Windows;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using WallApp.UI.ViewModels;
 using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using SystemInformation = System.Windows.Forms.SystemInformation;
+using System.Windows;
 
 namespace WallApp
 {
     class Game : Microsoft.Xna.Framework.Game
     {
         private const double RADIAN_MULTIPLIER = 0.0174532925199433D;
+
+
+        //TODO: Drag + Drop layer editing
+        //TODO: Logging
+        //TODO: Error/InvalidInput handling
+        //TODO: Refactoring
+        //TODO: LayerEditorWindow needs layout boxes to be numeric boxes with capped input./
+
 
         //Notes:
         //A 'module' is a script/extension.
@@ -38,7 +45,6 @@ namespace WallApp
         public Game()
         {
             _graphicsManager = new GraphicsDeviceManager(this);
-
             //Load settings
             if (File.Exists("settings.json"))
             {
@@ -57,11 +63,6 @@ namespace WallApp
             //Load in extension modules.
             //This really just caches them for later use.
             Resolver.LoadModules(AppDomain.CurrentDomain.BaseDirectory + "modules\\");
-
-
-
-
-            var win = new WallApp.UI.Views.SettingsWindow(new SettingsViewModel(new SettingsModel()));
         }
 
         protected override void Initialize()
@@ -69,15 +70,37 @@ namespace WallApp
             base.Initialize();
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            //Set the window's parent to be the desktop.
-            WindowHandler.SetParet(Window.Handle);
 
-            //Setup the window through the WindowsForms API.
-            _form = (Form)Control.FromHandle(Window.Handle);
+            /* FOR USE WITH SDL2_CS
+            //Setup the window through the SDL API
+            var width = SystemInformation.VirtualScreen.Width;
+            var height = SystemInformation.VirtualScreen.Height;
+
+            //Set the size, position, and borders of the window.
+            SDL.SDL_SetWindowSize(Window.Handle, width, height);
+            SDL.SDL_SetWindowPosition(Window.Handle, SystemInformation.VirtualScreen.Left, SystemInformation.VirtualScreen.Top);
+            SDL.SDL_SetWindowBordered(Window.Handle, SDL.SDL_bool.SDL_FALSE);
+
+            //Get the HWND from SDL.
+            SDL.SDL_GetVersion(out var sdlVersion);
+            var info = new SDL.SDL_SysWMinfo();
+            info.version = sdlVersion;
+            SDL.SDL_GetWindowWMInfo(Window.Handle, ref info);
+
+            var f = (Form) Control.FromHandle(info.info.win.window);
+            //Set the window's parent to be the desktop.
+            WindowHandler.SetParet(f.Handle);
+            */
+
+            //Setup the window by casting the game window to a windows forms control.
+            _form = (Form) Control.FromHandle(Window.Handle);
             _form.FormBorderStyle = FormBorderStyle.None;
-            _form.SetDesktopLocation(0, 0);
-            _form.Width = SystemInformation.VirtualScreen.Width;
             _form.Height = SystemInformation.VirtualScreen.Height;
+            _form.Width = SystemInformation.VirtualScreen.Width;
+            _form.SetDesktopLocation(0, 0);
+
+            //Set the window's parent to be the desktop.
+            WindowHandler.SetParet(_form.Handle);
 
             //Load the layout
             if (!File.Exists("layout.json"))
@@ -92,48 +115,49 @@ namespace WallApp
 
             //Instantiate the effects cache.
             _effectsCache = new Dictionary<string, Effect>();
-            
+
+            //Setup the content manager we'll use for effects loading.
+            Content.RootDirectory = AppDomain.CurrentDomain.BaseDirectory;
+
+
             //Show the settings window.
+            var model = new UI.Interop.ModelProvider(this);
             ShowSettings();
 
             //Initialize the controllers the user has in the current layout.
             InitializeControllers();
         }
 
+
+        public void ResetGraphicsSettings()
+        {
+            //TODO: This needs to actually get called.
+            _graphicsManager.PreferredBackBufferWidth = (int)(SystemInformation.VirtualScreen.Width * Settings.Instance.BackBufferWidthFactor);
+            _graphicsManager.PreferredBackBufferHeight = (int)(SystemInformation.VirtualScreen.Height * Settings.Instance.BackBufferHeightFactor);
+            TargetElapsedTime = TimeSpan.FromSeconds(1.0F / Settings.Instance.FrameRate);
+            _graphicsManager.ApplyChanges();
+        }
+
+        public void InitNewLayout()
+        {
+            if (_controllers != null)
+            {
+                //Dispose old controller rendertargets.
+                foreach (var controller in _controllers)
+                {
+                    controller.Rendering.RenderTarget.Dispose();
+                }
+
+                _controllers.Clear();
+            }
+            //Initialize the new layout.
+            InitializeControllers();
+        }
+
         private void ShowSettings()
         {
-            //Show the settings window.
-            SettingsWindow window = new SettingsWindow();
-            if(window.ShowDialog() != DialogResult.OK)
-            {
-                return;
-            }
-
-            //Apply settings.
-            if (window.SettingsChanged)
-            {
-                _graphicsManager.PreferredBackBufferWidth = (int)(SystemInformation.VirtualScreen.Width * Settings.Instance.BackBufferWidthFactor);
-                _graphicsManager.PreferredBackBufferHeight = (int)(SystemInformation.VirtualScreen.Height * Settings.Instance.BackBufferHeightFactor);
-                TargetElapsedTime = TimeSpan.FromSeconds(1.0F / Settings.Instance.FrameRate);
-                _graphicsManager.ApplyChanges();
-            }
-            
-            //Apply new layout.
-            if (window.LayoutChanged)
-            {
-                if (_controllers != null)
-                {
-                    //Dispose old controller rendertargets.
-                    foreach (var controller in _controllers)
-                    {
-                        controller.Rendering.RenderTarget.Dispose();
-                    }
-
-                    _controllers.Clear();
-                }
-                //Initialize the new layout.
-                InitializeControllers();
-            }
+            var win = new UI.Views.SettingsWindow(new SettingsViewModel());
+            win.Show();
         }
 
         private void InitializeControllers()
@@ -145,7 +169,11 @@ namespace WallApp
             {
                 //Get the current layer's module out of the cache. This creates a clone instead of referencing
                 //the module in the layer.
-                var module = Resolver.Cache[layer.Module];
+
+                //TODO: This is bad. layer.Module is supposed to be the module's FULL filepath, but UI broke that.
+                //In the future the UI should also deal in absolute paths, but transform the text when displayed to
+                //just filenames.
+                var module = Resolver.GetCachedModuleFromName(layer.Module);
 
                 //Create the controller to be used.
                 var controller = module.CreateController();
@@ -161,19 +189,9 @@ namespace WallApp
                     (int) (y * Settings.Instance.BackBufferHeightFactor),
                     (int) (width * Settings.Instance.BackBufferWidthFactor),
                     (int) (height * Settings.Instance.BackBufferHeightFactor));
-                controller.PlaceControl = c =>
-                {
-                    if (!c.Bounds.Contains(new System.Drawing.Rectangle(scaledLayerBounds.X,
-                        scaledLayerBounds.Y, scaledLayerBounds.Width,
-                        scaledLayerBounds.Height)))
-                    {
-                        return;
-                    }
-                    _form.Controls.Add(c);
-                };
 
                 //We setup the rendertarget that the controller will draw to.
-                var renderTarget = new RenderTarget2D(GraphicsDevice, width, height);
+                var renderTarget = new RenderTarget2D(GraphicsDevice, scaledLayerBounds.Width, scaledLayerBounds.Height);
 
                 //Init the controller's rendering parameters.
                 controller.Rendering = new Rendering(GraphicsDevice, renderTarget);
@@ -183,7 +201,15 @@ namespace WallApp
                 controller.Rendering.ActualHeight = scaledLayerBounds.Height;
 
                 //Allow the controller to handle any initialization is needs.
-                controller.Setup();
+                try
+                {
+                    controller.Setup();
+                }
+                catch (Exception ex)
+                {
+
+                    throw;
+                }
                 
                 //Cache any effects.
                 if (!string.IsNullOrWhiteSpace(layer.Effect))
@@ -214,9 +240,23 @@ namespace WallApp
 
         protected override void Draw(GameTime gameTime)
         {
+            //DrawTest(gameTime);
             DrawLayers(gameTime);
             Present(gameTime);
             base.Draw(gameTime);
+        }
+
+        private void DrawTest(GameTime gameTime)
+        {
+            GraphicsDevice.Clear(Color.CornflowerBlue);
+            foreach (var controller in _controllers)
+            {
+                if (!controller.Settings.Enabled)
+                {
+                    continue;
+                }
+                controller.Draw(gameTime);
+            }
         }
 
         private void DrawLayers(GameTime gameTime)
@@ -249,13 +289,14 @@ namespace WallApp
                 {
                     continue;
                 }
+                
                 if (controller.Settings.Effect != lastEffect)
                 {
                     if (beginCalled)
                     {
                         _spriteBatch.End();
                     }
-                    if (controller.Settings.Effect == "")
+                    if (controller.Settings.Effect == "" || controller.Settings.Effect.EndsWith("[Default].xnb"))
                     {
                         lastEffect = "";
                         _spriteBatch.Begin();
@@ -271,19 +312,25 @@ namespace WallApp
                 
                 //Get the dimensions of the layer, applying the scale factor.
                 var rect = controller.Settings.Dimensions.GetBoundsRectangle();
-                rect.X = (int) (rect.X * Settings.Instance.BackBufferWidthFactor);
+
+                
+                rect.X = (int)(rect.X * Settings.Instance.BackBufferWidthFactor);
                 rect.Y = (int)(rect.Y * Settings.Instance.BackBufferHeightFactor);
                 rect.Width = (int)(rect.Width * Settings.Instance.BackBufferWidthFactor);
                 rect.Height = (int)(rect.Height * Settings.Instance.BackBufferHeightFactor);
+                
 
                 //Draw the controller.
 
                 //Vector2 originVector = new Vector2(rect.X + rect.Width / 2, rect.Y + rect.Height / 2);
                 //_spriteBatch.Draw(controller.RenderTarget, rect, null, controller.Settings.TintColor, (float) (controller.Settings.Rotation * RADIAN_MULTIPLIER), originVector, SpriteEffects.None, 0.0F);
-                
+
                 _spriteBatch.Draw(controller.Rendering.RenderTarget, rect, controller.Settings.TintColor);
             }
-            _spriteBatch.End();
+            if(beginCalled)
+            {
+                _spriteBatch.End();
+            }
         }
     }
 }

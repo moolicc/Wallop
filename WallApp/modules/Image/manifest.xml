@@ -1,7 +1,10 @@
-﻿<root>
+﻿<wamodule version="1.0">
+  
   <source>image.csx</source>
+  <viewsource>view.xaml</viewsource>
   <name>Image</name>
   <description>Displays an image</description>
   <version>1.0</version>
   <customeffects>true</customeffects>
-</root>
+  
+</wamodule>

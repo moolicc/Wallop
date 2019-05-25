@@ -13,13 +13,28 @@ namespace WallApp.Scripting
 {
     class Resolver
     {
+        public static readonly Version ManifestVersion = new Version(1, 0);
+
         public static Dictionary<string, Module> Cache { get; private set; }
+
+        private const string XML_ROOT_NAME = "wamodule";
 
         static Resolver()
         {
             Cache = new Dictionary<string, Module>();
         }
 
+        public static Module GetCachedModuleFromName(string name)
+        {
+            foreach (var item in Cache)
+            {
+                if (item.Value.Name == name)
+                {
+                    return item.Value;
+                }
+            }
+            throw new KeyNotFoundException();
+        }
 
         public static Module[] LoadRemoteModules(string baseUrl)
         {
@@ -72,6 +87,7 @@ namespace WallApp.Scripting
             return ScanManifest(manifestPath);
         }
         
+        //TODO: Refactor into ManifestReader
 
         public static Module ScanRemoteManifest(string url, WebClient clientReuse = null)
         {
@@ -103,7 +119,19 @@ namespace WallApp.Scripting
             }
             var root = doc.Root;
 
+            if(root.Name != XML_ROOT_NAME)
+            {
+                throw new InvalidOperationException("The module's manifest is invalid.");
+            }
+
+            var versionAttribute = root.Attribute("version");
+            if(versionAttribute == null || !Version.TryParse(versionAttribute.Value, out var v) || v.Major < ManifestVersion.Major)
+            {
+                throw new InvalidOperationException("The manifest doesn't specify a version or is of an incompatible version.");
+            }
+
             string sourceFile = "";
+            string viewSourceFile = "";
             string name = "";
             string description = "";
             int minWidth = 0;
@@ -118,6 +146,10 @@ namespace WallApp.Scripting
                 if (xElement.Name == "source")
                 {
                     sourceFile = xElement.Value;
+                }
+                else if (xElement.Name == "viewsource")
+                {
+                    viewSourceFile = xElement.Value;
                 }
                 else if (xElement.Name == "name")
                 {
@@ -185,6 +217,15 @@ namespace WallApp.Scripting
                 }
             }
 
+            if (!File.Exists(viewSourceFile))
+            {
+                viewSourceFile = Path.GetDirectoryName(manifestFile).TrimEnd('\\') + '\\' + viewSourceFile;
+                if (!File.Exists(viewSourceFile))
+                {
+                    //TODO
+                }
+            }
+
             string kind = "";
             if (isRemote)
             {
@@ -195,7 +236,7 @@ namespace WallApp.Scripting
                 kind = Path.GetExtension(sourceFile).TrimStart('.');
             }
             var module = Resolve(kind);
-            module.Init(version, manifestFile, sourceFile, name, description, minWidth, minHeight, maxWidth, maxHeight, allowsCustomEffects);
+            module.Init(version, manifestFile, sourceFile, viewSourceFile, name, description, minWidth, minHeight, maxWidth, maxHeight, allowsCustomEffects);
             return module;
         }
 

@@ -1,11 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2010
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28803.352
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WallApp.UI", "WallApp.UI\WallApp.UI.csproj", "{2CDE39C3-4C5B-40BF-9713-03A733A197C4}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WallApp", "WallApp\WallApp.csproj", "{41329E41-A121-49D6-8C3D-FD10BA1CF51D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WallApp", "WallApp\WallApp.csproj", "{13AEA47F-CE17-4977-91D7-18E54C2B4BD0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,19 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{2CDE39C3-4C5B-40BF-9713-03A733A197C4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2CDE39C3-4C5B-40BF-9713-03A733A197C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2CDE39C3-4C5B-40BF-9713-03A733A197C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2CDE39C3-4C5B-40BF-9713-03A733A197C4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{41329E41-A121-49D6-8C3D-FD10BA1CF51D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{41329E41-A121-49D6-8C3D-FD10BA1CF51D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{41329E41-A121-49D6-8C3D-FD10BA1CF51D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{41329E41-A121-49D6-8C3D-FD10BA1CF51D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{13AEA47F-CE17-4977-91D7-18E54C2B4BD0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{13AEA47F-CE17-4977-91D7-18E54C2B4BD0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{13AEA47F-CE17-4977-91D7-18E54C2B4BD0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{13AEA47F-CE17-4977-91D7-18E54C2B4BD0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {37BA99E9-282C-4507-B319-AED73DFFD205}
+		SolutionGuid = {6C8D8918-97FD-4E7A-A41E-C7BBF635F6E1}
 	EndGlobalSection
 EndGlobal

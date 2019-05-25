@@ -11,7 +11,9 @@ namespace WallApp
     static class Layout
     {
         public static List<LayerSettings> Layers { get; private set; }
-        
+
+        private static string _previewBackupFile;
+
         static Layout()
         {
             Layers = new List<LayerSettings>();
@@ -31,6 +33,21 @@ namespace WallApp
         public static void Save(string file)
         {
             File.WriteAllText(file, JsonConvert.SerializeObject(Layers));
+        }
+
+        public static void EnterPreview()
+        {
+            _previewBackupFile = Path.GetTempFileName();
+            Save(_previewBackupFile);
+        }
+
+        public static void ExitPreview(bool apply)
+        {
+            if(!apply)
+            {
+                Load(_previewBackupFile);
+            }
+            File.Delete(_previewBackupFile);
         }
     }
 }

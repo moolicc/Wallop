@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -11,7 +10,6 @@ namespace WallApp.Scripting
         public LayerSettings Settings { get; set; }
         public Module Module { get; internal set; }
         public Rendering Rendering { get; internal set; }
-        public Action<Control> PlaceControl { get; internal set; }
         
         public abstract void Setup();
         public abstract void EnabledChanged();

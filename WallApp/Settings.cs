@@ -29,14 +29,14 @@ namespace WallApp
             File.WriteAllText(file, data);
         }
 
-        public float BackBufferWidthFactor { get; set; }
-        public float BackBufferHeightFactor { get; set; }
+        public double BackBufferWidthFactor { get; set; }
+        public double BackBufferHeightFactor { get; set; }
         public int FrameRate { get; set; }
 
         private Settings()
         {
-            BackBufferWidthFactor = 0.5F;
-            BackBufferHeightFactor = 0.5F;
+            BackBufferWidthFactor = 0.5D;
+            BackBufferHeightFactor = 0.5D;
             FrameRate = 60;
         }
     }

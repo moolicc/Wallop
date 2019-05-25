@@ -25,7 +25,15 @@ namespace WallApp
 
         public static Effect CreateEffect(string effectFile, ContentManager contentManager)
         {
-            return contentManager.Load<Effect>(effectFile.Remove(effectFile.Length - 4));
+            try
+            {
+                return contentManager.Load<Effect>(effectFile.Remove(effectFile.Length - 4));
+            }
+            catch (Exception e)
+            {
+
+                throw e;
+            }
         }
     }
 }

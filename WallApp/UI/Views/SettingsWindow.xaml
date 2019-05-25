@@ -1,0 +1,59 @@
+﻿<Controls:MetroWindow x:Class="WallApp.UI.Views.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WallApp.UI"
+        xmlns:Controls="http://metro.mahapps.com/winfx/xaml/controls"
+        mc:Ignorable="d"
+        Title="WallApp" Height="400" Width="342">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <!-- General section -->
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <!-- Layers section -->
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <!-- Modules section -->
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+
+            <!-- Error Text section -->
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="Frame rate" Margin="8,2,2,2" Grid.ColumnSpan="2"/>
+        <TextBlock Grid.Row="0" Grid.Column="1" Text="Back-buffer scale factor" Margin="2"/>
+
+        <Controls:NumericUpDown Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="1" HorizontalAlignment="Stretch"
+                                Width="Auto" Margin="8,2,0,2" HasDecimals="False" Minimum="0" Maximum="60"
+                                Value="{Binding FrameRate, FallbackValue=60, Mode=TwoWay}" />
+
+
+        <Controls:NumericUpDown Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Stretch"
+                                Width="Auto" Margin="2,2,8,2" HasDecimals="True" Minimum="0" Maximum="1" Interval="0.1"
+                                Value="{Binding BackBufferScale, FallbackValue=0.5, Mode=TwoWay}" />
+
+        <TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Margin="8,8,8,2" FontSize="16"
+                   Text="{Binding LayersText, FallbackValue=NoLayers}" />
+        <Button Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Height="23" Content="Edit Layers" Margin="8,6,8,2"
+                    Command="{Binding EditLayersCommand}" />
+
+
+        <TextBlock Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Margin="8,8,8,2" FontSize="16"
+                   Text="{Binding ModulesText, FallbackValue=NoModules}" />
+        <Button Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Height="23" Content="Get Modules" Margin="8,6,8,2"
+                    Command="{Binding ModulesCommand}" />
+        
+        <TextBlock Grid.Row="6" Margin="2,0,2,0" Background="Tomato" Width="Auto" Padding="2,0,2,0"
+                           FontFamily="Tahoma" FontSize="14" Visibility="{Binding ErrorTextVisibility}"
+                           HorizontalAlignment="Right" Text="{Binding ErrorText}" />
+
+    </Grid>
+</Controls:MetroWindow>

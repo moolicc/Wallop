@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WallApp;
 
 namespace WallApp
 {
@@ -11,7 +12,9 @@ namespace WallApp
         [STAThread]
         static void Main(string[] args)
         {
-            System.Windows.Forms.Application.EnableVisualStyles();
+            App app = new App();
+            app.InitializeComponent();
+
             using (Game game = new Game())
             {
                 game.Run();
