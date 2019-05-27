@@ -25,5 +25,7 @@
         public abstract object GetLayerSettingsView();
 
         public abstract void UpdateLayout();
+
+        public abstract void TickDraw();
     }
 }

@@ -255,5 +255,13 @@ namespace WallApp.UI.Interop
                 provider.GameInsance.InitNewLayout();
             }
         }
+
+        public override void TickDraw()
+        {
+            if (UI.ModelProvider.Instance is ModelProvider provider)
+            {
+                provider.GameInsance.Tick();
+            }
+        }
     }
 }

@@ -116,6 +116,8 @@ namespace WallApp.UI.ViewModels
         private Models.SettingsModel _model;
         private bool _updatingViewModel;
 
+        private Views.LayerEditorWindow _layerEditorWindow;
+
 
         public SettingsViewModel()
         {
@@ -125,13 +127,24 @@ namespace WallApp.UI.ViewModels
 
         public void OnEditLayers(object param)
         {
-            var window = new Views.LayerEditorWindow();
+            if(_layerEditorWindow != null)
+            {
+                return;
+            }
+            _layerEditorWindow = new Views.LayerEditorWindow();
+            _layerEditorWindow.Closed += LayerEditorWindowClosed;
 
             var viewModel = new LayerSettingsViewModel();
-            window.DataContext = viewModel;
+            _layerEditorWindow.DataContext = viewModel;
 
-            window.ShowDialog();
+            _layerEditorWindow.ShowDialog();
             UpdateViewModel();
+        }
+
+        private void LayerEditorWindowClosed(object sender, System.EventArgs e)
+        {
+            _layerEditorWindow.Closed -= LayerEditorWindowClosed;
+            _layerEditorWindow = null;
         }
 
         public void OnGetModules(object param)

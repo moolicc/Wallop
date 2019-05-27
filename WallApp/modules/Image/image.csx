@@ -78,6 +78,11 @@ class control : Controller
     
     public override void Draw(GameTime gameTime)
     {
+        //This is to handle the case where we're drawing from preview and the image hasn't been set yet.
+        if(_texture == null)
+        {
+            return;
+        }
         Console.WriteLine(_drawLocation);
         _spriteBatch.Begin();
         _spriteBatch.Draw(_texture, _drawLocation, Color.White);

@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Timers;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -13,6 +14,9 @@ namespace WallApp.UI.ViewModels
 {
     public class LayerSettingsViewModel : INotifyPropertyChanged
     {
+
+        private const double PREVIEW_UPDATE_INTERVAL = 1500.0D;
+
         public ObservableCollection<LayerItemViewModel> Layers { get; private set; }
 
         public ICommand MoveUpCommand
@@ -390,6 +394,10 @@ namespace WallApp.UI.ViewModels
         private Models.LayerSettingsModel _model;
         private bool _updating;
 
+        private bool _previewHasUpdates;
+        private bool _skipPreviewUpdateIteration;
+        private Timer _updatePreviewTimer;
+
         public event PropertyChangedEventHandler PropertyChanged;
 
 
@@ -433,6 +441,27 @@ namespace WallApp.UI.ViewModels
             {
                 OnSelectedLayerChange();
             }
+
+            _updatePreviewTimer = new Timer(PREVIEW_UPDATE_INTERVAL);
+            _previewHasUpdates = false;
+            _skipPreviewUpdateIteration = false;
+
+            _updatePreviewTimer.Elapsed += UpdatePreviewTimerTicked;
+            _updatePreviewTimer.Start();
+        }
+
+        private void UpdatePreviewTimerTicked(object sender, ElapsedEventArgs e)
+        {
+            if(!_previewHasUpdates || _skipPreviewUpdateIteration)
+            {
+                _skipPreviewUpdateIteration = false;
+                return;
+            }
+
+            _previewHasUpdates = false;
+            _model.UpdateCurrentLayer();
+            _model.UpdateLayout();
+            _model.TickDraw();
         }
 
         public void OnSelectedLayerChange()
@@ -445,6 +474,10 @@ namespace WallApp.UI.ViewModels
         {
             //Updates all properties using data from _model.x
             _updating = true;
+
+            _previewHasUpdates = false;
+            _skipPreviewUpdateIteration = false;
+
             var curLayer = _model.GetCurrentLayer();
             LayerName = curLayer.Name;
             LayerDescription = curLayer.Description;
@@ -506,6 +539,8 @@ namespace WallApp.UI.ViewModels
             }
             if(updateModel)
             {
+                _previewHasUpdates = true;
+                _skipPreviewUpdateIteration = true;
                 UpdateModel();
             }
         }
