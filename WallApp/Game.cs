@@ -27,6 +27,8 @@ namespace WallApp
         //TODO: Error/InvalidInput handling
         //TODO: Refactoring
         //TODO: LayerEditorWindow needs layout boxes to be numeric boxes with capped input./
+        //TODO: Error reporting available to layers. Maybe use TOAST popups + an icon in the layers list to indicate bad layer.
+        // When a layer has an error, don't draw/update it.
 
 
         //Notes:
