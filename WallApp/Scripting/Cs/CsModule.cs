@@ -15,17 +15,22 @@ namespace WallApp.Scripting.Cs
 {
     public class CsModule : Module
     {
+        private Func<Controller> getController;
+
         //TODO: These need to not be Func<>s but a custom delegate type.
-        public Func<Controller> GetController { get; set; }
+        public Func<Controller> GetController
+        {
+            get => getController;
+            set => getController = value;
+        }
         public Func<LayerSettings, object> GetViewModel { get; set; }
 
         protected override void Initialize()
         {
-            
             try
             {
                 var options = ScriptOptions.Default;
-                
+
                 using (var interactiveLoader = new InteractiveAssemblyLoader())
                 {
                     foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
@@ -40,7 +45,7 @@ namespace WallApp.Scripting.Cs
                             .AddImports("Microsoft.Xna.Framework", "Microsoft.Xna.Framework.Graphics",
                             "Microsoft.Xna.Framework.Input")
                             .AddImports("System.Windows", "System.ComponentModel");
-                    
+
 
 
                     var script = CSharpScript.Create("", options: options, globalsType: GetType());
@@ -65,12 +70,12 @@ namespace WallApp.Scripting.Cs
 
         public override Controller CreateController()
         {
-            return GetController?.Invoke();
+            return GetController.Invoke();
         }
 
         public override object CreateViewModel(LayerSettings settings)
         {
-            if(GetViewModel == null)
+            if (GetViewModel == null)
             {
                 return null;
             }

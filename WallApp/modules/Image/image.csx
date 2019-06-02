@@ -54,14 +54,19 @@ class control : Controller
     
     public override void Setup()
     {
-        _spriteBatch = new SpriteBatch(Rendering.GraphicsDevice);
-        using (var fs = new FileStream(Settings["imagefile"], FileMode.Open))
+        try
         {
-            _texture = Texture2D.FromStream(Rendering.GraphicsDevice, fs);
+            _spriteBatch = new SpriteBatch(Rendering.GraphicsDevice);
+            using (var fs = new FileStream(Settings["imagefile"], FileMode.Open))
+            {
+                _texture = Texture2D.FromStream(Rendering.GraphicsDevice, fs);
+            }
+            _drawLocation = new Microsoft.Xna.Framework.Rectangle(0, 0, Rendering.ActualWidth, Rendering.ActualHeight);
         }
-        Console.WriteLine("one");
-        _drawLocation = new Microsoft.Xna.Framework.Rectangle(0, 0, Rendering.ActualWidth, Rendering.ActualHeight);
-        Console.WriteLine("two");
+        catch (Exception ex)
+        {
+            Interop.NotifyException(ex);
+        }
     }
     
     public override void EnabledChanged()

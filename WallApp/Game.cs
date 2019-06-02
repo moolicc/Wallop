@@ -202,6 +202,7 @@ namespace WallApp
                 controller.Rendering.ActualY = scaledLayerBounds.Y;
                 controller.Rendering.ActualWidth = scaledLayerBounds.Width;
                 controller.Rendering.ActualHeight = scaledLayerBounds.Height;
+                controller.Interop = new Interop(layer.LayerId);
 
                 //Allow the controller to handle any initialization is needs.
                 try
