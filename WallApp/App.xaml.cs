@@ -1,4 +1,5 @@
-﻿using MahApps.Metro;
+﻿using Hardcodet.Wpf.TaskbarNotification;
+using MahApps.Metro;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -6,6 +7,8 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using WallApp.Services;
+using WallApp.UI;
 
 namespace WallApp
 {
@@ -14,7 +17,7 @@ namespace WallApp
     /// </summary>
     public partial class App : Application
     {
-        private UI.ThemeWatcher _themeWatcher;
+        private ThemeWatcher _themeWatcher;
 
         internal App()
         {
@@ -40,6 +43,12 @@ namespace WallApp
         {
             base.OnStartup(e);
             _themeWatcher.WatchTheme();
+        }
+
+        protected override void OnExit(ExitEventArgs e)
+        {
+            base.OnExit(e);
+            ServiceProvider.KillReferences();
         }
     }
 }

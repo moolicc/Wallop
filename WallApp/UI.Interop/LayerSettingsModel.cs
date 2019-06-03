@@ -15,11 +15,15 @@ namespace WallApp.UI.Interop
 {
     class LayerSettingsModel : Models.LayerSettingsModel
     {
+        public Layout Layout { get; private set; }
+
         private List<Models.LayerSettings> _layers;
         private int _currentLayer;
 
-        public LayerSettingsModel()
+        public LayerSettingsModel(Layout layout)
         {
+            Layout = layout;
+
             Layout.EnterPreview();
             _layers = new List<Models.LayerSettings>();
 

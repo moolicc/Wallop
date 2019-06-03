@@ -16,12 +16,12 @@ namespace WallApp.UI.Interop
 
         public override Models.LayerSettingsModel GetLayerSettingsModel()
         {
-            return new LayerSettingsModel();
+            return new LayerSettingsModel(Services.ServiceProvider.GetService<Layout>("/main"));
         }
 
         public override Models.SettingsModel GetSettingsModel()
         {
-            return new SettingsModel();
+            return new SettingsModel(Services.ServiceProvider.GetService<Layout>("/main"));
         }
     }
 }

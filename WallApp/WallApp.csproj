@@ -41,6 +41,9 @@
     <Reference Include="ControlzEx, Version=3.0.2.4, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\ControlzEx.3.0.2.4\lib\net462\ControlzEx.dll</HintPath>
     </Reference>
+    <Reference Include="Hardcodet.Wpf.TaskbarNotification, Version=1.0.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Hardcodet.NotifyIcon.Wpf.1.0.8\lib\net451\Hardcodet.Wpf.TaskbarNotification.dll</HintPath>
+    </Reference>
     <Reference Include="MahApps.Metro, Version=1.6.5.1, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MahApps.Metro.1.6.5\lib\net47\MahApps.Metro.dll</HintPath>
     </Reference>
@@ -113,21 +116,30 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="AppState.cs" />
+    <Compile Include="Extensions.cs" />
     <Compile Include="Game.cs" />
+    <Compile Include="Scripting\ErrorHandlerProxy.cs" />
+    <Compile Include="Services\InitializableService.cs" />
     <Compile Include="LayerDimensions.cs" />
     <Compile Include="LayerSettings.cs" />
     <Compile Include="Layout.cs" />
     <Compile Include="Scripting\Controller.cs" />
     <Compile Include="Scripting\Cs\CsModule.cs" />
-    <Compile Include="Scripting\Interop.cs" />
+    <Compile Include="Scripting\ErrorHandler.cs" />
     <Compile Include="Scripting\Module.cs" />
     <Compile Include="Scripting\RemoteModule.cs" />
     <Compile Include="Scripting\Rendering.cs" />
     <Compile Include="Scripting\Resolver.cs" />
+    <Compile Include="Services\ServiceAttribute.cs" />
+    <Compile Include="Services\ServiceNotInitializedException.cs" />
+    <Compile Include="Services\ServiceProvider.cs" />
+    <Compile Include="Services\ServiceReferenceAttribute.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="UI.Interop\LayerSettingsModel.cs" />
     <Compile Include="UI.Interop\ModelProvider.cs" />
     <Compile Include="UI.Interop\SettingsModel.cs" />
+    <Compile Include="UI\IconFileSizeSelectorConverter.cs" />
     <Compile Include="UI\ModelProvider.cs" />
     <Compile Include="UI\Models\LayerSettings.cs" />
     <Compile Include="UI\Models\LayerSettingsModel.cs" />
@@ -139,6 +151,7 @@
       <DependentUpon>view.xaml</DependentUpon>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
+    <Compile Include="UI\TrayIcon.cs" />
     <Compile Include="UI\ViewModels\LayerItemViewModel.cs" />
     <Compile Include="UI\ViewModels\LayerSettingsViewModel.cs" />
     <Compile Include="UI\ViewModels\SettingsViewModel.cs" />
@@ -147,6 +160,9 @@
     </Compile>
     <Compile Include="UI\Views\SettingsWindow.xaml.cs">
       <DependentUpon>SettingsWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Views\TrayIconToolTip.xaml.cs">
+      <DependentUpon>TrayIconToolTip.xaml</DependentUpon>
     </Compile>
     <Compile Include="Win32.cs" />
     <Compile Include="WindowHandler.cs" />
@@ -163,22 +179,6 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="UI\Styles.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="UI\Themes\Dark.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="UI\Themes\HighContrast.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="UI\Themes\Light.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
     <None Include="effects\stock\[Default].xnb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -194,6 +194,10 @@
     <Page Include="UI\Views\SettingsWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\Views\TrayIconToolTip.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
   <ItemGroup>
@@ -237,6 +241,8 @@
     <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.2.6.2\analyzers\dotnet\cs\Microsoft.CodeAnalysis.CSharp.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Resources\tray.ico" />
+    <Resource Include="Resources\tray_error.ico" />
     <None Include="modules\Default\manifest.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

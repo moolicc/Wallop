@@ -65,7 +65,7 @@ class control : Controller
         }
         catch (Exception ex)
         {
-            Interop.NotifyException(ex);
+            ErrorHandler.SetError(ex, "Failed to load image file.", null);
         }
     }
     
@@ -75,6 +75,7 @@ class control : Controller
     
     public override void Dispose()
     {
+        ErrorHandler.ClearErrors();
     }
     
     public override void Update(GameTime gameTime)

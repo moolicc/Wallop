@@ -8,40 +8,41 @@ using Newtonsoft.Json;
 
 namespace WallApp
 {
-    static class Layout
+    [Services.Service(Key = "/main")]
+    class Layout
     {
-        public static List<LayerSettings> Layers { get; private set; }
+        public List<LayerSettings> Layers { get; private set; }
 
-        private static string _previewBackupFile;
+        private string _previewBackupFile;
 
-        static Layout()
+        public Layout()
         {
             Layers = new List<LayerSettings>();
         }
 
-        public static void New()
+        public void New()
         {
             Layers.Clear();
         }
 
-        public static void Load(string file)
+        public void Load(string file)
         {
             New();
             Layers = JsonConvert.DeserializeObject<List<LayerSettings>>(File.ReadAllText(file));
         }
 
-        public static void Save(string file)
+        public void Save(string file)
         {
             File.WriteAllText(file, JsonConvert.SerializeObject(Layers));
         }
 
-        public static void EnterPreview()
+        public void EnterPreview()
         {
             _previewBackupFile = Path.GetTempFileName();
             Save(_previewBackupFile);
         }
 
-        public static void ExitPreview(bool apply)
+        public void ExitPreview(bool apply)
         {
             if(!apply)
             {

@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:WallApp.UI"
         xmlns:Controls="http://metro.mahapps.com/winfx/xaml/controls"
         mc:Ignorable="d"
-        Title="WallApp" Height="400" Width="342">
+        Title="WallApp" Height="400" Width="342" Icon="/Resources/tray_error.ico">
 
     <Grid>
         <Grid.RowDefinitions>

@@ -14,6 +14,9 @@ using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using SystemInformation = System.Windows.Forms.SystemInformation;
 using System.Windows;
+using ServiceProvider = WallApp.Services.ServiceProvider;
+using Hardcodet.Wpf.TaskbarNotification;
+using WallApp.UI;
 
 namespace WallApp
 {
@@ -30,12 +33,17 @@ namespace WallApp
         //TODO: Error reporting available to layers. Maybe use TOAST popups + an icon in the layers list to indicate bad layer.
         // When a layer has an error, don't draw/update it. WILL NEED special logic for if we're in preview mode.
         //TODO: Draw "selection box" over layer in preview.
+        //TODO: Intro animations, Layout lifetimes, Outro animations.
+        //TODO: Use command-based scripting as the back-end for *ALL* layer settings.
+        //      This is important for fancy animations.
+        //TODO: ErrorHandler should be for app-wide errors. Right now it relies on layerids.
 
 
         //Notes:
         //A 'module' is a script/extension.
         //A 'controller' is an active instance of a module.
         //A 'layer' contains a module and various other settings.
+        public Layout Layout { get; private set; }
 
         private GraphicsDeviceManager _graphicsManager;
         private SpriteBatch _spriteBatch;
@@ -63,9 +71,10 @@ namespace WallApp
             //Set the frame rate.
             TargetElapsedTime = TimeSpan.FromSeconds(1.0F / Settings.Instance.FrameRate);
 
-            //Load in extension modules.
-            //This really just caches them for later use.
-            Resolver.LoadModules(AppDomain.CurrentDomain.BaseDirectory + "modules\\");
+
+            //Allow the serviceprovider to go ahead and resolve services and servicereferences.
+            ServiceProvider.Init();
+
         }
 
         protected override void Initialize()
@@ -73,6 +82,15 @@ namespace WallApp
             base.Initialize();
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
+            //Initialize the TrayIcon
+            ServiceProvider.GetService<TrayIcon>().Init((TaskbarIcon)App.Current.FindResource("NotifyIcon"));
+
+            //Load in extension modules.
+            //This really just caches them for later use.
+            Resolver.LoadModules(AppDomain.CurrentDomain.BaseDirectory + "modules\\");
+
+            //Find the main layout service.
+            Layout = ServiceProvider.GetService<Layout>("/main");
 
             /* FOR USE WITH SDL2_CS
             //Setup the window through the SDL API
@@ -148,6 +166,7 @@ namespace WallApp
                 //Dispose old controller rendertargets.
                 foreach (var controller in _controllers)
                 {
+                    controller.Dispose();
                     controller.Rendering.RenderTarget.Dispose();
                 }
 
@@ -202,7 +221,9 @@ namespace WallApp
                 controller.Rendering.ActualY = scaledLayerBounds.Y;
                 controller.Rendering.ActualWidth = scaledLayerBounds.Width;
                 controller.Rendering.ActualHeight = scaledLayerBounds.Height;
-                controller.Interop = new Interop(layer.LayerId);
+
+                //Init the controller's error handler.
+                controller.ErrorHandler = new ErrorHandlerProxy(layer.LayerId);
 
                 //Allow the controller to handle any initialization is needs.
                 try

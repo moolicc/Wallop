@@ -9,6 +9,7 @@ namespace WallApp.UI.Interop
 {
     class SettingsModel : Models.SettingsModel
     {
+        public Layout Layout { get; private set; }
 
         public override double BackBufferScale
         {
@@ -29,8 +30,9 @@ namespace WallApp.UI.Interop
             }
         }
 
-        public SettingsModel()
+        public SettingsModel(Layout layout)
         {
+            Layout = layout;
         }
 
 
