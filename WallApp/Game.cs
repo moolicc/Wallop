@@ -37,6 +37,10 @@ namespace WallApp
         //TODO: Use command-based scripting as the back-end for *ALL* layer settings.
         //      This is important for fancy animations.
         //TODO: ErrorHandler should be for app-wide errors. Right now it relies on layerids.
+        //TODO: Layers should be able to embed resources (files/streams) into the layout.
+        //TODO: Support Undo/Redo in previewmode.
+        //TODO: Support locking X/Y in previewmode.
+        //TODO: Support incremental X/Y changes (ie, greater than 1 single pixel) in previewmode.
 
 
         //Notes:
@@ -50,6 +54,8 @@ namespace WallApp
         private Dictionary<string, Effect> _effectsCache;
     
         private List<Controller> _controllers;
+
+        private PreviewModeHandler _previewModeHandler;
 
         private Form _form;
 
@@ -82,8 +88,10 @@ namespace WallApp
             base.Initialize();
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            //Initialize the TrayIcon
+            //Initialize services
             ServiceProvider.GetService<TrayIcon>().Init((TaskbarIcon)App.Current.FindResource("NotifyIcon"));
+            _previewModeHandler = ServiceProvider.GetService<PreviewModeHandler>();
+            _previewModeHandler.Init(_spriteBatch);
 
             //Load in extension modules.
             //This really just caches them for later use.
@@ -152,11 +160,14 @@ namespace WallApp
 
         public void ResetGraphicsSettings()
         {
-            //TODO: This needs to actually get called.
             _graphicsManager.PreferredBackBufferWidth = (int)(SystemInformation.VirtualScreen.Width * Settings.Instance.BackBufferWidthFactor);
             _graphicsManager.PreferredBackBufferHeight = (int)(SystemInformation.VirtualScreen.Height * Settings.Instance.BackBufferHeightFactor);
             TargetElapsedTime = TimeSpan.FromSeconds(1.0F / Settings.Instance.FrameRate);
             _graphicsManager.ApplyChanges();
+
+
+            //TODO: THIS BREAKS THINGS
+            InitNewLayout();
         }
 
         public void InitNewLayout()
@@ -201,26 +212,26 @@ namespace WallApp
                 var controller = module.CreateController();
 
                 //Get the user-specified dimensions of the layer.
-                (int x, int y, int width, int height) = layer.Dimensions.GetBounds();
+                (float x, float y, float width, float height) = layer.Dimensions.GetBounds();
 
                 //Pass the layer's configuration to the controller.
                 controller.Settings = layer;
                 controller.Module = module;
-                var scaledLayerBounds = new Rectangle(
-                    (int) (x * Settings.Instance.BackBufferWidthFactor),
-                    (int) (y * Settings.Instance.BackBufferHeightFactor),
-                    (int) (width * Settings.Instance.BackBufferWidthFactor),
-                    (int) (height * Settings.Instance.BackBufferHeightFactor));
+                var scaledLayerBounds = new RectangleF(
+                    (x * Settings.Instance.BackBufferWidthFactor),
+                    (y * Settings.Instance.BackBufferHeightFactor),
+                    (width * Settings.Instance.BackBufferWidthFactor),
+                    (height * Settings.Instance.BackBufferHeightFactor));
 
                 //We setup the rendertarget that the controller will draw to.
-                var renderTarget = new RenderTarget2D(GraphicsDevice, scaledLayerBounds.Width, scaledLayerBounds.Height);
+                var renderTarget = new RenderTarget2D(GraphicsDevice, (int)scaledLayerBounds.Width, (int)scaledLayerBounds.Height);
 
                 //Init the controller's rendering parameters.
                 controller.Rendering = new Rendering(GraphicsDevice, renderTarget);
-                controller.Rendering.ActualX = scaledLayerBounds.X;
-                controller.Rendering.ActualY = scaledLayerBounds.Y;
-                controller.Rendering.ActualWidth = scaledLayerBounds.Width;
-                controller.Rendering.ActualHeight = scaledLayerBounds.Height;
+                controller.Rendering.ActualX = (int)scaledLayerBounds.X;
+                controller.Rendering.ActualY = (int)scaledLayerBounds.Y;
+                controller.Rendering.ActualWidth = (int)scaledLayerBounds.Width;
+                controller.Rendering.ActualHeight = (int)scaledLayerBounds.Height;
 
                 //Init the controller's error handler.
                 controller.ErrorHandler = new ErrorHandlerProxy(layer.LayerId);
@@ -249,6 +260,8 @@ namespace WallApp
 
         protected override void Update(GameTime gameTime)
         {
+            _previewModeHandler.Update(gameTime);
+
             //Update enabled controllers.
             foreach (var controller in _controllers)
             {
@@ -266,6 +279,7 @@ namespace WallApp
             //DrawTest(gameTime);
             DrawLayers(gameTime);
             Present(gameTime);
+            _previewModeHandler.Draw(gameTime);
             base.Draw(gameTime);
         }
 
@@ -335,20 +349,23 @@ namespace WallApp
                 
                 //Get the dimensions of the layer, applying the scale factor.
                 var rect = controller.Settings.Dimensions.GetBoundsRectangle();
+                var position = new Vector2(rect.X * Settings.Instance.BackBufferWidthFactor, rect.Y * Settings.Instance.BackBufferHeightFactor);
+                var scale = new Vector2(Settings.Instance.BackBufferWidthFactor, Settings.Instance.BackBufferHeightFactor);
+                scale = Vector2.One;
+                
+                rect.X = rect.X * Settings.Instance.BackBufferWidthFactor;
+                rect.Y = rect.Y * Settings.Instance.BackBufferHeightFactor;
+                //rect.Width = (int)(rect.Width * Settings.Instance.BackBufferWidthFactor);
+                //rect.Height = (int)(rect.Height * Settings.Instance.BackBufferHeightFactor);
 
-                
-                rect.X = (int)(rect.X * Settings.Instance.BackBufferWidthFactor);
-                rect.Y = (int)(rect.Y * Settings.Instance.BackBufferHeightFactor);
-                rect.Width = (int)(rect.Width * Settings.Instance.BackBufferWidthFactor);
-                rect.Height = (int)(rect.Height * Settings.Instance.BackBufferHeightFactor);
-                
 
                 //Draw the controller.
 
                 //Vector2 originVector = new Vector2(rect.X + rect.Width / 2, rect.Y + rect.Height / 2);
                 //_spriteBatch.Draw(controller.RenderTarget, rect, null, controller.Settings.TintColor, (float) (controller.Settings.Rotation * RADIAN_MULTIPLIER), originVector, SpriteEffects.None, 0.0F);
 
-                _spriteBatch.Draw(controller.Rendering.RenderTarget, rect, controller.Settings.TintColor);
+                Console.WriteLine($"Drawing at X: {rect.X}, Y: {rect.Y}");
+                _spriteBatch.Draw(controller.Rendering.RenderTarget, position, null, controller.Settings.TintColor, 0.0F, Vector2.Zero, scale, SpriteEffects.None, 0.0F);
             }
             if(beginCalled)
             {

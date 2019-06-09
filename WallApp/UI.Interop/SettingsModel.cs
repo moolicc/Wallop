@@ -11,7 +11,7 @@ namespace WallApp.UI.Interop
     {
         public Layout Layout { get; private set; }
 
-        public override double BackBufferScale
+        public override float BackBufferScale
         {
             get => Settings.Instance.BackBufferWidthFactor;
             set

@@ -45,7 +45,7 @@ namespace WallApp.UI.ViewModels
             }
         }
 
-        public double BackBufferScale
+        public float BackBufferScale
         {
             get => _backBufferScale;
             set
@@ -108,7 +108,7 @@ namespace WallApp.UI.ViewModels
         private ICommand _modulesCommand;
 
         private double _frameRate;
-        private double _backBufferScale;
+        private float _backBufferScale;
         private string _layersText;
         private string _modulesText;
         private string _errorText;

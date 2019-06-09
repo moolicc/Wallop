@@ -119,6 +119,9 @@
     <Compile Include="AppState.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Game.cs" />
+    <Compile Include="LayoutPicking.cs" />
+    <Compile Include="PreviewModeHandler.cs" />
+    <Compile Include="RectangleF.cs" />
     <Compile Include="Scripting\ErrorHandlerProxy.cs" />
     <Compile Include="Services\InitializableService.cs" />
     <Compile Include="LayerDimensions.cs" />
@@ -158,6 +161,9 @@
     <Compile Include="UI\Views\LayerEditorWindow.xaml.cs">
       <DependentUpon>LayerEditorWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="UI\Views\ModulesView.xaml.cs">
+      <DependentUpon>ModulesView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UI\Views\SettingsWindow.xaml.cs">
       <DependentUpon>SettingsWindow.xaml</DependentUpon>
     </Compile>
@@ -190,6 +196,10 @@
     <Page Include="UI\Views\LayerEditorWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\Views\ModulesView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UI\Views\SettingsWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

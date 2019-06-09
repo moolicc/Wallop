@@ -40,7 +40,7 @@ namespace WallApp.UI.Interop
                     ScreenIndex = GetIndexFromName(l.Dimensions.MonitorName, screens),
                     AbsToggle = l.Dimensions.AbsoluteValues,
                     MarginsToggle = l.Dimensions.MarginValues,
-                    CurrentPosition = (l.Dimensions.XValue, l.Dimensions.YValue, l.Dimensions.ZValue, l.Dimensions.WValue),
+                    CurrentPosition = ((int)l.Dimensions.XValue, (int)l.Dimensions.YValue, (int)l.Dimensions.ZValue, (int)l.Dimensions.WValue),
                     TintColor = (l.TintColor.A, l.TintColor.R, l.TintColor.G, l.TintColor.B),
                     EffectIndex = GetIndexFromName(l.Effect, effects),
 
