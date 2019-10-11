@@ -1,0 +1,44 @@
+
+HEADER:
+  First 4 bytes are a string identifier "WAPP".
+  Next 2 bytes are for a format-version specifier in the form major.minor.
+    Different major numbers are incompatible
+	Different minor numbers are compatible
+  Next byte represents the length of the header block
+  Next 4-bytes is an offset from position (0) to (string table start)
+  Next 4-bytes is an offset from position(0) to (chunk index start)
+  Next 4-bytes is an offset from position(0) to (payload start)
+  Next byte is for various flags
+	bit-1 - compressed flag
+
+STRING TABLE:
+  First byte represents the number of strings to expect
+  Series of strings
+
+CHUNK INDEX:
+  16-bit unsigned int representing the number of chunks.
+  Series of chunk infos
+
+STRING:
+  First byte represents the length of the string block.
+  Second byte - the length represents the string in 16-bit UTF form.
+
+CHUNK INFO:
+  First byte is the length of this info block
+  Second byte is an index into the string table representing this item's tag
+  Next byte is the chunk type ID
+  Next 8 bytes are the chunk's start offset from the payload start
+  Next 8 bytes are the chunk's length, regardless of compression
+  Next 4 bytes are a hash of the chunk to verify data
+
+PAYLOAD:
+  Just raw data to be consumed later.
+  Might be compressed depending on the respective flag in the header.
+
+
+
+
+Implementation Notes:
+AT SOME POINT optimize file serialization with span<T>. This will require an upgrade to .net core 2.1.
+At some point, support embedded modules within a .wapp file.
+TODO: Implement ScriptIsData flag for specifying if the layout script is actually a script or just xml

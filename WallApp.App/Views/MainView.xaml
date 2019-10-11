@@ -1,0 +1,73 @@
+﻿<UserControl x:Class="WallApp.App.Views.MainView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+             xmlns:IconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:local="clr-namespace:WallApp.App.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800" Loaded="UserControl_Loaded">
+
+    <UserControl.RenderTransform>
+        <TranslateTransform x:Name="_transform" />
+    </UserControl.RenderTransform>
+
+    <Grid Margin="0,50">
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+
+        <Controls:ProgressRing IsActive="{Binding ProgressRingActive, FallbackValue=True}" />
+
+        <Controls:FlipView Grid.Row="0" x:Name="FlipView" Margin="2,0" x:FieldModifier="internal"
+                           IsEnabled="{Binding ControlsEnabled}" SelectionChanged="FlipView_SelectionChanged"
+                           SelectedIndex="{Binding SelectedLayoutIndex, Mode=TwoWay}"
+                           ItemsSource="{Binding Layouts}" BannerText="{Binding FlipViewBannerText}">
+
+        </Controls:FlipView>
+
+        <Grid Grid.Row="1" Margin="50,4,50,0">
+            <Grid.ColumnDefinitions>
+
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition />
+                <ColumnDefinition Width="auto" />
+
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Width="32" Height="32" Margin="2"
+                        Style="{DynamicResource MahApps.Metro.Styles.MetroCircleButtonStyle}"
+                        ToolTip="Load layout" Command="{Binding ImportLayoutCommand}">
+                    <IconPacks:Ionicons Kind="OpenMD" />
+                </Button>
+                <Button Width="32" Height="32" Margin="2"
+                        Style="{DynamicResource MahApps.Metro.Styles.MetroCircleButtonStyle}"
+                        ToolTip="Save layout" Command="{Binding ExportLayoutCommand}">
+                    <IconPacks:Ionicons Kind="SaveMD" />
+                </Button>
+            </StackPanel>
+
+            <Button Grid.Column="1" Width="100" Height="32" ToolTip="Apply layout"
+                    Command="{Binding ApplyLayoutCommand}">
+                <IconPacks:Ionicons Kind="CheckmarkMD" />
+            </Button>
+
+            <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Width="32" Height="32" Margin="2"
+                        Style="{DynamicResource MahApps.Metro.Styles.MetroCircleButtonStyle}"
+                        ToolTip="New layout" Command="{Binding AddLayoutCommand}"
+                        Click="NewLayoutClicked">
+                    <IconPacks:Ionicons Kind="AddMD" />
+                </Button>
+                <Button Width="32" Height="32" Margin="2"
+                        Style="{DynamicResource MahApps.Metro.Styles.MetroCircleButtonStyle}"
+                        ToolTip="Delete layout" Command="{Binding RemoveLayoutCommand}">
+                    <IconPacks:Ionicons Kind="RemoveMD" />
+                </Button>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>
