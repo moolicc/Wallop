@@ -34,6 +34,9 @@ namespace WallApp.App
             {
                 SwitchToMainView();
             });
+
+            // TODO: Probably a better way to do this, but I haven't slept in a while :(.
+            _visualEditView.OnAddModule = _editViewModel.AddModule;
         }
 
         private void SetupMainView()

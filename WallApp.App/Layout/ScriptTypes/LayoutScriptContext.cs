@@ -33,7 +33,7 @@ namespace WallApp.App.Layout.ScriptTypes
 
         // Misc. Functions.
 
-        public void SetLayerVisibility(bool visible)
+        public void SetLayerVisibility(int layerId, bool visible)
         {
 
         }
@@ -41,22 +41,22 @@ namespace WallApp.App.Layout.ScriptTypes
 
         // Dimension Functions
 
-        public void SetReferenceMonitor(string adapter)
+        public void SetReferenceMonitor(int layerId, string adapter)
         {
 
         }
 
-        public void SetDimensions(float x, float y, float z, float w)
+        public void SetDimensions(int layerId, float x, float y, float z, float w)
         {
 
         }
 
-        public void SetAbsoluteDimensions(bool useAbsolutePixels)
+        public void SetAbsoluteDimensions(int layerId, bool useAbsolutePixels)
         {
 
         }
 
-        public void SetMarginDimensions(bool useMargins)
+        public void SetMarginDimensions(int layerId, bool useMargins)
         {
 
         }
@@ -64,12 +64,12 @@ namespace WallApp.App.Layout.ScriptTypes
 
         // Layer VarTable Functions
 
-        public void SetField(string field, object value)
+        public void SetField(int layerId, string field, object value)
         {
 
         }
 
-        public object GetField(string field)
+        public object GetField(int layerId, string field)
         {
             return null;
         }

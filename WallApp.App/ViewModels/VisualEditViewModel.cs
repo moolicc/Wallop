@@ -19,5 +19,10 @@ namespace WallApp.App.ViewModels
         {
             _backCommand = new RelayCommand(onBackClicked);
         }
+
+        public void AddModule(Modules.Module module)
+        {
+            Services.ServiceLocator.Locate<Services.BridgeService>().AddLayer(module.Name);
+        }
     }
 }

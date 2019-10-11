@@ -22,6 +22,8 @@ namespace WallApp.App.Views
     /// </summary>
     public partial class VisualEditView : UserControl
     {
+        internal Action<Modules.Module> OnAddModule { get; set; }
+
         public VisualEditView()
         {
             InitializeComponent();
@@ -64,13 +66,22 @@ namespace WallApp.App.Views
 
         private void ListView_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            var item = ((FrameworkElement)e.OriginalSource).DataContext as Track;
-            if (item == null)
+
+            //OR
+            /*
+             * var item = ListView.SelectedItem as Track;
+             * if (item != null)
+             * {
+             * MessageBox.Show(item.ToString()+" Double Click handled!");
+             * }
+            */
+
+            var item = ((FrameworkElement)e.OriginalSource).DataContext as Modules.Module;
+            if (item == null || OnAddModule == null)
             {
                 return;
             }
-
-            Services.ServiceLocator.Locate<Services.BridgeService>().(true);
+            OnAddModule(item);
         }
     }
 }

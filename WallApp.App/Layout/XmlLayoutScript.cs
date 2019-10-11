@@ -107,11 +107,10 @@ namespace WallApp.App.Layout
             }
 
             int layerId = _context.CreateLayer(module);
-            _context.SetEditLayer(layerId);
-            _context.SetReferenceMonitor(referenceMonitor);
-            _context.SetDimensions(posX, posY, posZ, posW);
-            _context.SetAbsoluteDimensions(absolutePos);
-            _context.SetMarginDimensions(marginPos);
+            _context.SetReferenceMonitor(layerId, referenceMonitor);
+            _context.SetDimensions(layerId, posX, posY, posZ, posW);
+            _context.SetAbsoluteDimensions(layerId, absolutePos);
+            _context.SetMarginDimensions(layerId, marginPos);
         }
     }
 }
