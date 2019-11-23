@@ -27,10 +27,32 @@ namespace WallApp.Bridge
             OutputStream.WriteLine(json);
         }
 
+
         public T Read<T>()
         {
-            while (InputStream.EndOfStream) System.Threading.Thread.Sleep(100);
-            var json = InputStream.ReadToEnd();
+            int peeked = -1;
+            while (peeked == -1)
+            {
+                System.Threading.Thread.Sleep(100);
+                peeked = InputStream.Peek();
+            }
+
+            int next = InputStream.Read();
+            string json = "";
+            while(next != -1 && ((char)next) != '\0')
+            {
+                json += (char)next;
+                peeked = InputStream.Peek();
+                if(peeked != -1)
+                {
+                    next = InputStream.Read();
+                }
+                else
+                {
+                    break;
+                }
+            }
+
             var payload = Newtonsoft.Json.JsonConvert.DeserializeObject<Payload>(json);
 
             var targetType = Type.GetType(payload.TypeName);

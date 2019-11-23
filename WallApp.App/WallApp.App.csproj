@@ -199,6 +199,10 @@
       <Project>{cf77269c-3d36-4527-89de-6ecc6a6f82d8}</Project>
       <Name>Bridge</Name>
     </ProjectReference>
+    <ProjectReference Include="..\MockEngine\MockEngine.csproj">
+      <Project>{d4c56f06-aa22-4d3e-ba10-3083417e4e99}</Project>
+      <Name>MockEngine</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
