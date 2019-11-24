@@ -10,32 +10,42 @@ namespace WallApp.App.Services
     class EditModeService : IService
     {
         public int InitPriority => int.MaxValue;
+        public bool LayoutUpdated { get; private set; }
 
         private Layout.LayoutInfo _trackingLayout;
 
         public void Initialize()
         {
+            LayoutUpdated = false;
         }
 
         public void StartEdit(Layout.LayoutInfo layoutInfo)
         {
             if(_trackingLayout != null)
             {
-                throw new InvalidOperationException("A layout is already being tracked.");
+                throw new InvalidOperationException("A layout is already being tracked. Make sure LayoutUpdated has been set to 'true' before attempting to modify a layer.");
             }
+            LayoutUpdated = false;
             _trackingLayout = layoutInfo;
-            Services.ServiceLocator.Locate<Services.BridgeService>().WriteSetEditMode(true);
+            ServiceLocator.Locate<BridgeService>().WriteSetEditMode(true);
         }
 
         public void StopEdit()
         {
-            ServiceLocator.Locate<Services.BridgeService>().WriteSetEditMode(false);
-            _trackingLayout = null;
+            var bridge = ServiceLocator.Locate<BridgeService>();
+            bridge.Scheduler.TakeNext<Bridge.Data.EditModeResponse>(new PayloadHandler(payload =>
+            {
+                //TODO: _trackingLayout needs to change based on whatever is in payload.
+
+                LayoutUpdated = true;
+                _trackingLayout = null;
+            }));
+            bridge.WriteSetEditMode(false);
         }
 
         public void AddLayer(string module)
         {
-            ServiceLocator.Locate<Services.BridgeService>().WriteAddLayer(module);
+            ServiceLocator.Locate<BridgeService>().WriteAddLayer(module);
         }
 
         public IEnumerable<XElement> GenerateXmlScript()
