@@ -9,7 +9,7 @@ namespace WallApp.App.Layout
     class LayoutInfo
     {
         public static readonly LayoutInfo Default = new LayoutInfo() { Title = "Empty", Thumbnail = "logo.png" };
-        
+
         public string Title { get; set; }
         public string Author { get; set; }
         public string Thumbnail { get; set; }
