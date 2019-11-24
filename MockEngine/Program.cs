@@ -14,7 +14,6 @@ namespace MockEngine
                 using(var s = new System.IO.StreamWriter("MockEngine_Output.txt"))
                 {
                     s.AutoFlush = true;
-                    s.WriteLine("INIT");
                     while (true)
                     {
                         if (reader.Queue.TryDequeue(out var payload))
