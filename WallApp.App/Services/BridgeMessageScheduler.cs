@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -15,7 +16,7 @@ namespace WallApp.App.Services
     {
         private InputReader<IPayload> _reader;
 
-        private Dictionary<Type, Queue<PayloadHandler>> _consumers;
+        private Dictionary<Type, Queue<ConsumerEntry>> _consumers;
         private bool _consumerLock;
 
         private bool _consumingNext;
@@ -24,29 +25,34 @@ namespace WallApp.App.Services
         public BridgeMessageScheduler(InputReader<IPayload> reader)
         {
             _reader = reader;
-            Task.Run(RunAsync);
+
+            _consumers = new Dictionary<Type, Queue<ConsumerEntry>>();
+
+            Task.Run(Run);
         }
 
-        public void TakeNext<T>(PayloadHandler action) where T : IPayload
+        public void TakeNext<T>(PayloadHandler action, int timeoutTime, Action timeoutAction) where T : IPayload
         {
             while (_consumerLock) ;
             _consumerLock = true;
 
             Type tType = typeof(T);
-            Queue<PayloadHandler> takersList = null;
 
-            if(!_consumers.TryGetValue(tType, out takersList))
+            Queue<ConsumerEntry> entryQueue;
+            if(!_consumers.TryGetValue(tType, out entryQueue))
             {
-                takersList = new Queue<PayloadHandler>();
-                _consumers.Add(tType, takersList);
+                entryQueue = new Queue<ConsumerEntry>();
+                _consumers.Add(tType, entryQueue);
             }
-            takersList.Enqueue(action);
+            entryQueue.Enqueue(new ConsumerEntry(action, timeoutTime, timeoutAction));
+
 
             _consumerLock = false;
         }
 
         public T ConsumeNext<T>() where T : IPayload
         {
+            throw new NotImplementedException("This won't even work... Figure out what the plan was and make it happen, chief!");
             _consumingNext = true;
             while (_consumeNext == null) ;
 
@@ -57,14 +63,33 @@ namespace WallApp.App.Services
             return returnVal;
         }
 
-        private void RunAsync()
+        private void Run()
         {
-
             while (true)
             {
                 while (_reader.Queue.Count > 0)
                 {
-                    if(!_reader.Queue.TryDequeue(out var payload))
+                    if (!_consumerLock)
+                    {
+                        _consumerLock = true;
+
+                        foreach (var item in _consumers)
+                        {
+                            foreach (var consumer in item.Value)
+                            {
+                                if(consumer.TimeoutTimer.ElapsedMilliseconds > consumer.Timeout)
+                                {
+                                    consumer.TimedOut = true;
+                                    consumer.OnTimeout();
+                                }
+                            }
+                        }
+
+                        _consumerLock = false;
+                    }
+
+
+                    if (!_reader.Queue.TryDequeue(out var payload))
                     {
                         break;
                     }
@@ -72,9 +97,18 @@ namespace WallApp.App.Services
                     if(!_consumerLock)
                     {
                         _consumerLock = true;
-                        if(_consumers.TryGetValue(payload.GetType(), out var queue))
+                        if(_consumers.TryGetValue(payload.GetType(), out var entry))
                         {
-                            PayloadHandler handler = queue.Dequeue();
+                            var consumer = entry.Dequeue();
+                            while(entry.Count > 0)
+                            {
+                                if(consumer.TimedOut)
+                                {
+                                    consumer = entry.Dequeue();
+                                }
+                            }
+
+                            PayloadHandler handler = entry.Dequeue().Handler;
                             if(handler != null)
                             {
                                 Task.Run(() => handler(payload));
@@ -84,12 +118,32 @@ namespace WallApp.App.Services
                         }
                         _consumerLock = false;
                     }
-
-
                 }
                 Thread.Sleep(500);
             }
+        }
 
+        private class ConsumerEntry
+        {
+            public PayloadHandler Handler;
+            public int Timeout;
+            public Action OnTimeout;
+            public Stopwatch TimeoutTimer;
+            public bool TimedOut;
+
+            public ConsumerEntry(PayloadHandler action, int timeout, Action onTimeout)
+            {
+                Handler = action;
+                Timeout = timeout;
+                OnTimeout = onTimeout;
+                TimeoutTimer = new Stopwatch();
+                TimedOut = false;
+
+                if (OnTimeout != null)
+                {
+                    TimeoutTimer.Start();
+                }
+            }
         }
     }
 }

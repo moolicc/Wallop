@@ -39,7 +39,7 @@ namespace WallApp.App.Services
 
                 LayoutUpdated = true;
                 _trackingLayout = null;
-            }));
+            }), 3000, () => throw new InvalidOperationException("A response from the engine was expected but not received."));
             bridge.WriteSetEditMode(false);
         }
 
