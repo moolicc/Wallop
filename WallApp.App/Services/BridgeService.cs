@@ -6,6 +6,11 @@ using System.Threading.Tasks;
 
 namespace WallApp.App.Services
 {
+    // NEW NOTES
+    // Only other services should call into BridgeService.WriteX.
+    // This isolates communication to the engine to services and away from
+    // the UI.
+
     class BridgeService : IService
     {
         public int InitPriority => 0;
@@ -18,18 +23,14 @@ namespace WallApp.App.Services
             Scheduler = new BridgeMessageScheduler(new Bridge.InputReader<Bridge.Data.IPayload>(Engine));
         }
 
-        public void SetEditMode(bool editModeEnabled)
+        public void WriteSetEditMode(bool editModeEnabled)
         {
             Engine.Write(new Bridge.Data.EditModePayload(editModeEnabled));
         }
 
-        public void AddLayer(string module)
+        public void WriteAddLayer(string module)
         {
             Engine.Write(new Bridge.Data.LayerCreationPayload(module));
-        }
-
-        public void PositionLayer(int layerId, Layout.LayerDimensions dimensions)
-        {
         }
     }
 }

@@ -11,21 +11,35 @@ namespace WallApp.App.Services
     {
         public int InitPriority => int.MaxValue;
 
-        private List<Layout.Layer> _layerTracker;
+        private Layout.LayoutInfo _trackingLayout;
 
         public void Initialize()
         {
-            _layerTracker = new List<Layout.Layer>();
         }
 
-        public void AddLayer(Layout.Layer layer)
+        public void StartEdit(Layout.LayoutInfo layoutInfo)
         {
+            if(_trackingLayout != null)
+            {
+                throw new InvalidOperationException("A layout is already being tracked.");
+            }
+            _trackingLayout = layoutInfo;
+            Services.ServiceLocator.Locate<Services.BridgeService>().WriteSetEditMode(true);
+        }
 
+        public void StopEdit()
+        {
+            ServiceLocator.Locate<Services.BridgeService>().WriteSetEditMode(false);
+            _trackingLayout = null;
+        }
+
+        public void AddLayer(string module)
+        {
+            ServiceLocator.Locate<Services.BridgeService>().WriteAddLayer(module);
         }
 
         public IEnumerable<XElement> GenerateXmlScript()
         {
-
             return null;
         }
     }

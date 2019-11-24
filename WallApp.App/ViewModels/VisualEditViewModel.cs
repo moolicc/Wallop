@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using WallApp.App.Services;
 
 namespace WallApp.App.ViewModels
 {
@@ -20,9 +21,19 @@ namespace WallApp.App.ViewModels
             _backCommand = new RelayCommand(onBackClicked);
         }
 
+        public void StartEdit(Layout.LayoutInfo layout)
+        {
+            ServiceLocator.Locate<EditModeService>().StartEdit(layout);
+        }
+
+        public void StopEdit()
+        {
+            ServiceLocator.Locate<EditModeService>().StopEdit();
+        }
+
         public void AddModule(Modules.Module module)
         {
-            Services.ServiceLocator.Locate<Services.BridgeService>().AddLayer(module.Name);
+            ServiceLocator.Locate<EditModeService>().AddLayer(module.Name);
         }
     }
 }

@@ -14,6 +14,7 @@ using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using WallApp.App.Services;
 
 namespace WallApp.App.Views
 {
@@ -36,8 +37,6 @@ namespace WallApp.App.Views
             animation.Completed += SetInvisible;
             IsEnabled = false;
             _transform.BeginAnimation(TranslateTransform.XProperty, animation);
-
-            Services.ServiceLocator.Locate<Services.BridgeService>().SetEditMode(false);
         }
 
         public void AnimateOn()
@@ -47,8 +46,6 @@ namespace WallApp.App.Views
             animation.Completed += SetVisible;
             IsEnabled = true;
             _transform.BeginAnimation(TranslateTransform.XProperty, animation);
-
-            Services.ServiceLocator.Locate<Services.BridgeService>().SetEditMode(true);
         }
 
 

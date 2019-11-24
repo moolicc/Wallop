@@ -64,20 +64,31 @@ namespace WallApp.App
                 return;
             }
 
-            SwitchToEditView();
+            var layout = new Layout.LayoutInfo()
+            {
+                Author = "Me",
+                Title = sender.LayoutName,
+                ScriptIsData = sender.SelectedScriptKind == Layout.ScriptKind.Data,
+                Script = "",
+                Thumbnail = ""
+            };
+
+            SwitchToEditView(new Layout.LayoutInfo());
         }
 
         private void SwitchToMainView()
         {
             _visualEditView.AnimateOff();
+            _editViewModel.StopEdit();
             _mainView.AnimateOn();
             DataContext = _mainViewModel;
         }
 
-        private void SwitchToEditView()
+        private void SwitchToEditView(Layout.LayoutInfo layout)
         {
             _visualEditView.AnimateOn();
             _mainView.AnimateOff();
+            _editViewModel.StartEdit(layout);
             DataContext = _editViewModel;
         }
     }
