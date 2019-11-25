@@ -23,7 +23,7 @@ namespace WallApp.App.Services
         {
             if(_trackingLayout != null)
             {
-                throw new InvalidOperationException("A layout is already being tracked. Make sure LayoutUpdated has been set to 'true' before attempting to modify a layer.");
+                throw new InvalidOperationException("A layout is already being tracked. Make sure LayoutUpdated is equal to 'true' before attempting to modify a layer.");
             }
             LayoutUpdated = false;
             _trackingLayout = layoutInfo;
@@ -35,8 +35,7 @@ namespace WallApp.App.Services
             var bridge = ServiceLocator.Locate<BridgeService>();
             bridge.Scheduler.TakeNext<Bridge.Data.EditModeResponse>(new PayloadHandler(payload =>
             {
-                //TODO: _trackingLayout needs to change based on whatever is in payload.
-
+                _trackingLayout.Script = GenerateXmlScript((Bridge.Data.EditModeResponse)payload);
                 LayoutUpdated = true;
                 _trackingLayout = null;
             }), 3000, () => throw new InvalidOperationException("A response from the engine was expected but not received."));
@@ -48,7 +47,7 @@ namespace WallApp.App.Services
             ServiceLocator.Locate<BridgeService>().WriteAddLayer(module);
         }
 
-        public IEnumerable<XElement> GenerateXmlScript()
+        private string GenerateXmlScript(Bridge.Data.EditModeResponse data)
         {
             return null;
         }
