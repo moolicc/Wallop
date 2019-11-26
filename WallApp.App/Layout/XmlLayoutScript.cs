@@ -10,13 +10,11 @@ namespace WallApp.App.Layout
 {
     class XmlLayoutScript : ILayoutScript
     {
-        private ScriptTypes.LayoutScriptContext _context;
         private string _source;
 
-        public void Execute(string source, ScriptTypes.LayoutScriptContext context)
+        public void Execute(string source)
         {
             //TODO: Load-up the xml and create the necessary layers.
-            _context = context;
             _source = source;
             LoadXml();
         }
@@ -111,11 +109,12 @@ namespace WallApp.App.Layout
                 bool.TryParse(marginPosElement.Value, out absolutePos);
             }
 
-            int layerId = _context.CreateLayer(module);
-            _context.SetReferenceMonitor(layerId, referenceMonitor);
-            _context.SetDimensions(layerId, posX, posY, posZ, posW);
-            _context.SetAbsoluteDimensions(layerId, absolutePos);
-            _context.SetMarginDimensions(layerId, marginPos);
+            var service = Services.ServiceLocator.Locate<Services.LayoutScriptService>();
+            int layerId = service.AddLayer(module);
+            service.SetReferenceMonitor(layerId, referenceMonitor);
+            service.SetDimensions(layerId, posX, posY, posZ, posW);
+            service.SetAbsoluteDimensions(layerId, absolutePos);
+            service.SetMarginDimensions(layerId, marginPos);
         }
     }
 }

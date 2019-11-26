@@ -8,7 +8,7 @@ namespace WallApp.App.Layout
 {
     interface ILayoutScript
     {
-        void Execute(string source, ScriptTypes.LayoutScriptContext context);
+        void Execute(string source);
         void Cleanup();
     }
 }

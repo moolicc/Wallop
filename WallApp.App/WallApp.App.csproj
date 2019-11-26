@@ -93,7 +93,6 @@
     <Compile Include="LayoutInfoConverter.cs" />
     <Compile Include="Layout\ILayoutScript.cs" />
     <Compile Include="Layout\ScriptKind.cs" />
-    <Compile Include="Layout\ScriptTypes\LayoutScriptContext.cs" />
     <Compile Include="Layout\Serializing\ChunkInfo.cs" />
     <Compile Include="Layout\Serializing\ChunkLoaders\AuthorLoader.cs" />
     <Compile Include="Layout\Serializing\ChunkLoaders\ChunkLoading.cs" />

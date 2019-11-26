@@ -37,7 +37,7 @@ namespace WallApp.App.Services
 
             }
 
-            layoutScript.Execute(layout.Script, new Layout.ScriptTypes.LayoutScriptContext());
+            layoutScript.Execute(layout.Script);
         }
 
         public IEnumerable<Layout.LayoutInfo> LoadLayouts()
