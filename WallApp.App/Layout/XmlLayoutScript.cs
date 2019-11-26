@@ -33,6 +33,11 @@ namespace WallApp.App.Layout
 
         private void LoadRoot(XElement rootElement)
         {
+            if(rootElement.Name != "layout")
+            {
+                // TODO: Error
+            }
+
             foreach (var node in rootElement.Elements("layer"))
             {
                 LoadLayer(node);
@@ -41,7 +46,7 @@ namespace WallApp.App.Layout
 
         private void LoadLayer(XElement element)
         {
-            float GetPosValue(XAttribute input)
+            float GetPosValue(XElement input)
             {
                 float result = 0.0F;
                 if(input == null)
@@ -55,16 +60,29 @@ namespace WallApp.App.Layout
                 return result;
             }
 
-            var moduleAttrib = element.Attribute("module");
-            var referenceMonitorAttrib = element.Attribute("monitor");
-            var posXAttrib = element.Attribute("x");
-            var posYAttrib = element.Attribute("y");
-            var posZAttrib = element.Attribute("z");
-            var posWAttrib = element.Attribute("w");
-            var absPosAttrib = element.Attribute("absolute");
-            var marginPosAttrib = element.Attribute("margin");
 
-            string module = "";
+            var moduleElement = element.Element("module");
+            var dimensionsElement = element.Element("dimensions");
+
+            if (moduleElement == null)
+            {
+                //TODO: Error
+            }
+            if (dimensionsElement == null)
+            {
+                //TODO: Error
+            }
+
+            var referenceMonitorElement = element.Element("dimensions").Element("monitor");
+            var posXElement = element.Element("dimensions").Element("x");
+            var posYElement = element.Element("dimensions").Element("y");
+            var posZElement = element.Element("dimensions").Element("z");
+            var posWElement = element.Element("dimensions").Element("w");
+            var absPosElement = element.Element("dimensions").Element("absolute");
+            var marginPosElement = element.Element("dimensions").Element("margin");
+
+            string module = moduleElement.Value;
+
             string referenceMonitor = "";
             float posX = 0.0F;
             float posY = 0.0F;
@@ -73,37 +91,24 @@ namespace WallApp.App.Layout
             bool absolutePos = false;
             bool marginPos = false;
 
-            if (moduleAttrib == null)
+            if(referenceMonitorElement != null)
             {
-                //TODO: Error
-            }
-            else
-            {
-                module = moduleAttrib.Value;
+                referenceMonitor = referenceMonitorElement.Value;
             }
 
-            if(referenceMonitorAttrib == null)
-            {
-                //TODO: Error
-            }
-            else
-            {
-                referenceMonitor = referenceMonitorAttrib.Value;
-            }
+            posX = GetPosValue(posXElement);
+            posY = GetPosValue(posYElement);
+            posZ = GetPosValue(posZElement);
+            posW = GetPosValue(posWElement);
 
-            posX = GetPosValue(posXAttrib);
-            posY = GetPosValue(posYAttrib);
-            posZ = GetPosValue(posZAttrib);
-            posW = GetPosValue(posWAttrib);
-
-            //TODO: Handle invalid attrib.Value data.
-            if(absPosAttrib != null)
+            //TODO: Handle invalid Value data.
+            if(absPosElement != null)
             {
-                bool.TryParse(absPosAttrib.Value, out absolutePos);
+                bool.TryParse(absPosElement.Value, out absolutePos);
             }
-            if (marginPosAttrib != null)
+            if (marginPosElement != null)
             {
-                bool.TryParse(marginPosAttrib.Value, out absolutePos);
+                bool.TryParse(marginPosElement.Value, out absolutePos);
             }
 
             int layerId = _context.CreateLayer(module);

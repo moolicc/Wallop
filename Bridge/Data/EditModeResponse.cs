@@ -8,12 +8,12 @@ namespace WallApp.Bridge.Data
     {
         // The contents are the modules.
         public List<string> Layers { get; private set; }
-        public List<(int, int, int, int)> LayerPositions { get; private set; }
+        public List<(float x, float y, float z, float w)> LayerPositions { get; private set; }
 
         public EditModeResponse()
         {
             Layers = new List<string>();
-            LayerPositions = new List<(int, int, int, int)>();
+            LayerPositions = new List<(float, float, float, float)>();
         }
     }
 }

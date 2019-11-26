@@ -49,6 +49,23 @@ namespace WallApp.App.Services
 
         private string GenerateXmlScript(Bridge.Data.EditModeResponse data)
         {
+            var root = new XElement("layout");
+
+            for (int i = 0; i < data.Layers.Count; i++)
+            {
+                var layerItem = new XElement("layer");
+                layerItem.Add(new XElement("module", data.Layers[i]));
+
+                layerItem.Add(new XElement("dimensions",
+                    new XElement("x", data.LayerPositions[i].x),
+                    new XElement("y", data.LayerPositions[i].y),
+                    new XElement("z", data.LayerPositions[i].z),
+                    new XElement("w", data.LayerPositions[i].w)));
+
+                root.Add(layerItem);
+            }
+
+
             return null;
         }
     }

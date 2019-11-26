@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WallApp.App", "WallApp.App\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{842E7669-5B64-4912-AAC4-49874602B6C2}"
 	ProjectSection(SolutionItems) = preProject
-		layoutexample.xml = layoutexample.xml
+		LayoutDataScriptExample.xml = LayoutDataScriptExample.xml
 		WappFileNotes.txt = WappFileNotes.txt
 	EndProjectSection
 EndProject
