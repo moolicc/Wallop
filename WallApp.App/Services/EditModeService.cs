@@ -66,7 +66,7 @@ namespace WallApp.App.Services
             }
 
 
-            return null;
+            return root.ToString();
         }
     }
 }
