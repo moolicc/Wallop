@@ -6,12 +6,12 @@
         xmlns:local="clr-namespace:WallApp.App.Views"
         xmlns:mahapps="http://metro.mahapps.com/winfx/xaml/controls"
         mc:Ignorable="d"
-        Title="Layout Type" Width="Auto">
+        Title="New Layout" Width="Auto">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            
+
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -30,9 +30,9 @@
                 <ComboBoxItem>Scripted</ComboBoxItem>
             </ComboBox.Items>
         </ComboBox>
-        
+
         <CheckBox x:FieldModifier="private" x:Name="_checkBox" Grid.Row="3" Grid.ColumnSpan="2" Content="Remember selection" Margin="0,3,0,3" Visibility="Collapsed" />
-        
+
         <Button Grid.Column="0" Grid.Row="4" Content="OK" Height="27" Width="75" IsDefault="True" HorizontalAlignment="Right" Margin="0,30,3,20" Click="OkClicked" />
         <Button Grid.Column="1" Grid.Row="4" Content="Cancel" Height="27" Width="75" IsCancel="True" HorizontalAlignment="Left" Margin="0,30,0,20" Click="CancelClicked" />
     </Grid>
