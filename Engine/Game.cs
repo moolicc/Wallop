@@ -165,8 +165,8 @@ namespace WallApp
                 //Dispose old controller rendertargets.
                 foreach (var controller in _controllers)
                 {
-                    controller.Dispose();
                     controller.Rendering.RenderTarget.Dispose();
+                    controller.Dispose();
                 }
 
                 _controllers.Clear();
