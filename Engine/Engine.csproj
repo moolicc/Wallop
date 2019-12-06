@@ -108,6 +108,7 @@
     <Compile Include="Scripting\RemoteModule.cs" />
     <Compile Include="Scripting\Rendering.cs" />
     <Compile Include="Scripting\Resolver.cs" />
+    <Compile Include="Services\BridgeMessageProxy.cs" />
     <Compile Include="Services\BridgeService.cs" />
     <Compile Include="Services\InitializableService.cs" />
     <Compile Include="LayerDimensions.cs" />
