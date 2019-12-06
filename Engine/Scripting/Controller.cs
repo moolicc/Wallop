@@ -10,7 +10,6 @@ namespace WallApp.Scripting
         public LayerSettings Settings { get; set; }
         public Module Module { get; internal set; }
         public Rendering Rendering { get; internal set; }
-        public ErrorHandlerProxy ErrorHandler { get; internal set; }
 
         public int LayerId { get => Settings.LayerId; }
 

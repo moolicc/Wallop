@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Media.Imaging;
 
-namespace WallApp.UI
+namespace WallApp.App
 {
     //Source: https://stackoverflow.com/a/54738646
     class IconFileSizeSelectorConverter : IValueConverter

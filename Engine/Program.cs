@@ -12,9 +12,6 @@ namespace WallApp
         [STAThread]
         static void Main(string[] args)
         {
-            App app = new App();
-            app.InitializeComponent();
-
             using (Game game = new Game())
             {
                 game.Run();
@@ -23,7 +20,6 @@ namespace WallApp
 
         private static void LoadLogs()
         {
-            
         }
     }
 }

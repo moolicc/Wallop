@@ -9,7 +9,6 @@ using System.Windows.Forms;
 using WallApp.Scripting;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using WallApp.UI.ViewModels;
 using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using SystemInformation = System.Windows.Forms.SystemInformation;
@@ -24,7 +23,7 @@ using WallApp.UI;
  * All layout logic needs to come from the bridge.
  * All the ui needs to go away
  * The scripting interface needs to go away
- * 
+ *
  * General refactoring
  */
 
@@ -64,7 +63,7 @@ namespace WallApp
         private GraphicsDeviceManager _graphicsManager;
         private SpriteBatch _spriteBatch;
         private Dictionary<string, Effect> _effectsCache;
-    
+
         private List<Controller> _controllers;
 
         private PreviewModeHandler _previewModeHandler;
@@ -101,7 +100,6 @@ namespace WallApp
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
             //Initialize services
-            ServiceProvider.GetService<TrayIcon>().Init((TaskbarIcon)App.Current.FindResource("NotifyIcon"));
             _previewModeHandler = ServiceProvider.GetService<PreviewModeHandler>();
             _previewModeHandler.Init(_spriteBatch);
 
@@ -143,27 +141,12 @@ namespace WallApp
             //Set the window's parent to be the desktop.
             WindowHandler.SetParet(_form.Handle);
 
-            //Load the layout
-            if (!File.Exists("layout.json"))
-            {
-                Layout.New();
-                Layout.Save("layout.json");
-            }
-            else
-            {
-                Layout.Load("layout.json");
-            }
-
             //Instantiate the effects cache.
             _effectsCache = new Dictionary<string, Effect>();
 
             //Setup the content manager we'll use for effects loading.
             Content.RootDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
-
-            //Show the settings window.
-            var model = new UI.Interop.ModelProvider(this);
-            ShowSettings();
 
             //Initialize the controllers the user has in the current layout.
             InitializeControllers();
@@ -197,12 +180,6 @@ namespace WallApp
             }
             //Initialize the new layout.
             InitializeControllers();
-        }
-
-        private void ShowSettings()
-        {
-            var win = new UI.Views.SettingsWindow(new SettingsViewModel());
-            win.Show();
         }
 
         private void InitializeControllers()
@@ -245,9 +222,6 @@ namespace WallApp
                 controller.Rendering.ActualWidth = (int)scaledLayerBounds.Width;
                 controller.Rendering.ActualHeight = (int)scaledLayerBounds.Height;
 
-                //Init the controller's error handler.
-                controller.ErrorHandler = new ErrorHandlerProxy(layer.LayerId);
-
                 //Allow the controller to handle any initialization is needs.
                 try
                 {
@@ -256,7 +230,7 @@ namespace WallApp
                 catch (Exception ex)
                 {
                 }
-                
+
                 //Cache any effects.
                 if (!string.IsNullOrWhiteSpace(layer.Effect))
                 {
@@ -338,7 +312,7 @@ namespace WallApp
                 {
                     continue;
                 }
-                
+
                 if (controller.Settings.Effect != lastEffect)
                 {
                     if (beginCalled)
@@ -358,13 +332,13 @@ namespace WallApp
                         beginCalled = true;
                     }
                 }
-                
+
                 //Get the dimensions of the layer, applying the scale factor.
                 var rect = controller.Settings.Dimensions.GetBoundsRectangle();
                 var position = new Vector2(rect.X * Settings.Instance.BackBufferWidthFactor, rect.Y * Settings.Instance.BackBufferHeightFactor);
                 var scale = new Vector2(Settings.Instance.BackBufferWidthFactor, Settings.Instance.BackBufferHeightFactor);
                 scale = Vector2.One;
-                
+
                 rect.X = rect.X * Settings.Instance.BackBufferWidthFactor;
                 rect.Y = rect.Y * Settings.Instance.BackBufferHeightFactor;
                 //rect.Width = (int)(rect.Width * Settings.Instance.BackBufferWidthFactor);

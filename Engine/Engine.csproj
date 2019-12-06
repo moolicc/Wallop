@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{13AEA47F-CE17-4977-91D7-18E54C2B4BD0}</ProjectGuid>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Exe</OutputType>
     <RootNamespace>WallApp.Engine</RootNamespace>
     <AssemblyName>Engine</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
@@ -112,79 +112,34 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
-    <ApplicationDefinition Include="App.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </ApplicationDefinition>
     <Compile Include="AppState.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Game.cs" />
     <Compile Include="LayoutPicking.cs" />
     <Compile Include="PreviewModeHandler.cs" />
     <Compile Include="RectangleF.cs" />
-    <Compile Include="Scripting\ErrorHandlerProxy.cs" />
-    <Compile Include="Services\InitializableService.cs" />
-    <Compile Include="LayerDimensions.cs" />
-    <Compile Include="LayerSettings.cs" />
-    <Compile Include="Layout.cs" />
     <Compile Include="Scripting\Controller.cs" />
     <Compile Include="Scripting\Cs\CsModule.cs" />
-    <Compile Include="Scripting\ErrorHandler.cs" />
     <Compile Include="Scripting\Module.cs" />
     <Compile Include="Scripting\RemoteModule.cs" />
     <Compile Include="Scripting\Rendering.cs" />
     <Compile Include="Scripting\Resolver.cs" />
+    <Compile Include="Services\InitializableService.cs" />
+    <Compile Include="LayerDimensions.cs" />
+    <Compile Include="LayerSettings.cs" />
+    <Compile Include="Layout.cs" />
     <Compile Include="Services\ServiceAttribute.cs" />
     <Compile Include="Services\ServiceNotInitializedException.cs" />
     <Compile Include="Services\ServiceProvider.cs" />
     <Compile Include="Services\ServiceReferenceAttribute.cs" />
     <Compile Include="Settings.cs" />
-    <Compile Include="UI.Interop\LayerSettingsModel.cs" />
-    <Compile Include="UI.Interop\ModelProvider.cs" />
-    <Compile Include="UI.Interop\SettingsModel.cs" />
-    <Compile Include="UI\IconFileSizeSelectorConverter.cs" />
-    <Compile Include="UI\ModelProvider.cs" />
-    <Compile Include="UI\Models\LayerSettings.cs" />
-    <Compile Include="UI\Models\LayerSettingsModel.cs" />
-    <Compile Include="UI\Models\SettingsModel.cs" />
-    <Compile Include="UI\RelayCommand.cs" />
-    <Compile Include="UI\ThemeProvider.cs" />
-    <Compile Include="UI\ThemeWatcher.cs" />
     <Compile Include="modules\Image\view.xaml.cs">
       <DependentUpon>view.xaml</DependentUpon>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="UI\TrayIcon.cs" />
-    <Compile Include="UI\ViewModels\LayerItemViewModel.cs" />
-    <Compile Include="UI\ViewModels\LayerSettingsViewModel.cs" />
-    <Compile Include="UI\ViewModels\SettingsViewModel.cs" />
-    <Compile Include="UI\Views\LayerEditorWindow.xaml.cs">
-      <DependentUpon>LayerEditorWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="UI\Views\ModulesView.xaml.cs">
-      <DependentUpon>ModulesView.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="UI\Views\SettingsWindow.xaml.cs">
-      <DependentUpon>SettingsWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="UI\Views\TrayIconToolTip.xaml.cs">
-      <DependentUpon>TrayIconToolTip.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Win32.cs" />
     <Compile Include="WindowHandler.cs" />
-    <Page Include="MainWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Compile Include="App.xaml.cs">
-      <DependentUpon>App.xaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Effects.cs" />
-    <Compile Include="MainWindow.xaml.cs">
-      <DependentUpon>MainWindow.xaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
     <None Include="effects\stock\[Default].xnb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -193,22 +148,6 @@
       <Generator>MSBuild:Compile</Generator>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <Page Include="UI\Views\LayerEditorWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="UI\Views\ModulesView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="UI\Views\SettingsWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="UI\Views\TrayIconToolTip.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />

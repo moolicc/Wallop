@@ -19,36 +19,5 @@ namespace WallApp
         {
             Layers = new List<LayerSettings>();
         }
-
-        public void New()
-        {
-            Layers.Clear();
-        }
-
-        public void Load(string file)
-        {
-            New();
-            Layers = JsonConvert.DeserializeObject<List<LayerSettings>>(File.ReadAllText(file));
-        }
-
-        public void Save(string file)
-        {
-            File.WriteAllText(file, JsonConvert.SerializeObject(Layers));
-        }
-
-        public void EnterPreview()
-        {
-            _previewBackupFile = Path.GetTempFileName();
-            Save(_previewBackupFile);
-        }
-
-        public void ExitPreview(bool apply)
-        {
-            if(!apply)
-            {
-                Load(_previewBackupFile);
-            }
-            File.Delete(_previewBackupFile);
-        }
     }
 }

@@ -68,6 +68,7 @@
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Management" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -90,6 +91,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="IconFileSizeSelectorConverter.cs" />
     <Compile Include="LayoutInfoConverter.cs" />
     <Compile Include="Layout\ILayoutScript.cs" />
     <Compile Include="Layout\ScriptKind.cs" />
@@ -114,6 +116,7 @@
     <Compile Include="Services\LayoutService.cs" />
     <Compile Include="Services\ServiceLocator.cs" />
     <Compile Include="Services\StartupService.cs" />
+    <Compile Include="ThemeWatcher.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\VisualEditViewModel.cs" />
     <Compile Include="Views\LayoutTypePicker.xaml.cs">

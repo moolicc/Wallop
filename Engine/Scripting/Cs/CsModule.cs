@@ -64,7 +64,7 @@ namespace WallApp.Scripting.Cs
             }
             catch (Exception e)
             {
-                Services.ServiceProvider.GetService<ErrorHandler>().AddError(-1, e, $"Module compile error\r\nModule:\r\n  {this.Name}\r\n  {this.SourceFile}\r\nError:\r\n  {e.Message}");
+                //TODO
             }
         }
 

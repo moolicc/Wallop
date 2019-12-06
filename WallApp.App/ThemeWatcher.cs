@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using System.Windows;
 
 //Original source: https://engy.us/blog/2018/10/20/dark-theme-in-wpf/
-namespace WallApp.UI
+namespace WallApp.App
 {
     public enum WindowsTheme
     {
