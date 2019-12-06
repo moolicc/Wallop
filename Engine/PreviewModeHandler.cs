@@ -12,7 +12,7 @@ namespace WallApp
 
         [Services.ServiceReference]
         private LayoutPicking _picker;
-        [Services.ServiceReference(Key = "/main")]
+        [Services.ServiceReference()]
         private Layout _layout;
 
         private Texture2D _blankTexture;

@@ -9,7 +9,7 @@ namespace WallApp
     class LayoutPicking
     {
 
-        [Services.ServiceReference(Key = "/main")]
+        [Services.ServiceReference()]
         private Layout _layout;
 
         public IEnumerable<LayerSettings> GetLayersUnderMouse(params Rectangle[] ExclusionZones)
