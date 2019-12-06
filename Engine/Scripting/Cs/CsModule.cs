@@ -5,7 +5,7 @@ using System;
 using System.IO;
 using System.Reflection;
 
-namespace WallApp.Scripting.Cs
+namespace WallApp.Engine.Scripting.Cs
 {
     public class CsModule : Module
     {

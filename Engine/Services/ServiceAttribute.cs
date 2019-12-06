@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace WallApp.Services
+namespace WallApp.Engine.Services
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = true)]
     sealed class ServiceAttribute : Attribute

@@ -1,4 +1,4 @@
-﻿namespace WallApp.Services
+﻿namespace WallApp.Engine.Services
 {
     abstract class InitializableService
     {

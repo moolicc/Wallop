@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Input;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace WallApp
+namespace WallApp.Engine
 {
     [Services.Service]
     class LayoutPicking

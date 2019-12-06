@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace WallApp
+namespace WallApp.Engine
 {
     public class LayerSettings : ICloneable
     {

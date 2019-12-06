@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace WallApp.Services
+namespace WallApp.Engine.Services
 {
 
     [Serializable]

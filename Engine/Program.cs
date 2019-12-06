@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace WallApp
+namespace WallApp.Engine
 {
     class Program
     {

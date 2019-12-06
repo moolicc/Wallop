@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.IO;
 
-namespace WallApp
+namespace WallApp.Engine
 {
     class Settings
     {

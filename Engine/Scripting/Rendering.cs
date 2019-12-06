@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
 
-namespace WallApp.Scripting
+namespace WallApp.Engine.Scripting
 {
     public class Rendering
     {

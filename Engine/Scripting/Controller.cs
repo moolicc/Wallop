@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 
-namespace WallApp.Scripting
+namespace WallApp.Engine.Scripting
 {
     public abstract class Controller
     {

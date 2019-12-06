@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace WallApp.Scripting
+namespace WallApp.Engine.Scripting
 {
     public abstract class Module
     {

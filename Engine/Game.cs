@@ -4,9 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
-using WallApp.Scripting;
+using WallApp.Engine.Scripting;
 using Color = Microsoft.Xna.Framework.Color;
-using ServiceProvider = WallApp.Services.ServiceProvider;
+using ServiceProvider = WallApp.Engine.Services.ServiceProvider;
 using SystemInformation = System.Windows.Forms.SystemInformation;
 
 
@@ -22,7 +22,7 @@ using SystemInformation = System.Windows.Forms.SystemInformation;
 
 
 
-namespace WallApp
+namespace WallApp.Engine
 {
     class Game : Microsoft.Xna.Framework.Game
     {

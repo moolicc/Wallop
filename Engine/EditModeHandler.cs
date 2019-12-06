@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework.Input;
 using System;
 using System.Linq;
 
-namespace WallApp
+namespace WallApp.Engine
 {
     [Services.Service]
     class EditModeHandler : Services.InitializableService

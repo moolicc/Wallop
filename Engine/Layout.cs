@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace WallApp
+namespace WallApp.Engine
 {
     class Layout
     {

@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 
-namespace WallApp
+namespace WallApp.Engine
 {
     public class RectangleF
     {

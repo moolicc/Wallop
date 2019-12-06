@@ -3,7 +3,7 @@ using System;
 using System.Linq;
 using System.Windows.Forms;
 
-namespace WallApp
+namespace WallApp.Engine
 {
     public class LayerDimensions : ICloneable
     {

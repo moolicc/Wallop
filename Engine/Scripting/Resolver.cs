@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Xml.Linq;
-using WallApp.Scripting.Cs;
+using WallApp.Engine.Scripting.Cs;
 
-namespace WallApp.Scripting
+namespace WallApp.Engine.Scripting
 {
     class Resolver
     {

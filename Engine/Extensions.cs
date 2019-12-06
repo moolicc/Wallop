@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace WallApp
+namespace WallApp.Engine
 {
     static class Extensions
     {

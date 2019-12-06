@@ -2,7 +2,7 @@
 
 
 //https://www.codeproject.com/articles/856020/draw-behind-desktop-icons-in-windows
-namespace WallApp
+namespace WallApp.Engine
 {
     class WindowHandler
     {
