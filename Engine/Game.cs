@@ -27,6 +27,7 @@ using WallApp.UI;
  * General refactoring
  *
  * When the engine gets the "createlayer" message, it needs to go ahead and create a controller for that layer.
+ * Redo the service locator entirely.
  */
 
 
