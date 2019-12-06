@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 using WallApp.Bridge;
 using WallApp.Bridge.Data;
 
-namespace WallApp.App.Services
+namespace WallApp.Bridge
 {
     public delegate void PayloadHandler(IPayload payload);
 
-    class BridgeMessageScheduler
+    public class MessageScheduler
     {
         private InputReader<IPayload> _reader;
 
@@ -22,7 +22,7 @@ namespace WallApp.App.Services
         private bool _consumingNext;
         private IPayload _consumeNext;
 
-        public BridgeMessageScheduler(InputReader<IPayload> reader)
+        public MessageScheduler(InputReader<IPayload> reader)
         {
             _reader = reader;
 

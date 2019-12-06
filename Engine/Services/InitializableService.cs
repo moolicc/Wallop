@@ -4,7 +4,7 @@
     {
         public bool Initialized { get; private set; }
 
-        protected void Initialize()
+        protected virtual void Initialize()
         {
             Initialized = true;
         }

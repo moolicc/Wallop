@@ -15,12 +15,12 @@ namespace WallApp.App.Services
     {
         public int InitPriority => 0;
         public Bridge.Master Engine { get; private set; }
-        public BridgeMessageScheduler Scheduler { get; private set; }
+        public WallApp.Bridge.MessageScheduler Scheduler { get; private set; }
 
         public void Initialize()
         {
             Engine = new Bridge.Master(App.BaseDir + "MockEngine.exe");
-            Scheduler = new BridgeMessageScheduler(new Bridge.InputReader<Bridge.Data.IPayload>(Engine));
+            Scheduler = new Bridge.MessageScheduler(new Bridge.InputReader<Bridge.Data.IPayload>(Engine));
         }
 
         public void WriteSetEditMode(bool editModeEnabled)

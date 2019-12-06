@@ -108,7 +108,6 @@
     <Compile Include="Layout\VarTable.cs" />
     <Compile Include="Layout\XmlLayoutScript.cs" />
     <Compile Include="RelayCommand.cs" />
-    <Compile Include="Services\BridgeMessageScheduler.cs" />
     <Compile Include="Services\BridgeService.cs" />
     <Compile Include="Services\EditModeService.cs" />
     <Compile Include="Services\IService.cs" />
