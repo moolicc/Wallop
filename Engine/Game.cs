@@ -13,9 +13,7 @@ using SystemInformation = System.Windows.Forms.SystemInformation;
 
 /*
  * All layout logic needs to come from the bridge.
- * All the ui needs to go away
- * The scripting interface needs to go away
- *w
+ *
  * General refactoring
  *
  * When the engine gets the "createlayer" message, it needs to go ahead and create a controller for that layer.
@@ -103,7 +101,7 @@ namespace WallApp
             Resolver.LoadModules(AppDomain.CurrentDomain.BaseDirectory + "modules\\");
 
             //Find the main layout service.
-            Layout = ServiceProvider.GetService<Layout>("/main");
+            Layout = ServiceProvider.GetService<Layout>();
 
             /* FOR USE WITH SDL2_CS
             //Setup the window through the SDL API
