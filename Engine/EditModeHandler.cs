@@ -7,7 +7,7 @@ using System.Linq;
 namespace WallApp
 {
     [Services.Service]
-    class PreviewModeHandler : Services.InitializableService
+    class EditModeHandler : Services.InitializableService
     {
 
         [Services.ServiceReference]

@@ -59,7 +59,7 @@ namespace WallApp
 
         private List<Controller> _controllers;
 
-        private PreviewModeHandler _previewModeHandler;
+        private EditModeHandler _editModeHandler;
 
         private Form _form;
 
@@ -93,8 +93,8 @@ namespace WallApp
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
             //Initialize services
-            _previewModeHandler = ServiceProvider.GetService<PreviewModeHandler>();
-            _previewModeHandler.Init(_spriteBatch);
+            _editModeHandler = ServiceProvider.GetService<EditModeHandler>();
+            _editModeHandler.Init(_spriteBatch);
 
             //Load in extension modules.
             //This really just caches them for later use.
@@ -239,7 +239,7 @@ namespace WallApp
 
         protected override void Update(GameTime gameTime)
         {
-            _previewModeHandler.Update(gameTime);
+            _editModeHandler.Update(gameTime);
 
             //Update enabled controllers.
             foreach (var controller in _controllers)
@@ -258,7 +258,7 @@ namespace WallApp
             //DrawTest(gameTime);
             DrawLayers(gameTime);
             Present(gameTime);
-            _previewModeHandler.Draw(gameTime);
+            _editModeHandler.Draw(gameTime);
             base.Draw(gameTime);
         }
 

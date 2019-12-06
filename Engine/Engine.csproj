@@ -97,11 +97,10 @@
     <Reference Include="System.Net.Http" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AppState.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Game.cs" />
     <Compile Include="LayoutPicking.cs" />
-    <Compile Include="PreviewModeHandler.cs" />
+    <Compile Include="EditModeHandler.cs" />
     <Compile Include="RectangleF.cs" />
     <Compile Include="Scripting\Controller.cs" />
     <Compile Include="Scripting\Cs\CsModule.cs" />
