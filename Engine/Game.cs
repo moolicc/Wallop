@@ -18,6 +18,18 @@ using ServiceProvider = WallApp.Services.ServiceProvider;
 using Hardcodet.Wpf.TaskbarNotification;
 using WallApp.UI;
 
+
+
+/*
+ * All layout logic needs to come from the bridge.
+ * All the ui needs to go away
+ * The scripting interface needs to go away
+ * 
+ * General refactoring
+ */
+
+
+
 namespace WallApp
 {
     class Game : Microsoft.Xna.Framework.Game
