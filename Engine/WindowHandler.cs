@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 
 //https://www.codeproject.com/articles/856020/draw-behind-desktop-icons-in-windows

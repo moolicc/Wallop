@@ -1,10 +1,7 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
 
 namespace WallApp
 {
@@ -20,7 +17,7 @@ namespace WallApp
             var factor = new Vector2(Settings.Instance.BackBufferWidthFactor, Settings.Instance.BackBufferHeightFactor);
             var mouseLoc = Mouse.GetState().Position.ToVector2() * factor;
 
-            if(ExclusionZones.Any(r => r.Contains(mouseLoc)))
+            if (ExclusionZones.Any(r => r.Contains(mouseLoc)))
             {
                 yield break;
             }

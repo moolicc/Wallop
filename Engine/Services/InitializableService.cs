@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace WallApp.Services
+﻿namespace WallApp.Services
 {
     abstract class InitializableService
     {
-        public bool Initialized { get; private set;  }
+        public bool Initialized { get; private set; }
 
         protected void Initialize()
         {
@@ -17,7 +11,7 @@ namespace WallApp.Services
 
         protected virtual void CheckInitialized()
         {
-            if(!Initialized)
+            if (!Initialized)
             {
                 throw new ServiceNotInitializedException(GetType().Name);
             }

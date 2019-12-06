@@ -1,9 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace WallApp
@@ -20,7 +17,7 @@ namespace WallApp
             {
                 if (curScreen.WorkingArea.X < leftOffset)
                 {
-                    leftOffset =  -curScreen.WorkingArea.X;
+                    leftOffset = -curScreen.WorkingArea.X;
                 }
                 if (curScreen.WorkingArea.Y < topOffset)
                 {
@@ -97,7 +94,7 @@ namespace WallApp
                 x = screenBounds.X;
                 y = screenBounds.Y;
             }
-            
+
             return (x, y, width, height);
         }
 

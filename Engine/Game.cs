@@ -1,21 +1,13 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using WallApp.Scripting;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Color = Microsoft.Xna.Framework.Color;
-using Rectangle = Microsoft.Xna.Framework.Rectangle;
-using SystemInformation = System.Windows.Forms.SystemInformation;
-using System.Windows;
 using ServiceProvider = WallApp.Services.ServiceProvider;
-using Hardcodet.Wpf.TaskbarNotification;
-using WallApp.UI;
+using SystemInformation = System.Windows.Forms.SystemInformation;
 
 
 
@@ -23,7 +15,7 @@ using WallApp.UI;
  * All layout logic needs to come from the bridge.
  * All the ui needs to go away
  * The scripting interface needs to go away
- *
+ *w
  * General refactoring
  *
  * When the engine gets the "createlayer" message, it needs to go ahead and create a controller for that layer.
@@ -135,7 +127,7 @@ namespace WallApp
             */
 
             //Setup the window by casting the game window to a windows forms control.
-            _form = (Form) Control.FromHandle(Window.Handle);
+            _form = (Form)Control.FromHandle(Window.Handle);
             _form.FormBorderStyle = FormBorderStyle.None;
             _form.Height = SystemInformation.VirtualScreen.Height;
             _form.Width = SystemInformation.VirtualScreen.Width;
@@ -356,7 +348,7 @@ namespace WallApp
                 Console.WriteLine($"Drawing at X: {rect.X}, Y: {rect.Y}");
                 _spriteBatch.Draw(controller.Rendering.RenderTarget, position, null, controller.Settings.TintColor, 0.0F, Vector2.Zero, scale, SpriteEffects.None, 0.0F);
             }
-            if(beginCalled)
+            if (beginCalled)
             {
                 _spriteBatch.End();
             }

@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System;
+using System.Linq;
 
 namespace WallApp
 {
@@ -37,37 +34,37 @@ namespace WallApp
         {
             var layers = _picker.GetLayersUnderMouse();
             var mouseState = Mouse.GetState();
-            if(_prevMouseState == null)
+            if (_prevMouseState == null)
             {
                 _prevMouseState = mouseState;
                 return;
             }
-            if(!layers.Any() && _dragLayer == null)
+            if (!layers.Any() && _dragLayer == null)
             {
                 return;
             }
 
-            if(mouseState.LeftButton == ButtonState.Pressed)
+            if (mouseState.LeftButton == ButtonState.Pressed)
             {
-                if(_prevMouseState.LeftButton == ButtonState.Released)
+                if (_prevMouseState.LeftButton == ButtonState.Released)
                 {
                     //Pick the last layer that will be drawn to respect Z-order.
                     _dragLayer = layers.Last();
                 }
-                else if(_dragLayer != null)
+                else if (_dragLayer != null)
                 {
                     Point mouseMovement = mouseState.Position - _prevMouseState.Position;
 
-                    if(mouseMovement.X >= _singleUnit.X && mouseMovement.X > 0)
+                    if (mouseMovement.X >= _singleUnit.X && mouseMovement.X > 0)
                     {
                         _dragLayer.Dimensions.XValue += _singleUnit.X;
                     }
-                    else if(Math.Abs(mouseMovement.X) >= _singleUnit.X && mouseMovement.X < 0)
+                    else if (Math.Abs(mouseMovement.X) >= _singleUnit.X && mouseMovement.X < 0)
                     {
                         _dragLayer.Dimensions.XValue -= _singleUnit.X;
                     }
 
-                    if(mouseMovement.Y >= _singleUnit.Y && mouseMovement.Y > 0)
+                    if (mouseMovement.Y >= _singleUnit.Y && mouseMovement.Y > 0)
                     {
                         _dragLayer.Dimensions.YValue += _singleUnit.Y;
                     }

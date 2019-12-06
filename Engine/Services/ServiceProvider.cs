@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace WallApp.Services
 {
@@ -57,7 +55,7 @@ namespace WallApp.Services
         {
             var realKey = BuildKeyWithBaseKey(typeof(T), key);
 
-            if(!_services.TryGetValue(realKey, out var result))
+            if (!_services.TryGetValue(realKey, out var result))
             {
                 ThrowKeyNotfound(typeof(T), key);
             }
@@ -154,7 +152,7 @@ namespace WallApp.Services
 
         private static string GetKey(Type type, string originalKey)
         {
-            if(originalKey.StartsWith("/"))
+            if (originalKey.StartsWith("/"))
             {
                 return $"{type.Name}{originalKey}";
             }
@@ -163,16 +161,16 @@ namespace WallApp.Services
         private static string BuildKeyWithAttribute(Type type, Attribute attribute)
         {
             string key = null;
-             
-            if(attribute is ServiceAttribute serviceAttrib)
+
+            if (attribute is ServiceAttribute serviceAttrib)
             {
                 key = serviceAttrib.Key;
             }
-            else if(attribute is ServiceReferenceAttribute refAttrib)
+            else if (attribute is ServiceReferenceAttribute refAttrib)
             {
                 key = refAttrib.Key;
             }
-            if(key.IsNull())
+            if (key.IsNull())
             {
                 return type.Name;
             }

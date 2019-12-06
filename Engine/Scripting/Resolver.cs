@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
-using System.Runtime.Remoting;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 using WallApp.Scripting.Cs;
 
@@ -54,7 +50,7 @@ namespace WallApp.Scripting
                     remoteModules.Add(ScanRemoteManifest(moduleElement.Value, webClient));
                 }
             }
-            
+
             return remoteModules.ToArray();
         }
 
@@ -86,7 +82,7 @@ namespace WallApp.Scripting
             }
             return ScanManifest(manifestPath);
         }
-        
+
         //TODO: Refactor into ManifestReader
 
         public static Module ScanRemoteManifest(string url, WebClient clientReuse = null)
@@ -119,13 +115,13 @@ namespace WallApp.Scripting
             }
             var root = doc.Root;
 
-            if(root.Name != XML_ROOT_NAME)
+            if (root.Name != XML_ROOT_NAME)
             {
                 throw new InvalidOperationException("The module's manifest is invalid.");
             }
 
             var versionAttribute = root.Attribute("version");
-            if(versionAttribute == null || !Version.TryParse(versionAttribute.Value, out var v) || v.Major < ManifestVersion.Major)
+            if (versionAttribute == null || !Version.TryParse(versionAttribute.Value, out var v) || v.Major < ManifestVersion.Major)
             {
                 throw new InvalidOperationException("The manifest doesn't specify a version or is of an incompatible version.");
             }

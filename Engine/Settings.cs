@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Newtonsoft.Json;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
 
 namespace WallApp
 {
     class Settings
     {
         public static Settings Instance { get; private set; }
-        
+
         static Settings()
         {
             Instance = new Settings();
