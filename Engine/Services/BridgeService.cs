@@ -12,13 +12,15 @@ namespace WallApp.Engine.Services
     class BridgeService : InitializableService
     {
         public MessageScheduler Scheduler { get; private set; }
-        private Bridge.Slave _engine;
+        private Slave _engine;
 
         protected override void Initialize()
         {
             _engine = new Slave();
-            Scheduler = new MessageScheduler(new Bridge.InputReader<Bridge.Data.IPayload>(_engine));
+            Scheduler = new MessageScheduler(new InputReader<Bridge.Data.IPayload>(_engine));
             base.Initialize();
         }
+
+        //TODO: Add WriteX functions to talk to the master.
     }
 }
