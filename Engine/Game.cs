@@ -25,6 +25,8 @@ using WallApp.UI;
  * The scripting interface needs to go away
  *
  * General refactoring
+ *
+ * When the engine gets the "createlayer" message, it needs to go ahead and create a controller for that layer.
  */
 
 
