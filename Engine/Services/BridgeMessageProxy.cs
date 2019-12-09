@@ -7,9 +7,13 @@ using WallApp.Bridge.Data;
 
 namespace WallApp.Engine.Services
 {
+    public delegate void EditModeHandler(bool enabled, BridgeService bridgeService);
+
     [Service]
     class BridgeMessageProxy : InitializableService
     {
+        public event EditModeHandler EditModeChanged;
+
         [ServiceReference]
         private BridgeService _bridgeService;
 
@@ -29,7 +33,7 @@ namespace WallApp.Engine.Services
 
         private void OnEditModeChanged(IPayload payload)
         {
-
+            EditModeChanged?.Invoke((payload as EditModePayload).Enabled, _bridgeService);
         }
     }
 }

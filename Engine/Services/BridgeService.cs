@@ -9,7 +9,7 @@ using WallApp.Bridge.Data;
 namespace WallApp.Engine.Services
 {
     [Service()]
-    class BridgeService : InitializableService
+    public class BridgeService : InitializableService
     {
         public MessageScheduler Scheduler { get; private set; }
         private Slave _engine;

@@ -1,6 +1,6 @@
 ﻿namespace WallApp.Engine.Services
 {
-    abstract class InitializableService
+    public abstract class InitializableService
     {
         public bool Initialized { get; private set; }
 

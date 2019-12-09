@@ -9,6 +9,7 @@ namespace WallApp.Engine
     [Services.Service]
     class EditModeHandler : Services.InitializableService
     {
+        public bool Enabled { get; set; }
 
         [Services.ServiceReference]
         private LayoutPicking _picker;
@@ -28,10 +29,18 @@ namespace WallApp.Engine
             _blankTexture.SetData(new Color[1] { Color.White });
 
             _singleUnit = new Vector2((1.0F * Settings.Instance.BackBufferWidthFactor), (1.0F * Settings.Instance.BackBufferHeightFactor));
+
+            var messageProxy = Services.ServiceProvider.GetService<Services.BridgeMessageProxy>();
+            messageProxy.EditModeChanged += EditModeChanged;
         }
+
 
         public void Update(GameTime gameTime)
         {
+            if (!Enabled)
+            {
+                return;
+            }
             var layers = _picker.GetLayersUnderMouse();
             var mouseState = Mouse.GetState();
             if (_prevMouseState == null)
@@ -84,6 +93,10 @@ namespace WallApp.Engine
 
         public void Draw(GameTime gameTime)
         {
+            if(!Enabled)
+            {
+                return;
+            }
             _spriteBatch.Begin();
             var layersBeneath = _picker.GetLayersUnderMouse();
 
@@ -120,7 +133,11 @@ namespace WallApp.Engine
                 _spriteBatch.Draw(_blankTexture, cornerBounds, cornerColor);
             }
             _spriteBatch.End();
+        }
 
+        private void EditModeChanged(bool enabled, Services.BridgeService bridgeService)
+        {
+            Enabled = enabled;
         }
     }
 }
