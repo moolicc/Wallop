@@ -23,7 +23,7 @@ namespace WallApp.Engine.Services
 
         protected override void Initialize()
         {
-            _bridgeService.Scheduler.TakeNext<EditModePayload>(OnEditModeChanged, -1, null);
+            _bridgeService.Scheduler.RegisterMessage<EditModePayload>(OnEditModeChanged, -1, null);
             base.Initialize();
         }
 

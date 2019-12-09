@@ -31,7 +31,7 @@ namespace WallApp.Bridge
             Task.Run(Run);
         }
 
-        public void TakeNext<T>(PayloadHandler action, int timeoutTime, Action timeoutAction) where T : IPayload
+        public void RegisterMessage<T>(PayloadHandler action, int timeoutTime, Action timeoutAction) where T : IPayload
         {
             while (_consumerLock) ;
             _consumerLock = true;

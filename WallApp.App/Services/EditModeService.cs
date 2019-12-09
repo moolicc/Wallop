@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using WallApp.Bridge;
 
 namespace WallApp.App.Services
 {
@@ -33,7 +34,7 @@ namespace WallApp.App.Services
         public void StopEdit()
         {
             var bridge = ServiceLocator.Locate<BridgeService>();
-            bridge.Scheduler.TakeNext<Bridge.Data.EditModeResponse>(new PayloadHandler(payload =>
+            bridge.Scheduler.RegisterMessage<Bridge.Data.EditModeResponse>(new PayloadHandler(payload =>
             {
                 _trackingLayout.Script = GenerateXmlScript((Bridge.Data.EditModeResponse)payload);
                 LayoutUpdated = true;
