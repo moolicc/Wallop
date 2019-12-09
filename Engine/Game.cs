@@ -20,7 +20,7 @@ using SystemInformation = System.Windows.Forms.SystemInformation;
  * Redo the service locator entirely.
  *
  * Refactor the ServiceProvider. Maybe just remove the automatic reference resolution entirely to remove the compiler warnings
- * to aid in consistincey and reduction in unnecessary complexity.
+ * to aid in consistency and reduction in unnecessary complexity.
  */
 
 
