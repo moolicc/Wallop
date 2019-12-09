@@ -77,6 +77,10 @@ namespace WallApp.Bridge
                         {
                             foreach (var consumer in item.Value)
                             {
+                                if(consumer.Timeout <= 0)
+                                {
+                                    continue;
+                                }
                                 if(consumer.TimeoutTimer.ElapsedMilliseconds > consumer.Timeout)
                                 {
                                     consumer.TimedOut = true;
