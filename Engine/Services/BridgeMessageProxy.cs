@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WallApp.Bridge.Data;
 
 namespace WallApp.Engine.Services
 {
-    class BridgeMessageProxy
+    [Service]
+    class BridgeMessageProxy : InitializableService
     {
         [ServiceReference]
         private BridgeService _bridgeService;
@@ -17,6 +19,17 @@ namespace WallApp.Engine.Services
 
         public BridgeMessageProxy()
         {
+        }
+
+        protected override void Initialize()
+        {
+            _bridgeService.Scheduler.TakeNext<EditModePayload>(OnEditModeChanged, -1, null);
+            base.Initialize();
+        }
+
+        private void OnEditModeChanged(IPayload payload)
+        {
+
         }
     }
 }
