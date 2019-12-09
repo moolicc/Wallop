@@ -22,5 +22,9 @@ namespace WallApp.Engine.Services
         }
 
         //TODO: Add WriteX functions to talk to the master.
+        public void WriteEditModeResponse(IEnumerable<string> layerNames, IEnumerable<(float x, float y, float z, float w)> layerDimensions)
+        {
+
+        }
     }
 }

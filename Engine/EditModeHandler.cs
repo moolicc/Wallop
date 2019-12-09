@@ -137,6 +137,19 @@ namespace WallApp.Engine
 
         private void EditModeChanged(bool enabled, Services.BridgeService bridgeService)
         {
+            //Only send a response if we WERE enabled and now we are NOT enabled.
+            if(!enabled && Enabled)
+            {
+                /* This is much more optimized.
+                var response = new Bridge.Data.EditModeResponse();
+                foreach (var layer in _layout.Layers)
+                {
+                    response.Layers.Add(layer.Name);
+                    response.LayerPositions.Add(layer.Dimensions);
+                }
+                */
+                bridgeService.WriteEditModeResponse(_layout.Layers.Select(s => s.Name), _layout.Layers.Select(s => s.Dimensions.AsTuple()));
+            }
             Enabled = enabled;
         }
     }

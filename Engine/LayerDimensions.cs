@@ -126,5 +126,23 @@ namespace WallApp.Engine
                 ZValue = this.ZValue,
             };
         }
+
+        public (float x, float y, float z, float w) AsTuple()
+        {
+            return this;
+        }
+
+        public void Deconstruct(out float x, out float y, out float z, out float w)
+        {
+            x = XValue;
+            y = YValue;
+            z = ZValue;
+            w = WValue;
+        }
+
+        public static implicit operator (float x, float y, float z, float w)(LayerDimensions a)
+        {
+            return (a.XValue, a.YValue, a.ZValue, a.WValue);
+        }
     }
 }
