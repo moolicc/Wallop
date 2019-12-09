@@ -19,7 +19,8 @@ using SystemInformation = System.Windows.Forms.SystemInformation;
  * When the engine gets the "createlayer" message, it needs to go ahead and create a controller for that layer.
  * Redo the service locator entirely.
  *
- * Refactor the ServiceProvider.
+ * Refactor the ServiceProvider. Maybe just remove the automatic reference resolution entirely to remove the compiler warnings
+ * to aid in consistincey and reduction in unnecessary complexity.
  */
 
 
