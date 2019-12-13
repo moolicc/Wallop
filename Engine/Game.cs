@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
+using WallApp.Bridge;
 using WallApp.Engine.Scripting;
 using Color = Microsoft.Xna.Framework.Color;
 using ServiceProvider = WallApp.Engine.Services.ServiceProvider;
@@ -101,7 +102,7 @@ namespace WallApp.Engine
 
             //Load in extension modules.
             //This really just caches them for later use.
-            Resolver.LoadModules(AppDomain.CurrentDomain.BaseDirectory + "modules\\");
+            ModuleCache.LoadModules(AppDomain.CurrentDomain.BaseDirectory + "modules\\");
 
             //Find the main layout service.
             Layout = ServiceProvider.GetService<Layout>();
@@ -191,10 +192,10 @@ namespace WallApp.Engine
                 //TODO: This is bad. layer.Module is supposed to be the module's FULL filepath, but UI broke that.
                 //In the future the UI should also deal in absolute paths, but transform the text when displayed to
                 //just filenames.
-                var module = Resolver.GetCachedModuleFromName(layer.Module);
+                var module = ModuleCache.GetCachedModuleFromName(layer.Module);
 
                 //Create the controller to be used.
-                var controller = module.CreateController();
+                var controller =  CsModule.CreateController(module);
 
                 //Get the user-specified dimensions of the layer.
                 (float x, float y, float width, float height) = layer.Dimensions.GetBounds();

@@ -103,10 +103,9 @@
     <Compile Include="EditModeHandler.cs" />
     <Compile Include="RectangleF.cs" />
     <Compile Include="Scripting\Controller.cs" />
-    <Compile Include="Scripting\Cs\CsModule.cs" />
-    <Compile Include="Scripting\Module.cs" />
+    <Compile Include="Scripting\CsModule.cs" />
+    <Compile Include="Scripting\ModuleCache.cs" />
     <Compile Include="Scripting\Rendering.cs" />
-    <Compile Include="Scripting\Resolver.cs" />
     <Compile Include="Services\BridgeMessageProxy.cs" />
     <Compile Include="Services\BridgeService.cs" />
     <Compile Include="Services\InitializableService.cs" />

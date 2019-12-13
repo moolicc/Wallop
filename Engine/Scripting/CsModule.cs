@@ -5,9 +5,9 @@ using System;
 using System.IO;
 using System.Reflection;
 
-namespace WallApp.Engine.Scripting.Cs
+namespace WallApp.Engine.Scripting
 {
-    public class CsModule : Module
+    public class CsModule : Bridge.Module
     {
         private Func<Controller> getController;
 
@@ -17,7 +17,12 @@ namespace WallApp.Engine.Scripting.Cs
             get => getController;
             set => getController = value;
         }
-        public Func<LayerSettings, object> GetViewModel { get; set; }
+
+        public CsModule(Bridge.Manifest manifest)
+            : base(manifest)
+        {
+
+        }
 
         protected override void Initialize()
         {
@@ -32,7 +37,7 @@ namespace WallApp.Engine.Scripting.Cs
                         interactiveLoader.RegisterDependency(assembly);
                     }
 
-                    options = options.AddReferences(Directory.GetFiles(Path.GetDirectoryName(ManifestFile), "*.dll",
+                    options = options.AddReferences(Directory.GetFiles(Path.GetDirectoryName(Manifest.ManifestFile), "*.dll",
                             SearchOption.TopDirectoryOnly))
                             .AddReferences(Assembly.GetExecutingAssembly())
                             .AddImports("WallApp", "WallApp.Scripting", "System", "System.Linq", "System.IO")
@@ -45,9 +50,9 @@ namespace WallApp.Engine.Scripting.Cs
                     var script = CSharpScript.Create("", options: options, globalsType: GetType());
                     var state = script.RunAsync(globals: this).Result;
 
-                    state = state.ContinueWithAsync(System.IO.File.ReadAllText(SourceFile), options: options).Result;
+                    state = state.ContinueWithAsync(System.IO.File.ReadAllText(Manifest.SourceFile), options: options).Result;
 
-                    CSharpScript.RunAsync(System.IO.File.ReadAllText(SourceFile), globals: this, options: options)
+                    CSharpScript.RunAsync(System.IO.File.ReadAllText(Manifest.SourceFile), globals: this, options: options)
                         .Wait();
                     if (GetController == null)
                     {
@@ -62,18 +67,9 @@ namespace WallApp.Engine.Scripting.Cs
             }
         }
 
-        public override Controller CreateController()
+        public static Controller CreateController(Bridge.Module module)
         {
-            return GetController.Invoke();
-        }
-
-        public override object CreateViewModel(LayerSettings settings)
-        {
-            if (GetViewModel == null)
-            {
-                return null;
-            }
-            return GetViewModel(settings);
+            return ((CsModule)module).GetController.Invoke();
         }
     }
 }

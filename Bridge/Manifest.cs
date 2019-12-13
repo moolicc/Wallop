@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Text;
 
-namespace WallApp.Engine.Scripting
+namespace WallApp.Bridge
 {
-    public abstract class Module
+    public class Manifest
     {
         public Version Version { get; private set; }
 
@@ -18,28 +20,18 @@ namespace WallApp.Engine.Scripting
 
         public bool AllowsCustomEffect { get; private set; }
 
-
-        internal void Init(Version version, string manifestFile, string sourceFile, string name, string description, int minWidth, int minHeight, int maxWidth, int maxHeight, bool allowsCustomEffects)
+        public Manifest(Version version, string manifestFile, string sourceFile, string name, string description, int minWidth, int minHeight, int maxWidth, int maxHeight, bool allowsCustomEffects)
         {
             Version = version;
             ManifestFile = manifestFile;
             SourceFile = sourceFile;
             Name = name;
             Description = description;
-
             MinWidth = minWidth;
             MinHeight = minHeight;
             MaxWidth = maxWidth;
             MaxHeight = maxHeight;
-
             AllowsCustomEffect = allowsCustomEffects;
-
-            Initialize();
         }
-
-        public abstract Controller CreateController();
-        public abstract object CreateViewModel(LayerSettings settings);
-
-        protected abstract void Initialize();
     }
 }

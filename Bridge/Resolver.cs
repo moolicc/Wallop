@@ -3,54 +3,36 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Xml.Linq;
-using WallApp.Engine.Scripting.Cs;
 
-namespace WallApp.Engine.Scripting
+namespace WallApp.Bridge
 {
-    class Resolver
+    public class Resolver
     {
         public static readonly Version ManifestVersion = new Version(1, 0);
-
-        public static Dictionary<string, Module> Cache { get; private set; }
 
         private const string XML_ROOT_NAME = "module";
 
         static Resolver()
         {
-            Cache = new Dictionary<string, Module>();
         }
 
-        public static Module GetCachedModuleFromName(string name)
+        public static IEnumerable<Manifest> LoadManifests(string rootDirectory)
         {
-            foreach (var item in Cache)
-            {
-                if (item.Value.Name == name)
-                {
-                    return item.Value;
-                }
-            }
-            throw new KeyNotFoundException();
-        }
-
-        public static void LoadModules(string rootDirectory)
-        {
-            Cache.Clear();
-            List<Module> modules = new List<Module>();
+            List<Manifest> modules = new List<Manifest>();
 
             string[] directories = Directory.GetDirectories(rootDirectory);
             foreach (var directory in directories)
             {
                 var dir = directory.TrimEnd('\\') + "\\";
-                var module = ScanDirectory(dir);
-                if (module != null)
+                var manifest = ScanDirectory(dir);
+                if (manifest != null)
                 {
-                    modules.Add(module);
-                    Cache.Add(dir + "manifest.xml", module);
+                    yield return manifest;
                 }
             }
         }
 
-        private static Module ScanDirectory(string directory)
+        private static Manifest ScanDirectory(string directory)
         {
             string manifestPath = directory + "manifest.xml";
             if (!File.Exists(manifestPath))
@@ -60,7 +42,7 @@ namespace WallApp.Engine.Scripting
             return ScanManifest(manifestPath);
         }
 
-        public static Module ScanManifest(string manifestFile, string manifestSource = "")
+        public static Manifest ScanManifest(string manifestFile, string manifestSource = "")
         {
             XDocument doc;
             if (string.IsNullOrWhiteSpace(manifestSource))
@@ -166,25 +148,7 @@ namespace WallApp.Engine.Scripting
                 }
             }
 
-            string kind = Path.GetExtension(sourceFile).TrimStart('.');
-            var module = Resolve(kind);
-            module.Init(version, manifestFile, sourceFile, name, description, minWidth, minHeight, maxWidth, maxHeight, allowsCustomEffects);
-            return module;
-        }
-
-
-        private static Module Resolve(string kind)
-        {
-            Module module = null;
-            if (kind == "csx" || kind == "cs")
-            {
-                module = new CsModule();
-            }
-            else
-            {
-                //TODO: Error.
-            }
-            return module;
+            return new Manifest(version, manifestFile, sourceFile, name, description, minWidth, minHeight, maxWidth, maxHeight, allowsCustomEffects);
         }
     }
 }
