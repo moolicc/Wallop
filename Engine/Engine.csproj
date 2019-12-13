@@ -112,6 +112,7 @@
     <Compile Include="LayerDimensions.cs" />
     <Compile Include="LayerSettings.cs" />
     <Compile Include="Layout.cs" />
+    <Compile Include="Services\LayoutTrackingService.cs" />
     <Compile Include="Services\ServiceAttribute.cs" />
     <Compile Include="Services\ServiceNotInitializedException.cs" />
     <Compile Include="Services\ServiceProvider.cs" />

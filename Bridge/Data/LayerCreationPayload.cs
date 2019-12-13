@@ -10,7 +10,7 @@ namespace WallApp.Bridge.Data
 
         public LayerCreationPayload(string module)
         {
-
+            Module = module;
         }
 
         public override string ToString()

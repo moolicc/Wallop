@@ -6,6 +6,7 @@ using System.IO;
 using System.Windows.Forms;
 using WallApp.Bridge;
 using WallApp.Engine.Scripting;
+using WallApp.Engine.Services;
 using Color = Microsoft.Xna.Framework.Color;
 using ServiceProvider = WallApp.Engine.Services.ServiceProvider;
 using SystemInformation = System.Windows.Forms.SystemInformation;
@@ -55,7 +56,8 @@ namespace WallApp.Engine
         //A 'module' is a script/extension.
         //A 'controller' is an active instance of a module.
         //A 'layer' contains a module and various other settings.
-        public Layout Layout { get; private set; }
+
+        public LayoutTrackingService LayoutTracker { get; private set; }
 
         private GraphicsDeviceManager _graphicsManager;
         private SpriteBatch _spriteBatch;
@@ -105,7 +107,7 @@ namespace WallApp.Engine
             ModuleCache.LoadModules(AppDomain.CurrentDomain.BaseDirectory + "modules\\");
 
             //Find the main layout service.
-            Layout = ServiceProvider.GetService<Layout>();
+            LayoutTracker = ServiceProvider.GetService<LayoutTrackingService>();
 
             /* FOR USE WITH SDL2_CS
             //Setup the window through the SDL API
@@ -184,7 +186,7 @@ namespace WallApp.Engine
             //Setup our controller list.
             _controllers = new List<Controller>();
 
-            foreach (var layer in Layout.Layers)
+            foreach (var layer in LayoutTracker.Layout.Layers)
             {
                 //Get the current layer's module out of the cache. This creates a clone instead of referencing
                 //the module in the layer.
