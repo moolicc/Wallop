@@ -105,7 +105,6 @@
     <Compile Include="Scripting\Controller.cs" />
     <Compile Include="Scripting\Cs\CsModule.cs" />
     <Compile Include="Scripting\Module.cs" />
-    <Compile Include="Scripting\RemoteModule.cs" />
     <Compile Include="Scripting\Rendering.cs" />
     <Compile Include="Scripting\Resolver.cs" />
     <Compile Include="Services\BridgeMessageProxy.cs" />

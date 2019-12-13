@@ -6,9 +6,8 @@ namespace WallApp.Engine.Scripting
     {
         public Version Version { get; private set; }
 
-        public string File { get; private set; }
+        public string ManifestFile { get; private set; }
         public string SourceFile { get; private set; }
-        public string ViewSourceFile { get; private set; }
         public string Name { get; private set; }
         public string Description { get; private set; }
 
@@ -20,11 +19,10 @@ namespace WallApp.Engine.Scripting
         public bool AllowsCustomEffect { get; private set; }
 
 
-        internal void Init(Version version, string file, string sourceFile, string viewSourceFile, string name, string description, int minWidth, int minHeight, int maxWidth, int maxHeight, bool allowsCustomEffects)
+        internal void Init(Version version, string manifestFile, string sourceFile, string name, string description, int minWidth, int minHeight, int maxWidth, int maxHeight, bool allowsCustomEffects)
         {
             Version = version;
-            File = file;
-            ViewSourceFile = viewSourceFile;
+            ManifestFile = manifestFile;
             SourceFile = sourceFile;
             Name = name;
             Description = description;

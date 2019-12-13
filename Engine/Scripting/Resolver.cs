@@ -13,7 +13,7 @@ namespace WallApp.Engine.Scripting
 
         public static Dictionary<string, Module> Cache { get; private set; }
 
-        private const string XML_ROOT_NAME = "wamodule";
+        private const string XML_ROOT_NAME = "module";
 
         static Resolver()
         {
@@ -31,29 +31,6 @@ namespace WallApp.Engine.Scripting
             }
             throw new KeyNotFoundException();
         }
-
-        public static Module[] LoadRemoteModules(string baseUrl)
-        {
-            List<Module> remoteModules = new List<Module>();
-
-            using (var webClient = new WebClient())
-            {
-                webClient.BaseAddress = baseUrl;
-                string indexSource = "";
-                indexSource = webClient.DownloadString("moduleindex.xml");
-
-                XDocument document = XDocument.Parse(indexSource);
-                var moduleElements = document.Root.Elements("module");
-
-                foreach (var moduleElement in moduleElements)
-                {
-                    remoteModules.Add(ScanRemoteManifest(moduleElement.Value, webClient));
-                }
-            }
-
-            return remoteModules.ToArray();
-        }
-
 
         public static void LoadModules(string rootDirectory)
         {
@@ -83,28 +60,9 @@ namespace WallApp.Engine.Scripting
             return ScanManifest(manifestPath);
         }
 
-        //TODO: Refactor into ManifestReader
-
-        public static Module ScanRemoteManifest(string url, WebClient clientReuse = null)
+        public static Module ScanManifest(string manifestFile, string manifestSource = "")
         {
-            string xml = "";
-            if (clientReuse == null)
-            {
-                using (var client = new WebClient())
-                {
-                    xml = client.DownloadString(url);
-                }
-            }
-            else
-            {
-                xml = clientReuse.DownloadString(url);
-            }
-            return ScanManifest(url, xml, true);
-        }
-
-        public static Module ScanManifest(string manifestFile, string manifestSource = "", bool isRemote = false)
-        {
-            XDocument doc = null;
+            XDocument doc;
             if (string.IsNullOrWhiteSpace(manifestSource))
             {
                 doc = XDocument.Load(manifestFile);
@@ -127,7 +85,6 @@ namespace WallApp.Engine.Scripting
             }
 
             string sourceFile = "";
-            string viewSourceFile = "";
             string name = "";
             string description = "";
             int minWidth = 0;
@@ -142,10 +99,6 @@ namespace WallApp.Engine.Scripting
                 if (xElement.Name == "source")
                 {
                     sourceFile = xElement.Value;
-                }
-                else if (xElement.Name == "viewsource")
-                {
-                    viewSourceFile = xElement.Value;
                 }
                 else if (xElement.Name == "name")
                 {
@@ -213,26 +166,9 @@ namespace WallApp.Engine.Scripting
                 }
             }
 
-            if (!File.Exists(viewSourceFile))
-            {
-                viewSourceFile = Path.GetDirectoryName(manifestFile).TrimEnd('\\') + '\\' + viewSourceFile;
-                if (!File.Exists(viewSourceFile))
-                {
-                    //TODO
-                }
-            }
-
-            string kind = "";
-            if (isRemote)
-            {
-                kind = "remote";
-            }
-            else
-            {
-                kind = Path.GetExtension(sourceFile).TrimStart('.');
-            }
+            string kind = Path.GetExtension(sourceFile).TrimStart('.');
             var module = Resolve(kind);
-            module.Init(version, manifestFile, sourceFile, viewSourceFile, name, description, minWidth, minHeight, maxWidth, maxHeight, allowsCustomEffects);
+            module.Init(version, manifestFile, sourceFile, name, description, minWidth, minHeight, maxWidth, maxHeight, allowsCustomEffects);
             return module;
         }
 
@@ -244,9 +180,9 @@ namespace WallApp.Engine.Scripting
             {
                 module = new CsModule();
             }
-            else if (kind == "remote")
+            else
             {
-                module = new RemoteModule();
+                //TODO: Error.
             }
             return module;
         }

@@ -32,7 +32,7 @@ namespace WallApp.Engine.Scripting.Cs
                         interactiveLoader.RegisterDependency(assembly);
                     }
 
-                    options = options.AddReferences(Directory.GetFiles(Path.GetDirectoryName(File), "*.dll",
+                    options = options.AddReferences(Directory.GetFiles(Path.GetDirectoryName(ManifestFile), "*.dll",
                             SearchOption.TopDirectoryOnly))
                             .AddReferences(Assembly.GetExecutingAssembly())
                             .AddImports("WallApp", "WallApp.Scripting", "System", "System.Linq", "System.IO")
