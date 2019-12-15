@@ -22,7 +22,9 @@ using SystemInformation = System.Windows.Forms.SystemInformation;
  * Redo the service locator entirely.
  *
  * Refactor the ServiceProvider. Maybe just remove the automatic reference resolution entirely to remove the compiler warnings
- * to aid in consistency and reduction in unnecessary complexity.
+ * to aid in consistency and reduction in unnecessary complexity. Also refactor all the existing services.
+ *
+ * Refactor the Controller and Layout. Between the two of them they contain a tad bit of duplication.
  */
 
 
