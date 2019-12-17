@@ -27,7 +27,10 @@ namespace WallApp.Engine.Services
 
         private void OnCreateLayer(string module, BridgeService bridgeService)
         {
-            Layout
+            var settings = new LayerSettings();
+            settings.Module = module;
+            int layerId = Layout.AddLayer(settings);
+            bridgeService.WriteCreateLayerResponse(layerId);
         }
     }
 }

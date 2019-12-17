@@ -26,5 +26,10 @@ namespace WallApp.Engine.Services
         {
 
         }
+
+        public void WriteCreateLayerResponse(int layerId)
+        {
+
+        }
     }
 }
