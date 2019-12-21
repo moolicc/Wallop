@@ -16,11 +16,17 @@ using SystemInformation = System.Windows.Forms.SystemInformation;
 /*
  * General refactoring
  *
- * When the engine gets the "createlayer" message, it needs to go ahead and create a controller for that layer.
  * Redo the service locator entirely.
  *
  * Refactor the ServiceProvider. Maybe just remove the automatic reference resolution entirely to remove the compiler warnings
  * to aid in consistency and reduction in unnecessary complexity. Also refactor all the existing services.
+ *
+ * When a user attempts to resize a layer in EditMode, the engine just needs to display a preview box to show where the
+ * layer will end up. This will prevent the associated controller's rendertarget from being re-created with every
+ * single mouse-movement. Additionally, when the user adjusts the layer's size, the engine needs to communicate that
+ * back to the app.
+ *
+ * The engine needs to response to layerresize and layerdeletion messages from the app.
  */
 
 
