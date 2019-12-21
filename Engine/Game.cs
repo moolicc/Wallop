@@ -61,7 +61,7 @@ namespace WallApp.Engine
         private SpriteBatch _spriteBatch;
         private Dictionary<string, Effect> _effectsCache;
 
-        private List<Controller> _controllers;
+        private Services.ControllerService _controllerService;
 
         private EditModeHandler _editModeHandler;
 
@@ -107,6 +107,9 @@ namespace WallApp.Engine
             //Find the main layout service.
             LayoutTracker = ServiceProvider.GetService<LayoutTrackingService>();
 
+            //Create the controller service.
+            _controllerService = new ControllerService();
+
             /* FOR USE WITH SDL2_CS
             //Setup the window through the SDL API
             var width = SystemInformation.VirtualScreen.Width;
@@ -146,7 +149,7 @@ namespace WallApp.Engine
 
 
             //Initialize the controllers the user has in the current layout.
-            InitializeControllers();
+            _controllerService.Reset();
         }
 
 
@@ -159,82 +162,7 @@ namespace WallApp.Engine
 
 
             //TODO: THIS BREAKS THINGS
-            InitNewLayout();
-        }
 
-        public void InitNewLayout()
-        {
-            if (_controllers != null)
-            {
-                //Dispose old controller rendertargets.
-                foreach (var controller in _controllers)
-                {
-                    controller.Rendering.RenderTarget.Dispose();
-                    controller.Dispose();
-                }
-
-                _controllers.Clear();
-            }
-            //Initialize the new layout.
-            InitializeControllers();
-        }
-
-        private void InitializeControllers()
-        {
-            //Setup our controller list.
-            _controllers = new List<Controller>();
-
-            foreach (var layer in LayoutTracker.Layout.Layers)
-            {
-                //Get the current layer's module out of the cache. This creates a clone instead of referencing
-                //the module in the layer.
-                var module = ModuleCache.GetCachedModuleFromName(layer.Module);
-
-                //Create the controller to be used.
-                var controller =  CsModule.CreateController(module);
-
-                //Get the user-specified dimensions of the layer.
-                (float x, float y, float width, float height) = layer.Dimensions.GetBounds();
-
-                //Pass the layer's configuration to the controller.
-                controller.Settings = layer;
-                controller.Module = module;
-                var scaledLayerBounds = new RectangleF(
-                    (x * Settings.Instance.BackBufferWidthFactor),
-                    (y * Settings.Instance.BackBufferHeightFactor),
-                    (width * Settings.Instance.BackBufferWidthFactor),
-                    (height * Settings.Instance.BackBufferHeightFactor));
-
-                //We setup the rendertarget that the controller will draw to.
-                var renderTarget = new RenderTarget2D(GraphicsDevice, (int)scaledLayerBounds.Width, (int)scaledLayerBounds.Height);
-
-                //Init the controller's rendering parameters.
-                controller.Rendering = new Rendering(GraphicsDevice, renderTarget);
-                controller.Rendering.ActualX = (int)scaledLayerBounds.X;
-                controller.Rendering.ActualY = (int)scaledLayerBounds.Y;
-                controller.Rendering.ActualWidth = (int)scaledLayerBounds.Width;
-                controller.Rendering.ActualHeight = (int)scaledLayerBounds.Height;
-
-                //Allow the controller to handle any initialization is needs.
-                try
-                {
-                    controller.Setup();
-                }
-                catch (Exception ex)
-                {
-                }
-
-                //Cache any effects.
-                if (!string.IsNullOrWhiteSpace(layer.Effect))
-                {
-                    if (!_effectsCache.ContainsKey(layer.Effect))
-                    {
-                        _effectsCache.Add(layer.Effect, Effects.CreateEffect(layer.Effect, Content));
-                    }
-                }
-
-                _controllers.Add(controller);
-            }
         }
 
         protected override void Update(GameTime gameTime)
@@ -242,7 +170,7 @@ namespace WallApp.Engine
             _editModeHandler.Update(gameTime);
 
             //Update enabled controllers.
-            foreach (var controller in _controllers)
+            foreach (var controller in _controllerService.Controllers)
             {
                 if (!controller.Settings.Enabled)
                 {
@@ -262,23 +190,10 @@ namespace WallApp.Engine
             base.Draw(gameTime);
         }
 
-        private void DrawTest(GameTime gameTime)
-        {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
-            foreach (var controller in _controllers)
-            {
-                if (!controller.Settings.Enabled)
-                {
-                    continue;
-                }
-                controller.Draw(gameTime);
-            }
-        }
-
         private void DrawLayers(GameTime gameTime)
         {
             //Draw each controller onto its own rendertarget.
-            foreach (var controller in _controllers)
+            foreach (var controller in _controllerService.Controllers)
             {
                 if (!controller.Settings.Enabled)
                 {
@@ -299,7 +214,7 @@ namespace WallApp.Engine
             bool beginCalled = false;
 
             //Draw each controller's rendertarget onto the screen.
-            foreach (var controller in _controllers)
+            foreach (var controller in _controllerService.Controllers)
             {
                 if (!controller.Settings.Enabled)
                 {
