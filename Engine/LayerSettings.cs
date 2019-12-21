@@ -8,8 +8,8 @@ namespace WallApp.Engine
     {
         public Dictionary<string, string> CustomSettings { get; private set; }
 
-        public int LayerId { get; set; }
-        public string Module { get; set; }
+        public int LayerId { get; private set; }
+        public string Module { get; private set; }
         public string Name { get; set; }
         public string Description { get; set; }
         public bool Enabled { get; set; }
@@ -22,10 +22,10 @@ namespace WallApp.Engine
 
         public LayerDimensions Dimensions { get; set; }
 
-        public LayerSettings()
+        public LayerSettings(int layerId, string module)
         {
-            LayerId = -1;
-            Module = "";
+            LayerId = layerId;
+            Module = module;
             Name = "";
             TintColor = Color.White;
             Rotation = 0;
@@ -61,10 +61,8 @@ namespace WallApp.Engine
 
         public object Clone()
         {
-            return new LayerSettings()
+            return new LayerSettings(LayerId, Module)
             {
-                LayerId = this.LayerId,
-                Module = this.Module,
                 CustomSettings = this.CustomSettings,
                 Description = this.Description,
                 Dimensions = (LayerDimensions)this.Dimensions.Clone(),

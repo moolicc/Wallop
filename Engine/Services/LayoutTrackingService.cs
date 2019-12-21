@@ -6,9 +6,16 @@ using System.Threading.Tasks;
 
 namespace WallApp.Engine.Services
 {
+    public delegate void LayerAdded(LayerSettings layerSettings);
+    public delegate void LayerRemoved(int layerId);
+    public delegate void LayerResized(int layerId);
+
     [Service]
     class LayoutTrackingService : InitializableService
     {
+        public event LayerAdded LayerAdded;
+
+
         public Layout Layout { get; private set; }
 
         public void Init(Layout layout)
@@ -27,10 +34,9 @@ namespace WallApp.Engine.Services
 
         private void OnCreateLayer(string module, BridgeService bridgeService)
         {
-            var settings = new LayerSettings();
-            settings.Module = module;
-            int layerId = Layout.AddLayer(settings);
-            bridgeService.WriteCreateLayerResponse(layerId);
+            var settings = Layout.AddLayer(module);
+            bridgeService.WriteCreateLayerResponse(settings.LayerId);
+            LayerAdded?.Invoke(settings);
         }
     }
 }

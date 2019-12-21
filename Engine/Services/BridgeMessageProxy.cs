@@ -7,14 +7,17 @@ using WallApp.Bridge.Data;
 
 namespace WallApp.Engine.Services
 {
-    public delegate void EditModeHandler(bool enabled, BridgeService bridgeService);
-    public delegate void LayerCreationHandler(string module, BridgeService bridgeService);
+    namespace BridgeMessages
+    {
+        public delegate void EditModeEventHandler(bool enabled, BridgeService bridgeService);
+        public delegate void LayerCreationEventHandler(string module, BridgeService bridgeService);
+    }
 
     [Service]
     class BridgeMessageProxy : InitializableService
     {
-        public event EditModeHandler EditModeChanged;
-        public event LayerCreationHandler LayerCreated;
+        public event BridgeMessages.EditModeEventHandler EditModeChanged;
+        public event BridgeMessages.LayerCreationEventHandler LayerCreated;
 
         [ServiceReference]
         private BridgeService _bridgeService;

@@ -14,8 +14,6 @@ using SystemInformation = System.Windows.Forms.SystemInformation;
 
 
 /*
- * All layout logic needs to come from the bridge.
- *
  * General refactoring
  *
  * When the engine gets the "createlayer" message, it needs to go ahead and create a controller for that layer.
@@ -23,8 +21,6 @@ using SystemInformation = System.Windows.Forms.SystemInformation;
  *
  * Refactor the ServiceProvider. Maybe just remove the automatic reference resolution entirely to remove the compiler warnings
  * to aid in consistency and reduction in unnecessary complexity. Also refactor all the existing services.
- *
- * Refactor the Controller and Layout. Between the two of them they contain a tad bit of duplication.
  */
 
 
@@ -192,10 +188,6 @@ namespace WallApp.Engine
             {
                 //Get the current layer's module out of the cache. This creates a clone instead of referencing
                 //the module in the layer.
-
-                //TODO: This is bad. layer.Module is supposed to be the module's FULL filepath, but UI broke that.
-                //In the future the UI should also deal in absolute paths, but transform the text when displayed to
-                //just filenames.
                 var module = ModuleCache.GetCachedModuleFromName(layer.Module);
 
                 //Create the controller to be used.

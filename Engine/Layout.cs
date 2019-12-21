@@ -18,12 +18,12 @@ namespace WallApp.Engine
             _nextId = 0;
         }
 
-        public int AddLayer(LayerSettings settings)
+        public LayerSettings AddLayer(string module)
         {
-            settings.LayerId = _nextId;
+            var settings = new LayerSettings(_nextId, module);
             _layers.Add(_nextId, settings);
             _nextId++;
-            return _nextId;
+            return settings;
         }
 
         public void RemoveLayer(int layerId)
