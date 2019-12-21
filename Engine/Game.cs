@@ -110,27 +110,6 @@ namespace WallApp.Engine
             //Create the controller service.
             _controllerService = new ControllerService();
 
-            /* FOR USE WITH SDL2_CS
-            //Setup the window through the SDL API
-            var width = SystemInformation.VirtualScreen.Width;
-            var height = SystemInformation.VirtualScreen.Height;
-
-            //Set the size, position, and borders of the window.
-            SDL.SDL_SetWindowSize(Window.Handle, width, height);
-            SDL.SDL_SetWindowPosition(Window.Handle, SystemInformation.VirtualScreen.Left, SystemInformation.VirtualScreen.Top);
-            SDL.SDL_SetWindowBordered(Window.Handle, SDL.SDL_bool.SDL_FALSE);
-
-            //Get the HWND from SDL.
-            SDL.SDL_GetVersion(out var sdlVersion);
-            var info = new SDL.SDL_SysWMinfo();
-            info.version = sdlVersion;
-            SDL.SDL_GetWindowWMInfo(Window.Handle, ref info);
-
-            var f = (Form) Control.FromHandle(info.info.win.window);
-            //Set the window's parent to be the desktop.
-            WindowHandler.SetParet(f.Handle);
-            */
-
             //Setup the window by casting the game window to a windows forms control.
             _form = (Form)Control.FromHandle(Window.Handle);
             _form.FormBorderStyle = FormBorderStyle.None;
