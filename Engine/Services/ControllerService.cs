@@ -24,6 +24,7 @@ namespace WallApp.Engine.Services
             _layoutTracker = ServiceProvider.GetService<LayoutTrackingService>();
             _graphicsDevice = ServiceProvider.GetService<GraphicsDevice>();
             _layoutTracker.LayerAdded += LayerAdded;
+            _layoutTracker.LayerResized += LayerResized;
         }
 
         public void Reset()
@@ -51,6 +52,28 @@ namespace WallApp.Engine.Services
             _controllersCached = _controllers.Values.ToArray();
         }
 
+        private void LayerResized(LayerSettings layerSettings)
+        {
+            var controller = _controllers[layerSettings.LayerId];
+
+            (float x, float y, float width, float height) = layerSettings.Dimensions;
+
+            var scaledLayerBounds = new RectangleF(
+                (x * Settings.Instance.BackBufferWidthFactor),
+                (y * Settings.Instance.BackBufferHeightFactor),
+                (width * Settings.Instance.BackBufferWidthFactor),
+                (height * Settings.Instance.BackBufferHeightFactor));
+
+            var renderTarget = new RenderTarget2D(_graphicsDevice, (int)scaledLayerBounds.Width, (int)scaledLayerBounds.Height);
+
+            controller.Rendering.RenderTarget.Dispose();
+            controller.Rendering = new Rendering(_graphicsDevice, renderTarget);
+            controller.Rendering.ActualX = (int)scaledLayerBounds.X;
+            controller.Rendering.ActualY = (int)scaledLayerBounds.Y;
+            controller.Rendering.ActualWidth = (int)scaledLayerBounds.Width;
+            controller.Rendering.ActualHeight = (int)scaledLayerBounds.Height;
+        }
+
         private Controller GetNewController(LayerSettings settings)
         {
             //Get the current layer's module out of the cache. This creates a clone instead of referencing
@@ -61,7 +84,7 @@ namespace WallApp.Engine.Services
             var controller = CsModule.CreateController(module);
 
             //Get the user-specified dimensions of the layer.
-            (float x, float y, float width, float height) = settings.Dimensions.GetBounds();
+            (float x, float y, float width, float height) = settings.Dimensions;
 
             //Pass the layer's configuration to the controller.
             controller.Settings = settings;
