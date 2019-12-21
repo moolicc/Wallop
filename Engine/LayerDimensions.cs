@@ -5,6 +5,8 @@ using System.Windows.Forms;
 
 namespace WallApp.Engine
 {
+    public delegate void DimensionsChangedHandler(object sender);
+
     public class LayerDimensions : ICloneable
     {
         private static Point _primaryOffset;
@@ -27,15 +29,81 @@ namespace WallApp.Engine
             _primaryOffset = new Point(leftOffset, topOffset);
         }
 
-        public bool AbsoluteValues { get; set; }
-        public bool MarginValues { get; set; }
+        public event DimensionsChangedHandler DimensionsChanged;
+
+        public bool AbsoluteValues
+        {
+            get => absoluteValues;
+            set
+            {
+                if(absoluteValues == value)
+                {
+                    return;
+                }
+                absoluteValues = value;
+                DimensionsChanged?.Invoke(this);
+            }
+        }
+        public bool MarginValues
+        {
+            get => marginValues;
+            set
+            {
+                if (marginValues == value)
+                {
+                    return;
+                }
+                marginValues = value;
+                DimensionsChanged?.Invoke(this);
+            }
+        }
 
         public string MonitorName { get; set; }
 
-        public float XValue { get; set; }
-        public float YValue { get; set; }
-        public float ZValue { get; set; }
-        public float WValue { get; set; }
+        public float XValue
+        {
+            get => xValue;
+            set
+            {
+                xValue = value;
+                DimensionsChanged?.Invoke(this);
+            }
+        }
+        public float YValue
+        {
+            get => yValue;
+            set
+            {
+                yValue = value;
+                DimensionsChanged?.Invoke(this);
+            }
+        }
+        public float ZValue
+        {
+            get => zValue;
+            set
+            {
+                zValue = value;
+                DimensionsChanged?.Invoke(this);
+            }
+        }
+        public float WValue
+        {
+            get => wValue;
+            set
+            {
+                wValue = value;
+                DimensionsChanged?.Invoke(this);
+            }
+        }
+
+
+        private bool absoluteValues;
+        private bool marginValues;
+        private float xValue;
+        private float yValue;
+        private float wValue;
+        private float zValue;
 
 
         public LayerDimensions()

@@ -6,6 +6,8 @@ namespace WallApp.Engine
 {
     public class LayerSettings : ICloneable
     {
+        public event DimensionsChangedHandler DimensionsChanged;
+
         public Dictionary<string, string> CustomSettings { get; private set; }
 
         public int LayerId { get; private set; }
@@ -20,7 +22,7 @@ namespace WallApp.Engine
 
         public float Opacity { get; set; }
 
-        public LayerDimensions Dimensions { get; set; }
+        public LayerDimensions Dimensions { get; private set; }
 
         public LayerSettings(int layerId, string module)
         {
@@ -34,7 +36,10 @@ namespace WallApp.Engine
             Enabled = true;
             Effect = "";
             CustomSettings = new Dictionary<string, string>();
+
+            Dimensions.DimensionsChanged += OnDimensionsChanged;
         }
+
 
         public string this[string key]
         {
@@ -72,6 +77,11 @@ namespace WallApp.Engine
                 Rotation = this.Rotation,
                 TintColor = this.TintColor,
             };
+        }
+
+        private void OnDimensionsChanged(object sender)
+        {
+            DimensionsChanged?.Invoke(this);
         }
     }
 }
