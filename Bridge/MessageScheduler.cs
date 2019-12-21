@@ -15,18 +15,19 @@ namespace WallApp.Bridge
     public class MessageScheduler
     {
         private InputReader<IPayload> _reader;
-
         private Dictionary<Type, Queue<ConsumerEntry>> _consumers;
         private bool _consumerLock;
+        private Dictionary<Type, IPayload> _immediateConsumers;
+        private bool _immediateLock;
 
-        private bool _consumingNext;
-        private IPayload _consumeNext;
 
         public MessageScheduler(InputReader<IPayload> reader)
         {
             _reader = reader;
-
             _consumers = new Dictionary<Type, Queue<ConsumerEntry>>();
+            _consumerLock = false;
+            _immediateConsumers = new Dictionary<Type, IPayload>();
+            _immediateLock = false;
 
             Task.Run(Run);
         }
@@ -52,15 +53,33 @@ namespace WallApp.Bridge
 
         public T ConsumeNext<T>() where T : IPayload
         {
-            throw new NotImplementedException("This won't even work... Figure out what the plan was and make it happen, chief!");
-            _consumingNext = true;
-            while (_consumeNext == null) ;
+            while (_immediateLock) ;
+            Type type = typeof(T);
+            _immediateLock = true;
+            if (!_immediateConsumers.TryGetValue(type, out var value))
+            {
+                _immediateConsumers.Add(type, null);
+            }
+            else
+            {
+                //TODO: Warning, this is not thread-safe!
+            }
+            if(value is T tVal)
+            {
+                return tVal;
+            }
 
-            var returnVal = (T)_consumeNext;
-            _consumingNext = false;
-            _consumeNext = null;
-
-            return returnVal;
+            _immediateLock = false;
+            IPayload payload = _immediateConsumers[type];
+            while (payload == null)
+            {
+                Thread.Sleep(100);
+                payload = _immediateConsumers[type];
+            }
+            _immediateLock = true;
+            _immediateConsumers.Remove(type);
+            _immediateLock = false;
+            return (T)payload;
         }
 
         private void Run()
@@ -96,6 +115,14 @@ namespace WallApp.Bridge
                     if (!_reader.Queue.TryDequeue(out var payload))
                     {
                         break;
+                    }
+
+                    if(!_immediateLock && _immediateConsumers.ContainsKey(payload.GetType()))
+                    {
+                        _immediateLock = true;
+                        _immediateConsumers[payload.GetType()] = payload;
+                        _immediateLock = false;
+                        continue;
                     }
 
                     if(!_consumerLock)
