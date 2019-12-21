@@ -147,7 +147,7 @@ namespace WallApp.Engine
 
 
             //TODO: THIS BREAKS THINGS
-
+            _controllerService.Reset();
         }
 
         protected override void Update(GameTime gameTime)
