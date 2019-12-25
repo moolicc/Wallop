@@ -24,9 +24,9 @@ using SystemInformation = System.Windows.Forms.SystemInformation;
  * When a user attempts to resize a layer in EditMode, the engine just needs to display a preview box to show where the
  * layer will end up. This will prevent the associated controller's rendertarget from being re-created with every
  * single mouse-movement. Additionally, when the user adjusts the layer's size, the engine needs to communicate that
- * back to the app.
+ * back to the app. ** WHY? **
  *
- * The engine needs to response to layerresize and layerdeletion messages from the app.
+ * The engine needs to respond to the layerdeletion message from the app.
  */
 
 
