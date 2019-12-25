@@ -23,6 +23,7 @@ namespace WallApp.Engine.Services
             _graphicsDevice = ServiceProvider.GetService<GraphicsDevice>();
             _layoutTracker.LayerAdded += LayerAdded;
             _layoutTracker.LayerResized += LayerResized;
+            _layoutTracker.LayerRemoved += LayerRemoved;
         }
 
         public void Reset()
@@ -70,6 +71,12 @@ namespace WallApp.Engine.Services
             controller.Rendering.ActualY = (int)scaledLayerBounds.Y;
             controller.Rendering.ActualWidth = (int)scaledLayerBounds.Width;
             controller.Rendering.ActualHeight = (int)scaledLayerBounds.Height;
+        }
+
+        private void LayerRemoved(int layerId)
+        {
+            _controllers[layerId].Dispose();
+            _controllers.Remove(layerId);
         }
 
         private Controller GetNewController(LayerSettings settings)
