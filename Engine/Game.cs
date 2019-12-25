@@ -25,7 +25,7 @@ using SystemInformation = System.Windows.Forms.SystemInformation;
  * single mouse-movement. Additionally, when the user adjusts the layer's size, the engine needs to communicate that
  * back to the app. ** WHY? **
  *
- * The engine needs to respond to the layerdeletion message from the app.
+ * The engine needs to respond to the as-of-now non-existent LayerSettingsChanged message from the app.
  *
  * EditMode needs to allow locking x/y and also support incremental x/y changes.
  *
