@@ -125,6 +125,46 @@ namespace WallApp.Engine
             return new RectangleF(X, Y, Width, Height);
         }
 
+        public void Set(float? x = null, float? y = null, float? z = null, float? w = null, bool? useAbsolutes = null, bool? useMargins = null)
+        {
+            bool changes = false;
+            if(x.HasValue && xValue != x.Value)
+            {
+                changes = true;
+                xValue = x.Value;
+            }
+            if(y.HasValue && xValue != y.Value)
+            {
+                changes = true;
+                yValue = y.Value;
+            }
+            if(z.HasValue && xValue != z.Value)
+            {
+                changes = true;
+                zValue = z.Value;
+            }
+            if(w.HasValue && xValue != w.Value)
+            {
+                changes = true;
+                wValue = w.Value;
+            }
+            if(useAbsolutes.HasValue && absoluteValues != useAbsolutes)
+            {
+                changes = true;
+                absoluteValues = useAbsolutes.Value;
+            }
+            if(useMargins.HasValue && marginValues != useMargins)
+            {
+                changes = true;
+                marginValues = useMargins.Value;
+            }
+
+            if(changes)
+            {
+                DimensionsChanged?.Invoke(this);
+            }
+        }
+
         public (float X, float Y, float Width, float Height) GetBounds()
         {
             float x = XValue;
