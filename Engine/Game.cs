@@ -27,6 +27,11 @@ using SystemInformation = System.Windows.Forms.SystemInformation;
  * back to the app. ** WHY? **
  *
  * The engine needs to respond to the layerdeletion message from the app.
+ *
+ * EditMode needs to allow locking x/y and also support incremental x/y changes.
+ *
+ * Implement Logging
+ * Implement graceful error handling
  */
 
 
@@ -35,26 +40,6 @@ namespace WallApp.Engine
 {
     class Game : Microsoft.Xna.Framework.Game
     {
-        private const double RADIAN_MULTIPLIER = 0.0174532925199433D;
-
-
-        //TODO: Drag + Drop layer editing
-        //TODO: Logging
-        //TODO: Error/InvalidInput handling
-        //TODO: Refactoring
-        //TODO: LayerEditorWindow needs layout boxes to be numeric boxes with capped input./
-        //TODO: Error reporting available to layers. Maybe use TOAST popups + an icon in the layers list to indicate bad layer.
-        // When a layer has an error, don't draw/update it. WILL NEED special logic for if we're in preview mode.
-        //TODO: Draw "selection box" over layer in preview.
-        //TODO: Intro animations, Layout lifetimes, Outro animations.
-        //TODO: Use command-based scripting as the back-end for *ALL* layer settings.
-        //      This is important for fancy animations.
-        //TODO: ErrorHandler should be for app-wide errors. Right now it relies on layerids.
-        //TODO: Layers should be able to embed resources (files/streams) into the layout.
-        //TODO: Support Undo/Redo in previewmode.
-        //TODO: Support locking X/Y in previewmode.
-        //TODO: Support incremental X/Y changes (ie, greater than 1 single pixel) in previewmode.
-
 
         //Notes:
         //A 'module' is a script/extension.
