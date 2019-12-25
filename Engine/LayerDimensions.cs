@@ -31,90 +31,34 @@ namespace WallApp.Engine
 
         public event DimensionsChangedHandler DimensionsChanged;
 
-        public bool AbsoluteValues
-        {
-            get => absoluteValues;
-            set
-            {
-                if(absoluteValues == value)
-                {
-                    return;
-                }
-                absoluteValues = value;
-                DimensionsChanged?.Invoke(this);
-            }
-        }
-        public bool MarginValues
-        {
-            get => marginValues;
-            set
-            {
-                if (marginValues == value)
-                {
-                    return;
-                }
-                marginValues = value;
-                DimensionsChanged?.Invoke(this);
-            }
-        }
+        public bool AbsoluteValues => _absoluteValues;
+        public bool MarginValues => _marginValues;
 
         public string MonitorName { get; set; }
 
-        public float XValue
-        {
-            get => xValue;
-            set
-            {
-                xValue = value;
-                DimensionsChanged?.Invoke(this);
-            }
-        }
-        public float YValue
-        {
-            get => yValue;
-            set
-            {
-                yValue = value;
-                DimensionsChanged?.Invoke(this);
-            }
-        }
-        public float ZValue
-        {
-            get => zValue;
-            set
-            {
-                zValue = value;
-                DimensionsChanged?.Invoke(this);
-            }
-        }
-        public float WValue
-        {
-            get => wValue;
-            set
-            {
-                wValue = value;
-                DimensionsChanged?.Invoke(this);
-            }
-        }
+        public float XValue => _xValue;
+        public float YValue => _yValue;
+        public float ZValue => _zValue;
+        public float WValue => _wValue;
 
 
-        private bool absoluteValues;
-        private bool marginValues;
-        private float xValue;
-        private float yValue;
-        private float wValue;
-        private float zValue;
+        private bool _absoluteValues;
+        private bool _marginValues;
+        private float _xValue;
+        private float _yValue;
+        private float _zValue;
+        private float _wValue;
 
 
         public LayerDimensions()
         {
-            AbsoluteValues = true;
-            MarginValues = false;
+            _absoluteValues = true;
+            _marginValues = false;
             MonitorName = "[Extend]";
-            XValue = 0;
-            YValue = 0;
-            ZValue = 10;
-            WValue = 10;
+            _xValue = 0;
+            _yValue = 0;
+            _zValue = 10;
+            _wValue = 10;
         }
 
 
@@ -128,35 +72,35 @@ namespace WallApp.Engine
         public void Set(float? x = null, float? y = null, float? z = null, float? w = null, bool? useAbsolutes = null, bool? useMargins = null)
         {
             bool changes = false;
-            if(x.HasValue && xValue != x.Value)
+            if(x.HasValue && _xValue != x.Value)
             {
                 changes = true;
-                xValue = x.Value;
+                _xValue = x.Value;
             }
-            if(y.HasValue && xValue != y.Value)
+            if(y.HasValue && _yValue != y.Value)
             {
                 changes = true;
-                yValue = y.Value;
+                _yValue = y.Value;
             }
-            if(z.HasValue && xValue != z.Value)
+            if(z.HasValue && _zValue != z.Value)
             {
                 changes = true;
-                zValue = z.Value;
+                _zValue = z.Value;
             }
-            if(w.HasValue && xValue != w.Value)
+            if(w.HasValue && _wValue != w.Value)
             {
                 changes = true;
-                wValue = w.Value;
+                _wValue = w.Value;
             }
-            if(useAbsolutes.HasValue && absoluteValues != useAbsolutes)
+            if(useAbsolutes.HasValue && _absoluteValues != useAbsolutes)
             {
                 changes = true;
-                absoluteValues = useAbsolutes.Value;
+                _absoluteValues = useAbsolutes.Value;
             }
-            if(useMargins.HasValue && marginValues != useMargins)
+            if(useMargins.HasValue && _marginValues != useMargins)
             {
                 changes = true;
-                marginValues = useMargins.Value;
+                _marginValues = useMargins.Value;
             }
 
             if(changes)
@@ -225,13 +169,13 @@ namespace WallApp.Engine
         {
             return new LayerDimensions()
             {
-                AbsoluteValues = this.AbsoluteValues,
-                MarginValues = this.MarginValues,
+                _absoluteValues = this.AbsoluteValues,
+                _marginValues = this.MarginValues,
                 MonitorName = this.MonitorName,
-                WValue = this.WValue,
-                XValue = this.XValue,
-                YValue = this.YValue,
-                ZValue = this.ZValue,
+                _wValue = this.WValue,
+                _xValue = this.XValue,
+                _yValue = this.YValue,
+                _zValue = this.ZValue,
             };
         }
 

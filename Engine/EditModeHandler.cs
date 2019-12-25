@@ -63,24 +63,26 @@ namespace WallApp.Engine
                 else if (_dragLayer != null)
                 {
                     Point mouseMovement = mouseState.Position - _prevMouseState.Position;
+                    Vector2 offset = Vector2.Zero;
 
                     if (mouseMovement.X >= _singleUnit.X && mouseMovement.X > 0)
                     {
-                        _dragLayer.Dimensions.XValue += _singleUnit.X;
+                        offset.X += _singleUnit.X;
                     }
                     else if (Math.Abs(mouseMovement.X) >= _singleUnit.X && mouseMovement.X < 0)
                     {
-                        _dragLayer.Dimensions.XValue -= _singleUnit.X;
+                        offset.X -= _singleUnit.X;
                     }
 
                     if (mouseMovement.Y >= _singleUnit.Y && mouseMovement.Y > 0)
                     {
-                        _dragLayer.Dimensions.YValue += _singleUnit.Y;
+                        offset.Y += _singleUnit.Y;
                     }
                     else if (Math.Abs(mouseMovement.Y) >= _singleUnit.Y && mouseMovement.Y < 0)
                     {
-                        _dragLayer.Dimensions.YValue -= _singleUnit.Y;
+                        offset.Y -= _singleUnit.Y;
                     }
+                    _dragLayer.Dimensions.Set(_dragLayer.Dimensions.XValue + offset.X, _dragLayer.Dimensions.YValue + offset.Y);
                 }
             }
             else
