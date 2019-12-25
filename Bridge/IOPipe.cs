@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -39,11 +37,11 @@ namespace WallApp.Bridge
 
             int next = InputStream.Read();
             string json = "";
-            while(next != -1 && ((char)next) != '\0')
+            while (next != -1 && ((char)next) != '\0')
             {
                 json += (char)next;
                 peeked = InputStream.Peek();
-                if(peeked != -1)
+                if (peeked != -1)
                 {
                     next = InputStream.Read();
                 }

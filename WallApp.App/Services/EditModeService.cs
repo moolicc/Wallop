@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 using WallApp.Bridge;
 
@@ -22,7 +18,7 @@ namespace WallApp.App.Services
 
         public void StartEdit(Layout.LayoutInfo layoutInfo)
         {
-            if(_trackingLayout != null)
+            if (_trackingLayout != null)
             {
                 throw new InvalidOperationException("A layout is already being tracked. Make sure LayoutUpdated is equal to 'true' before attempting to modify a layer.");
             }

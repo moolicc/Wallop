@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace WallApp.Bridge
+﻿namespace WallApp.Bridge
 {
     public class Module
     {

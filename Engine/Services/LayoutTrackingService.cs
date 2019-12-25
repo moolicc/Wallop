@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace WallApp.Engine.Services
+﻿namespace WallApp.Engine.Services
 {
     public delegate void LayerAdded(LayerSettings layerSettings);
     public delegate void LayerResized(LayerSettings layerSettings);

@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using WallApp.App.Layout;
+﻿using System.Collections.Generic;
 using System.IO;
+using WallApp.App.Layout;
 
 namespace WallApp.App.Services
 {
@@ -28,7 +24,7 @@ namespace WallApp.App.Services
         {
             //TODO: Send spin-up script runtime and set the engine's state.
             Layout.ILayoutScript layoutScript = null;
-            if(layout.ScriptIsData)
+            if (layout.ScriptIsData)
             {
                 layoutScript = new XmlLayoutScript();
             }
@@ -42,7 +38,7 @@ namespace WallApp.App.Services
 
         public IEnumerable<Layout.LayoutInfo> LoadLayouts()
         {
-            if(!Directory.Exists("layouts"))
+            if (!Directory.Exists("layouts"))
             {
                 Directory.CreateDirectory("layouts");
             }

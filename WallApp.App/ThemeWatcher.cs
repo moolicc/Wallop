@@ -1,12 +1,8 @@
 ﻿using Microsoft.Win32;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Management;
 using System.Security.Principal;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 
 //Original source: https://engy.us/blog/2018/10/20/dark-theme-in-wpf/
@@ -81,7 +77,7 @@ namespace WallApp.App
         {
             _isHighContrastEnabled = SystemParameters.HighContrast;
             WindowsTheme = GetWindowsTheme();
-            if(_isHighContrastEnabled)
+            if (_isHighContrastEnabled)
             {
                 CurrentTheme = AppTheme.HighContrast;
             }

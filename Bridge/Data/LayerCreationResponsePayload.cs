@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace WallApp.Bridge.Data
+﻿namespace WallApp.Bridge.Data
 {
     public class LayerCreationResponsePayload : IPayload
     {

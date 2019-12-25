@@ -95,7 +95,7 @@ namespace WallApp.Engine
 
         public void Draw(GameTime gameTime)
         {
-            if(!Enabled)
+            if (!Enabled)
             {
                 return;
             }
@@ -140,7 +140,7 @@ namespace WallApp.Engine
         private void EditModeChanged(bool enabled, Services.BridgeService bridgeService)
         {
             //Only send a response if we WERE enabled and now we are NOT enabled.
-            if(!enabled && Enabled)
+            if (!enabled && Enabled)
             {
                 /* This is much more optimized.
                 var response = new Bridge.Data.EditModeResponse();

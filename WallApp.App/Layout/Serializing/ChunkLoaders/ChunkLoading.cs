@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace WallApp.App.Layout.Serializing.ChunkLoaders
 {
@@ -32,7 +27,7 @@ namespace WallApp.App.Layout.Serializing.ChunkLoaders
 
         public static void Resolve(ref ChunkInfo chunkInfo, LayoutReader reader, byte[] buffer, LayoutInfo layout)
         {
-            if(_resolvers.TryGetValue(chunkInfo.ChunkType, out var resolver))
+            if (_resolvers.TryGetValue(chunkInfo.ChunkType, out var resolver))
             {
                 resolver.LoadChunk(ref chunkInfo, reader, buffer, layout);
             }

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml;
-using System.Xml.Linq;
+﻿using System.Xml.Linq;
 
 namespace WallApp.App.Layout
 {
@@ -31,7 +25,7 @@ namespace WallApp.App.Layout
 
         private void LoadRoot(XElement rootElement)
         {
-            if(rootElement.Name != "layout")
+            if (rootElement.Name != "layout")
             {
                 // TODO: Error
             }
@@ -47,11 +41,11 @@ namespace WallApp.App.Layout
             float GetPosValue(XElement input)
             {
                 float result = 0.0F;
-                if(input == null)
+                if (input == null)
                 {
                     //TODO: warning
                 }
-                else if(!float.TryParse(input.Value, out result))
+                else if (!float.TryParse(input.Value, out result))
                 {
                     //TODO: Error out with input.Name as debug info.
                 }
@@ -89,7 +83,7 @@ namespace WallApp.App.Layout
             bool absolutePos = false;
             bool marginPos = false;
 
-            if(referenceMonitorElement != null)
+            if (referenceMonitorElement != null)
             {
                 referenceMonitor = referenceMonitorElement.Value;
             }
@@ -100,7 +94,7 @@ namespace WallApp.App.Layout
             posW = GetPosValue(posWElement);
 
             //TODO: Handle invalid Value data.
-            if(absPosElement != null)
+            if (absPosElement != null)
             {
                 bool.TryParse(absPosElement.Value, out absolutePos);
             }

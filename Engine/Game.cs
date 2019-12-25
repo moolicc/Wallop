@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
-using WallApp.Bridge;
 using WallApp.Engine.Scripting;
 using WallApp.Engine.Services;
 using Color = Microsoft.Xna.Framework.Color;

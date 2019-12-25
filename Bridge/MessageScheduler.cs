@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WallApp.Bridge;
 using WallApp.Bridge.Data;
 
 namespace WallApp.Bridge
@@ -40,7 +37,7 @@ namespace WallApp.Bridge
             Type tType = typeof(T);
 
             Queue<ConsumerEntry> entryQueue;
-            if(!_consumers.TryGetValue(tType, out entryQueue))
+            if (!_consumers.TryGetValue(tType, out entryQueue))
             {
                 entryQueue = new Queue<ConsumerEntry>();
                 _consumers.Add(tType, entryQueue);
@@ -64,7 +61,7 @@ namespace WallApp.Bridge
             {
                 //TODO: Warning, this is not thread-safe!
             }
-            if(value is T tVal)
+            if (value is T tVal)
             {
                 return tVal;
             }
@@ -96,11 +93,11 @@ namespace WallApp.Bridge
                         {
                             foreach (var consumer in item.Value)
                             {
-                                if(consumer.Timeout <= 0)
+                                if (consumer.Timeout <= 0)
                                 {
                                     continue;
                                 }
-                                if(consumer.TimeoutTimer.ElapsedMilliseconds > consumer.Timeout)
+                                if (consumer.TimeoutTimer.ElapsedMilliseconds > consumer.Timeout)
                                 {
                                     consumer.TimedOut = true;
                                     consumer.OnTimeout();
@@ -117,7 +114,7 @@ namespace WallApp.Bridge
                         break;
                     }
 
-                    if(!_immediateLock && _immediateConsumers.ContainsKey(payload.GetType()))
+                    if (!_immediateLock && _immediateConsumers.ContainsKey(payload.GetType()))
                     {
                         _immediateLock = true;
                         _immediateConsumers[payload.GetType()] = payload;
@@ -125,22 +122,22 @@ namespace WallApp.Bridge
                         continue;
                     }
 
-                    if(!_consumerLock)
+                    if (!_consumerLock)
                     {
                         _consumerLock = true;
-                        if(_consumers.TryGetValue(payload.GetType(), out var entry))
+                        if (_consumers.TryGetValue(payload.GetType(), out var entry))
                         {
                             var consumer = entry.Dequeue();
-                            while(entry.Count > 0)
+                            while (entry.Count > 0)
                             {
-                                if(consumer.TimedOut)
+                                if (consumer.TimedOut)
                                 {
                                     consumer = entry.Dequeue();
                                 }
                             }
 
                             PayloadHandler handler = entry.Dequeue().Handler;
-                            if(handler != null)
+                            if (handler != null)
                             {
                                 Task.Run(() => handler(payload));
                                 _consumerLock = false;

@@ -1,12 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media.Imaging;
 
 namespace WallApp.App.ViewModels
 {
@@ -21,7 +16,7 @@ namespace WallApp.App.ViewModels
             get { return _flipViewBannerText; }
             private set
             {
-                if(_flipViewBannerText == value)
+                if (_flipViewBannerText == value)
                 {
                     return;
                 }
@@ -35,7 +30,7 @@ namespace WallApp.App.ViewModels
             get { return _progressRingActive; }
             private set
             {
-                if(value == _progressRingActive)
+                if (value == _progressRingActive)
                 {
                     return;
                 }
@@ -113,7 +108,7 @@ namespace WallApp.App.ViewModels
 
         private void OnPropertyChanged(string property)
         {
-            if(PropertyChanged != null)
+            if (PropertyChanged != null)
             {
                 PropertyChanged(this, new PropertyChangedEventArgs(property));
             }

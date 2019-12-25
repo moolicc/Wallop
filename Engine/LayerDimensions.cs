@@ -72,38 +72,38 @@ namespace WallApp.Engine
         public void Set(float? x = null, float? y = null, float? z = null, float? w = null, bool? useAbsolutes = null, bool? useMargins = null)
         {
             bool changes = false;
-            if(x.HasValue && _xValue != x.Value)
+            if (x.HasValue && _xValue != x.Value)
             {
                 changes = true;
                 _xValue = x.Value;
             }
-            if(y.HasValue && _yValue != y.Value)
+            if (y.HasValue && _yValue != y.Value)
             {
                 changes = true;
                 _yValue = y.Value;
             }
-            if(z.HasValue && _zValue != z.Value)
+            if (z.HasValue && _zValue != z.Value)
             {
                 changes = true;
                 _zValue = z.Value;
             }
-            if(w.HasValue && _wValue != w.Value)
+            if (w.HasValue && _wValue != w.Value)
             {
                 changes = true;
                 _wValue = w.Value;
             }
-            if(useAbsolutes.HasValue && _absoluteValues != useAbsolutes)
+            if (useAbsolutes.HasValue && _absoluteValues != useAbsolutes)
             {
                 changes = true;
                 _absoluteValues = useAbsolutes.Value;
             }
-            if(useMargins.HasValue && _marginValues != useMargins)
+            if (useMargins.HasValue && _marginValues != useMargins)
             {
                 changes = true;
                 _marginValues = useMargins.Value;
             }
 
-            if(changes)
+            if (changes)
             {
                 DimensionsChanged?.Invoke(this);
             }

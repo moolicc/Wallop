@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace WallApp.App.Layout.Serializing
+﻿namespace WallApp.App.Layout.Serializing
 {
     class LayoutWriter
     {

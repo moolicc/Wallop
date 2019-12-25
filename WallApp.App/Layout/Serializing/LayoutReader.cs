@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.IO.Compression;
+using System.Runtime.InteropServices;
+using System.Text;
 
 namespace WallApp.App.Layout.Serializing
 {
@@ -123,7 +121,7 @@ namespace WallApp.App.Layout.Serializing
         {
             LayoutInfo result = new LayoutInfo();
 
-            if(DataStream.CanSeek && DataStream.Position != _header.StringTableOffset)
+            if (DataStream.CanSeek && DataStream.Position != _header.StringTableOffset)
             {
                 DataStream.Position = _header.StringTableOffset;
             }
@@ -222,7 +220,7 @@ namespace WallApp.App.Layout.Serializing
         private void ReadStringTable()
         {
             byte numStrings = (byte)DataStream.ReadByte();
-            for(int i = 0; i < numStrings; i++)
+            for (int i = 0; i < numStrings; i++)
             {
                 // Decode the length of the string.
                 byte length = (byte)DataStream.ReadByte();
@@ -257,17 +255,17 @@ namespace WallApp.App.Layout.Serializing
                 DataStream.Read(buffer, 0, buffer.Length);
 
                 uint crc = Force.Crc32.Crc32CAlgorithm.Compute(buffer);
-                if(crc != info.ChunkHash)
+                if (crc != info.ChunkHash)
                 {
                     //TODO: Error
                     throw new InvalidDataException("Checksum mismatch.");
                 }
 
-                if(_header.PayloadCompressed)
+                if (_header.PayloadCompressed)
                 {
-                    using(var inStream = new MemoryStream(buffer))
+                    using (var inStream = new MemoryStream(buffer))
                     using (var gzip = new GZipStream(inStream, CompressionMode.Decompress))
-                    using(var outStream = new MemoryStream())
+                    using (var outStream = new MemoryStream())
                     {
                         gzip.CopyTo(outStream);
                         buffer = outStream.ToArray();
@@ -316,7 +314,7 @@ namespace WallApp.App.Layout.Serializing
 
             // If we haven't read the amount of data we were expected to read, there must
             // be a version mismatch. Consume the remaining data.
-            if(readData < blockLength)
+            if (readData < blockLength)
             {
                 buffer = new byte[blockLength - readData];
                 DataStream.Read(buffer, 0, buffer.Length);
@@ -336,7 +334,7 @@ namespace WallApp.App.Layout.Serializing
 
         private void CheckUnexpectedOutOfData(int expectedLength, int consumedData)
         {
-            if(consumedData > expectedLength)
+            if (consumedData > expectedLength)
             {
                 throw new InvalidDataException($"Expected {expectedLength} bytes, but consumed {consumedData}.");
             }

@@ -11,7 +11,7 @@ namespace MockEngine
             {
                 var slave = new WallApp.Bridge.Slave();
                 var reader = new WallApp.Bridge.InputReader<WallApp.Bridge.Data.IPayload>(slave);
-                using(var s = new System.IO.StreamWriter("MockEngine_Output.txt"))
+                using (var s = new System.IO.StreamWriter("MockEngine_Output.txt"))
                 {
                     s.AutoFlush = true;
                     while (true)
