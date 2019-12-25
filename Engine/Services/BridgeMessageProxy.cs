@@ -1,4 +1,5 @@
-﻿using WallApp.Bridge.Data;
+﻿using System;
+using WallApp.Bridge.Data;
 
 namespace WallApp.Engine.Services
 {
@@ -7,6 +8,7 @@ namespace WallApp.Engine.Services
         public delegate void EditModeEventHandler(bool enabled, BridgeService bridgeService);
         public delegate void LayerCreationEventHandler(string module, BridgeService bridgeService);
         public delegate void LayerDimensionsChangedEventHandler(int layerId, (float x, float y, float z, float w) dimensions, bool useAbsolutes, bool useMargins, BridgeService bridgeService);
+        public delegate void LayerDeletedEventHandler(int layerId);
     }
 
     [Service]
@@ -15,6 +17,7 @@ namespace WallApp.Engine.Services
         public event BridgeMessages.EditModeEventHandler EditModeChanged;
         public event BridgeMessages.LayerCreationEventHandler LayerCreated;
         public event BridgeMessages.LayerDimensionsChangedEventHandler LayerDimensionsChanged;
+        public event BridgeMessages.LayerDeletedEventHandler LayerDeleted;
 
         [ServiceReference]
         private BridgeService _bridgeService;
@@ -28,6 +31,7 @@ namespace WallApp.Engine.Services
             _bridgeService.Scheduler.RegisterMessage<EditModePayload>(OnEditModeChanged, -1, null);
             _bridgeService.Scheduler.RegisterMessage<LayerCreationPayload>(OnLayerCreated, -1, null);
             _bridgeService.Scheduler.RegisterMessage<PositionPayload>(OnLayerDimensionsChanged, -1, null);
+            _bridgeService.Scheduler.RegisterMessage <LayerDeletionPayload>(OnLayerDeleted, -1, null);
             base.Initialize();
         }
 
@@ -46,6 +50,11 @@ namespace WallApp.Engine.Services
             var dimensionsPayload = payload as PositionPayload;
             var (x, y, z, w) = dimensionsPayload;
             LayerDimensionsChanged?.Invoke(dimensionsPayload.LayerId, (x, y, z, w), dimensionsPayload.UseAbsolutes, dimensionsPayload.UseMargins, _bridgeService);
+        }
+
+        private void OnLayerDeleted(IPayload payload)
+        {
+            LayerDeleted?.Invoke((payload as LayerDeletionPayload).LayerId);
         }
     }
 }
