@@ -30,8 +30,14 @@ namespace WallApp.Engine.Services
             var proxyservice = ServiceProvider.GetService<BridgeMessageProxy>();
 
             proxyservice.LayerCreated += OnCreateLayer;
+            proxyservice.LayerDimensionsChanged += OnLayerDimensionsChange;
 
             base.Initialize();
+        }
+
+        private void OnLayerDimensionsChange(int layerId, (float x, float y, float z, float w) dimensions, bool useAbsolutes, bool useMargins, BridgeService bridgeService)
+        {
+            Layout.GetLayer(layerId).Dimensions.Set(dimensions.x, dimensions.y, dimensions.z, dimensions.w, useAbsolutes, useMargins);
         }
 
         private void OnCreateLayer(string module, BridgeService bridgeService)

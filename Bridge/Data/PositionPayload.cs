@@ -7,21 +7,26 @@ namespace WallApp.Bridge.Data
     public abstract class PositionPayload : IPayload
     {
         public int LayerId { get; protected set; }
-        public int X { get; protected set; }
-        public int Y { get; protected set; }
-        public int Z { get; protected set; }
-        public int W { get; protected set; }
+        public float X { get; protected set; }
+        public float Y { get; protected set; }
+        public float Z { get; protected set; }
+        public float W { get; protected set; }
 
-        protected PositionPayload(int layerId, int x, int y, int z, int w)
+        public bool UseAbsolutes { get; protected set; }
+        public bool UseMargins { get; protected set; }
+
+        protected PositionPayload(int layerId, float x, float y, float z, float w, bool useAbsolutes, bool useMargins)
         {
             LayerId = layerId;
             X = x;
             Y = y;
             Z = z;
             W = w;
+            UseAbsolutes = useAbsolutes;
+            UseMargins = useMargins;
         }
 
-        public void Deconstruct(out int x, out int y, out int z, out int w)
+        public void Deconstruct(out float x, out float y, out float z, out float w)
         {
             x = X;
             y = Y;
