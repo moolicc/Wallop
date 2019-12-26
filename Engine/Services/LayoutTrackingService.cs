@@ -26,6 +26,7 @@
             proxyservice.LayerCreated += OnCreateLayer;
             proxyservice.LayerDimensionsChanged += OnLayerDimensionsChange;
             proxyservice.LayerDeleted += OnLayerDeleted;
+            proxyservice.LayerSettingsChanged += OnLayerSettingsChanged;
 
             base.Initialize();
         }
@@ -52,6 +53,15 @@
         {
             Layout.RemoveLayer(layerId);
             LayerRemoved?.Invoke(layerId);
+        }
+        private void OnLayerSettingsChanged(int layerId, bool enabled, float rotation, string effect, Microsoft.Xna.Framework.Color tint, float opacity)
+        {
+            var layer = Layout.GetLayer(layerId);
+            layer.Enabled = enabled;
+            layer.Rotation = rotation;
+            layer.Effect = effect;
+            layer.TintColor = tint;
+            layer.Opacity = opacity;
         }
     }
 }

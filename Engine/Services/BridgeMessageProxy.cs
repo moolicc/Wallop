@@ -1,5 +1,6 @@
 ﻿using System;
 using WallApp.Bridge.Data;
+using Color = Microsoft.Xna.Framework.Color;
 
 namespace WallApp.Engine.Services
 {
@@ -9,6 +10,7 @@ namespace WallApp.Engine.Services
         public delegate void LayerCreationEventHandler(string module, BridgeService bridgeService);
         public delegate void LayerDimensionsChangedEventHandler(int layerId, (float x, float y, float z, float w) dimensions, bool useAbsolutes, bool useMargins, BridgeService bridgeService);
         public delegate void LayerDeletedEventHandler(int layerId);
+        public delegate void LayerSettingsChangedEventHandler(int layerId, bool enabled, float rotation, string effect, Color tint, float opacity);
     }
 
     [Service]
@@ -18,6 +20,7 @@ namespace WallApp.Engine.Services
         public event BridgeMessages.LayerCreationEventHandler LayerCreated;
         public event BridgeMessages.LayerDimensionsChangedEventHandler LayerDimensionsChanged;
         public event BridgeMessages.LayerDeletedEventHandler LayerDeleted;
+        public event BridgeMessages.LayerSettingsChangedEventHandler LayerSettingsChanged;
 
         [ServiceReference]
         private BridgeService _bridgeService;
@@ -32,6 +35,7 @@ namespace WallApp.Engine.Services
             _bridgeService.Scheduler.RegisterMessage<LayerCreationPayload>(OnLayerCreated, -1, null);
             _bridgeService.Scheduler.RegisterMessage<PositionPayload>(OnLayerDimensionsChanged, -1, null);
             _bridgeService.Scheduler.RegisterMessage <LayerDeletionPayload>(OnLayerDeleted, -1, null);
+            _bridgeService.Scheduler.RegisterMessage<SettingsPayload>(OnLayerSettingsChanged, -1, null);
             base.Initialize();
         }
 
@@ -55,6 +59,13 @@ namespace WallApp.Engine.Services
         private void OnLayerDeleted(IPayload payload)
         {
             LayerDeleted?.Invoke((payload as LayerDeletionPayload).LayerId);
+        }
+
+        private void OnLayerSettingsChanged(IPayload payload)
+        {
+            var settingsPayload = payload as SettingsPayload;
+            LayerSettingsChanged?.Invoke(settingsPayload.LayerId, settingsPayload.Enabled, settingsPayload.Rotation, settingsPayload.Effect,
+                new Color(settingsPayload.Tint.R, settingsPayload.Tint.G, settingsPayload.Tint.B), settingsPayload.Opacity);
         }
     }
 }
