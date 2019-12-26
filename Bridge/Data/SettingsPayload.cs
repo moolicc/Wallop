@@ -10,7 +10,7 @@ namespace WallApp.Bridge.Data
         public bool Enabled { get; set; }
         public float Rotation { get; set; }
         public string Effect { get; set; }
-        public (byte, byte, byte) Tint { get; set; }
+        public (byte R, byte G, byte B) Tint { get; set; }
 
         public SettingsPayload(int layerId, bool enabled, float rotation, string effect, (byte, byte, byte) tint)
         {
