@@ -15,7 +15,7 @@ namespace WallApp.Engine
         public string Name { get; set; }
         public string Description { get; set; }
         public bool Enabled { get; set; }
-        public int Rotation { get; set; }
+        public float Rotation { get; set; }
 
         public string Effect { get; set; }
         public Color TintColor { get; set; }
@@ -30,7 +30,7 @@ namespace WallApp.Engine
             Module = module;
             Name = "";
             TintColor = Color.White;
-            Rotation = 0;
+            Rotation = 0.0F;
             Opacity = 1.0F;
             Dimensions = new LayerDimensions();
             Enabled = true;
