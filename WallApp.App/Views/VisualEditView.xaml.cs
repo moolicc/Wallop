@@ -12,7 +12,7 @@ namespace WallApp.App.Views
     /// </summary>
     public partial class VisualEditView : UserControl
     {
-        internal Action<Modules.Module> OnAddModule { get; set; }
+        internal Action<Bridge.Manifest> OnAddModule { get; set; }
 
         public VisualEditView()
         {
@@ -62,7 +62,7 @@ namespace WallApp.App.Views
              * }
             */
 
-            var item = ((FrameworkElement)e.OriginalSource).DataContext as Modules.Module;
+            var item = ((FrameworkElement)e.OriginalSource).DataContext as Bridge.Manifest;
             if (item == null || OnAddModule == null)
             {
                 return;

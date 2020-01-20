@@ -7,7 +7,7 @@ namespace WallApp.App.ViewModels
 {
     class VisualEditViewModel
     {
-        public List<Modules.Module> Modules { get; private set; }
+        public List<Bridge.Manifest> Modules { get; private set; }
 
         public ICommand BackCommand => _backCommand;
 
@@ -28,7 +28,7 @@ namespace WallApp.App.ViewModels
             ServiceLocator.Locate<EditModeService>().StopEdit();
         }
 
-        public void AddModule(Modules.Module module)
+        public void AddModule(Bridge.Manifest module)
         {
             ServiceLocator.Locate<EditModeService>().AddLayer(module.Name);
         }

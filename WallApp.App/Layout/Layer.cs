@@ -5,13 +5,13 @@ namespace WallApp.App.Layout
     class Layer
     {
         public LayerDimensions Dimensions { get; private set; }
-        public Modules.Module Module { get; private set; }
+        public Bridge.Manifest Module { get; private set; }
         public Dictionary<string, object> VarTable { get; private set; }
         public int Id { get; private set; }
         public string Name { get; set; }
         public string Description { get; set; }
 
-        public Layer(Modules.Module module, int layerId)
+        public Layer(Bridge.Manifest module, int layerId)
         {
             Dimensions = new LayerDimensions();
             Module = module;
