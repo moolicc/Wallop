@@ -47,7 +47,7 @@ namespace WallApp.Engine.Scripting
                     var script = CSharpScript.Create("", options: options, globalsType: GetType());
                     var state = script.RunAsync(globals: this).Result;
 
-                    state = state.ContinueWithAsync(System.IO.File.ReadAllText(Manifest.SourceFile), options: options).Result;
+                    state = state.ContinueWithAsync(System.IO.File.ReadAllText(Manifest.Directory + Manifest.SourceFile), options: options).Result;
 
                     CSharpScript.RunAsync(System.IO.File.ReadAllText(Manifest.SourceFile), globals: this, options: options)
                         .Wait();
