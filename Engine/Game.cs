@@ -29,6 +29,8 @@ using SystemInformation = System.Windows.Forms.SystemInformation;
  *
  * Implement Logging
  * Implement graceful error handling
+ *
+ * Refactor exposed scripting API
  */
 
 
@@ -126,7 +128,6 @@ namespace WallApp.Engine
             _graphicsManager.PreferredBackBufferHeight = (int)(SystemInformation.VirtualScreen.Height * Settings.Instance.BackBufferHeightFactor);
             TargetElapsedTime = TimeSpan.FromSeconds(1.0F / Settings.Instance.FrameRate);
             _graphicsManager.ApplyChanges();
-
 
             //TODO: THIS BREAKS THINGS
             _controllerService.Reset();

@@ -12,7 +12,6 @@ namespace WallApp.Engine.Scripting
         public int LayerId { get => Settings.LayerId; }
 
         public abstract void Setup();
-        public abstract void EnabledChanged();
         public abstract void Dispose();
 
         public abstract void Update(GameTime gameTime);

@@ -40,10 +40,7 @@ namespace WallApp.Engine.Scripting
                     options = options.AddReferences(Directory.GetFiles(Path.GetDirectoryName(Manifest.ManifestFile), "*.dll",
                             SearchOption.TopDirectoryOnly))
                             .AddReferences(Assembly.GetExecutingAssembly())
-                            .AddImports("WallApp", "WallApp.Scripting", "System", "System.Linq", "System.IO")
-                            .AddImports("Microsoft.Xna.Framework", "Microsoft.Xna.Framework.Graphics",
-                            "Microsoft.Xna.Framework.Input")
-                            .AddImports("System.Windows", "System.ComponentModel");
+                            .AddImports("WallApp", "WallApp.Scripting", "System", "System.Linq", "System.IO");
 
 
 
