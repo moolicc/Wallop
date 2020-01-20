@@ -15,7 +15,7 @@ namespace WallApp.Engine.Scripting
         public static void LoadModules(string baseDir)
         {
             _cache.Clear();
-            foreach (var item in Resolver.LoadManifests(baseDir))
+            foreach (var item in Bridge.Manifest.LoadManifests(baseDir))
             {
                 _cache.Add(item.Name, new CsModule(item));
             }

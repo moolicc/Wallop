@@ -97,6 +97,7 @@ namespace WallApp.Engine
             //Find the main layout service.
             LayoutTracker = ServiceProvider.GetService<LayoutTrackingService>();
 
+
             //Create the controller service.
             _controllerService = new ControllerService();
 
