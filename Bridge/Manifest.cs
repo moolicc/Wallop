@@ -25,7 +25,7 @@ namespace WallApp.Bridge
         public string Directory => System.IO.Path.GetDirectoryName(SourceFile);
 
         private Manifest()
-            : this(new Version(0, 0, 0, 0), "manifest", "source", "name", "description", 0, 0, 1, 1, false)
+            : this(new Version(0, 0, 0, 0), "manifest", "source", "name", "description", 0, 0, int.MaxValue, int.MaxValue, false)
         {
 
         }
