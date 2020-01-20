@@ -13,7 +13,7 @@
 
         public void Initialize()
         {
-            Engine = new Bridge.Master(App.BaseDir + "MockEngine.exe");
+            Engine = new Bridge.Master(App.BaseDir + "Engine.exe");
             Scheduler = new Bridge.MessageScheduler(new Bridge.InputReader<Bridge.Data.IPayload>(Engine));
         }
 
