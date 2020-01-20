@@ -9,6 +9,9 @@ namespace WallApp.App
     /// </summary>
     public partial class App : Application
     {
+        //TODO: Refactor: Rename Module to Manifest. DON'T FORGET XAML BINDINGS.
+
+
         public static List<string> TempFiles { get; private set; }
         public static string BaseDir => AppDomain.CurrentDomain.BaseDirectory;
 
