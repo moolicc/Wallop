@@ -16,6 +16,7 @@ namespace WallApp.App.ViewModels
         public VisualEditViewModel(Action<object> onBackClicked)
         {
             _backCommand = new RelayCommand(onBackClicked);
+            Modules.AddRange(Bridge.Manifest.LoadManifests(App.BaseDir + "modules\\"));
         }
 
         public void StartEdit(Layout.LayoutInfo layout)
