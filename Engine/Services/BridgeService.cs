@@ -19,12 +19,15 @@ namespace WallApp.Engine.Services
         //TODO: Add WriteX functions to talk to the master.
         public void WriteEditModeResponse(IEnumerable<string> layerNames, IEnumerable<(float x, float y, float z, float w)> layerDimensions)
         {
-
+            var response = new Bridge.Data.EditModeResponse();
+            response.Layers.AddRange(layerNames);
+            response.LayerPositions.AddRange(layerDimensions);
+            _engine.Write(response);
         }
 
         public void WriteCreateLayerResponse(int layerId)
         {
-
+            _engine.Write(new Bridge.Data.LayerCreationResponsePayload() { LayerId });
         }
     }
 }
