@@ -27,7 +27,7 @@ namespace WallApp.Engine.Services
 
         public void WriteCreateLayerResponse(int layerId)
         {
-            _engine.Write(new Bridge.Data.LayerCreationResponsePayload() { LayerId });
+            _engine.Write(new Bridge.Data.LayerCreationResponsePayload(layerId));
         }
     }
 }
