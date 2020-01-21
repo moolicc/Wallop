@@ -22,9 +22,9 @@
         <ListView Margin="40" ItemsSource="{Binding Modules}" MouseDoubleClick="ListView_MouseDoubleClick">
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Header="Module" Width="253" DisplayMemberBinding="{Binding Directory}" />
                     <GridViewColumn Header="Name" Width="253" DisplayMemberBinding="{Binding Name}" />
                     <GridViewColumn Header="Description" Width="253" DisplayMemberBinding="{Binding Description}" />
+                    <GridViewColumn Header="Module manifest" Width="253" DisplayMemberBinding="{Binding ManifestFile}" />
                 </GridView>
             </ListView.View>
         </ListView>

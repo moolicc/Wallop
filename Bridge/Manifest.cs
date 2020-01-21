@@ -22,7 +22,8 @@ namespace WallApp.Bridge
 
         public bool AllowsCustomEffect { get; private set; }
 
-        public string Directory => System.IO.Path.GetDirectoryName(SourceFile);
+        public string Directory => Path.GetDirectoryName(ManifestFile);
+        public string DirectoryName => Path.GetFileName(Directory);
 
         private Manifest()
             : this(new Version(0, 0, 0, 0), "manifest", "source", "name", "description", 0, 0, int.MaxValue, int.MaxValue, false)
