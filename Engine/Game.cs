@@ -63,7 +63,7 @@ namespace WallApp.Engine
             //Load settings
             if (File.Exists("settings.json"))
             {
-                Settings.Load("settings.json");
+                //Settings.Load("settings.json");
             }
 
             //Since the span of multiple monitors is probably too large, we use a scaling factor.

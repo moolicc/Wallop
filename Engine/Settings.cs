@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using System.IO;
+﻿using System.IO;
 
 namespace WallApp.Engine
 {
@@ -10,18 +9,6 @@ namespace WallApp.Engine
         static Settings()
         {
             Instance = new Settings();
-        }
-
-        public static void Load(string file)
-        {
-            string data = File.ReadAllText(file);
-            Instance = JsonConvert.DeserializeObject<Settings>(data);
-        }
-
-        public static void Save(string file)
-        {
-            string data = JsonConvert.SerializeObject(Instance);
-            File.WriteAllText(file, data);
         }
 
         public float BackBufferWidthFactor { get; set; }
