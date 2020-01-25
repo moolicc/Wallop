@@ -7,9 +7,23 @@ namespace WallApp.Engine
         [STAThread]
         static void Main(string[] args)
         {
-            using (Game game = new Game())
+            try
             {
-                game.Run();
+#if DEBUG
+                while (!System.Diagnostics.Debugger.IsAttached)
+                {
+
+                }
+                System.Diagnostics.Debugger.Break();
+#endif
+                using (Game game = new Game())
+                {
+                    game.Run();
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
             }
         }
 
