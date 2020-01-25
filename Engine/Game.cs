@@ -146,6 +146,7 @@ namespace WallApp.Engine
                 }
                 controller.Update(gameTime);
             }
+
             base.Update(gameTime);
         }
 
