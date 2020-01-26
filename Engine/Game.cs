@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,6 +10,7 @@ using WallApp.Engine.Services;
 using Color = Microsoft.Xna.Framework.Color;
 using ServiceProvider = WallApp.Engine.Services.ServiceProvider;
 using SystemInformation = System.Windows.Forms.SystemInformation;
+using Keys = Microsoft.Xna.Framework.Input.Keys;
 
 
 
@@ -57,7 +59,7 @@ namespace WallApp.Engine
 
         private Form _form;
 
-        public Game()
+       public Game()
         {
             _graphicsManager = new GraphicsDeviceManager(this);
             //Load settings
@@ -87,6 +89,11 @@ namespace WallApp.Engine
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
             //Initialize services
+
+            //Start by throwing the essentials in the service provider.
+            ServiceProvider.Provide(GraphicsDevice);
+
+            // Then init the Error Handler.
             _editModeHandler = ServiceProvider.GetService<EditModeHandler>();
             _editModeHandler.Init(_spriteBatch);
 
@@ -135,6 +142,13 @@ namespace WallApp.Engine
 
         protected override void Update(GameTime gameTime)
         {
+#if DEBUG
+            var state = Keyboard.GetState();
+            if (state.IsKeyDown(Keys.B))
+            {
+                System.Diagnostics.Debugger.Break();
+            }
+#endif
             _editModeHandler.Update(gameTime);
 
             //Update enabled controllers.
@@ -177,7 +191,7 @@ namespace WallApp.Engine
 
         private void Present(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.Transparent);
 
             string lastEffect = "[n/a]";
             bool beginCalled = false;
@@ -227,7 +241,7 @@ namespace WallApp.Engine
                 //Vector2 originVector = new Vector2(rect.X + rect.Width / 2, rect.Y + rect.Height / 2);
                 //_spriteBatch.Draw(controller.RenderTarget, rect, null, controller.Settings.TintColor, (float) (controller.Settings.Rotation * RADIAN_MULTIPLIER), originVector, SpriteEffects.None, 0.0F);
 
-                Console.WriteLine($"Drawing at X: {rect.X}, Y: {rect.Y}");
+                //Console.WriteLine($"Drawing at X: {rect.X}, Y: {rect.Y}");
                 _spriteBatch.Draw(controller.Rendering.RenderTarget, position, null, controller.Settings.TintColor, 0.0F, Vector2.Zero, scale, SpriteEffects.None, 0.0F);
             }
             if (beginCalled)

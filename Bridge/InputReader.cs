@@ -16,9 +16,9 @@ namespace WallApp.Bridge
             Run();
         }
 
-        private Task Run()
+        private void Run()
         {
-            return Task.Run(() =>
+            Task.Run(() =>
             {
                 while (true)
                 {

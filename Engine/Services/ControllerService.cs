@@ -19,6 +19,7 @@ namespace WallApp.Engine.Services
         public ControllerService()
         {
             _controllers = new Dictionary<int, Controller>();
+            _controllersCached = new Controller[0];
             _layoutTracker = ServiceProvider.GetService<LayoutTrackingService>();
             _graphicsDevice = ServiceProvider.GetService<GraphicsDevice>();
             _layoutTracker.LayerAdded += LayerAdded;

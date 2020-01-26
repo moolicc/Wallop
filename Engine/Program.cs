@@ -10,11 +10,13 @@ namespace WallApp.Engine
             try
             {
 #if DEBUG
+                //Console.WriteLine("Waiting for debugger to attach...");
                 while (!System.Diagnostics.Debugger.IsAttached)
                 {
 
                 }
-                System.Diagnostics.Debugger.Break();
+                //Console.WriteLine("Debugger attached.");
+                //Console.WriteLine("Once the simulation starts, press 'b' to break execution.");
 #endif
                 using (Game game = new Game())
                 {

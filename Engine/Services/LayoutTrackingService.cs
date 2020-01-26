@@ -11,7 +11,7 @@
         public event LayerRemoved LayerRemoved;
         public event LayerResized LayerResized;
 
-
+        [ServiceReference]
         public Layout Layout { get; private set; }
 
         public void Init(Layout layout)

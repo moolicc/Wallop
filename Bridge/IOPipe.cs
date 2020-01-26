@@ -32,7 +32,14 @@ namespace WallApp.Bridge
             while (peeked == -1)
             {
                 System.Threading.Thread.Sleep(100);
-                peeked = InputStream.Peek();
+                try
+                {
+                    peeked = InputStream.Peek();
+                }
+                catch (Exception ex)
+                {
+                    throw;
+                }
             }
 
             int next = InputStream.Read();

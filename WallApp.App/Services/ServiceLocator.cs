@@ -28,25 +28,25 @@ namespace WallApp.App.Services
             }
             var services = new List<IService>(serviceTypes.Count());
 
-            Console.WriteLine($"Instantiating {services.Count} services...");
+            //Console.WriteLine($"Instantiating {services.Count} services...");
 
             foreach (var type in serviceTypes)
             {
-                Console.Write($"  {type.Name}...");
+                //Console.Write($"  {type.Name}...");
                 object instance = Activator.CreateInstance(type);
-                Console.WriteLine($"OK");
+                //Console.WriteLine($"OK");
 
                 RegisterService(type, instance);
                 services.Add((IService)instance);
             }
 
-            Console.WriteLine($"Initializing {services.Count} services...");
+            //Console.WriteLine($"Initializing {services.Count} services...");
             services.Sort(new Comparison<IService>((x, y) => Comparer<int>.Default.Compare(-x.InitPriority, -y.InitPriority)));
             foreach (var item in services)
             {
-                Console.Write($"  {item.GetType().Name}...");
+                //Console.Write($"  {item.GetType().Name}...");
                 item.Initialize();
-                Console.WriteLine($"OK");
+                //Console.WriteLine($"OK");
             }
         }
 

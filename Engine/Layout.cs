@@ -2,7 +2,7 @@
 
 namespace WallApp.Engine
 {
-    [Services.Service()]
+    [Services.Service]
     class Layout
     {
         //TODO: Recycle IDs
