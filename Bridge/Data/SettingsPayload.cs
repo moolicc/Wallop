@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace WallApp.Bridge.Data
+namespace Wallop.Bridge.Data
 {
     public class SettingsPayload : IPayload
     {

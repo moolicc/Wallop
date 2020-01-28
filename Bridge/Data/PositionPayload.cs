@@ -1,4 +1,4 @@
-﻿namespace WallApp.Bridge.Data
+﻿namespace Wallop.Bridge.Data
 {
     public abstract class PositionPayload : IPayload
     {

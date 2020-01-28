@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace WallApp.Bridge
+namespace Wallop.Bridge
 {
     public class Master : IOPipe
     {

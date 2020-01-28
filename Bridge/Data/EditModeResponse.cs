@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace WallApp.Bridge.Data
+namespace Wallop.Bridge.Data
 {
     public class EditModeResponse : IPayload
     {

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Threading.Tasks;
 
-namespace WallApp.Bridge
+namespace Wallop.Bridge
 {
     public class InputReader<T>
     {

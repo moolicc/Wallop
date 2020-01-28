@@ -1,4 +1,4 @@
-﻿namespace WallApp.Bridge
+﻿namespace Wallop.Bridge
 {
     public class Module
     {

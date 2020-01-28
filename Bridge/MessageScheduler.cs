@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using WallApp.Bridge.Data;
+using Wallop.Bridge.Data;
 
-namespace WallApp.Bridge
+namespace Wallop.Bridge
 {
     public delegate void PayloadHandler(IPayload payload);
 

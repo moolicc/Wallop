@@ -4,7 +4,7 @@ using System.IO;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace WallApp.Bridge
+namespace Wallop.Bridge
 {
     public class Manifest
     {

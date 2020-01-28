@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace WallApp.Bridge
+namespace Wallop.Bridge
 {
     public class Slave : IOPipe
     {

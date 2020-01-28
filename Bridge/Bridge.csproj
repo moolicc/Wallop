@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <RootNamespace>WallApp.Bridge</RootNamespace>
+    <RootNamespace>Wallop.Bridge</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

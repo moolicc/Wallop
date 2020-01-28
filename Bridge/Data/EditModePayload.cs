@@ -1,4 +1,4 @@
-﻿namespace WallApp.Bridge.Data
+﻿namespace Wallop.Bridge.Data
 {
     public class EditModePayload : IPayload
     {
