@@ -1,35 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Windows;
+﻿using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Markup.Xaml;
+using Composer.ViewModels;
+using Composer.Views;
 
-namespace Wallop.Composer
+namespace Composer
 {
-    /// <summary>
-    /// Interaction logic for App.xaml
-    /// </summary>
-    public partial class App : Application
+    public class App : Application
     {
-        //TODO: Refactor: Rename Module to Manifest. DON'T FORGET XAML BINDINGS.
-
-
-        public static List<string> TempFiles { get; private set; }
-        public static string BaseDir => AppDomain.CurrentDomain.BaseDirectory;
-
-        public static string CreateTempFile()
+        public override void Initialize()
         {
-            string result = System.IO.Path.GetTempFileName();
-            TempFiles.Add(result);
-            return result;
+            AvaloniaXamlLoader.Load(this);
         }
-        protected override void OnStartup(StartupEventArgs e)
+
+        public override void OnFrameworkInitializationCompleted()
         {
-            TempFiles = new List<string>();
+            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                desktop.MainWindow = new MainWindow
+                {
+                    DataContext = new MainWindowViewModel(),
+                };
+            }
 
-            Services.StartupService ss = new Services.StartupService();
-            Services.ServiceLocator.RegisterService(ss);
-            ss.InitApp();
-
-            base.OnStartup(e);
+            base.OnFrameworkInitializationCompleted();
         }
     }
 }
