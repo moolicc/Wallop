@@ -2,9 +2,13 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <RootNamespace>Wallop.Types</RootNamespace>
+    <RootNamespace>Wallop</RootNamespace>
     <AssemblyName>Wallop.Types</AssemblyName>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="IPC\" />
+  </ItemGroup>
 
 </Project>
 
