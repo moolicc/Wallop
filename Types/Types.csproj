@@ -4,10 +4,15 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Wallop</RootNamespace>
     <AssemblyName>Wallop.Types</AssemblyName>
+    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <Folder Include="IPC\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="IniFileParserStandard" Version="1.0.1" />
   </ItemGroup>
 
 </Project>
