@@ -6,8 +6,23 @@ using System.Linq;
 
 namespace Wallop.Types.Loading
 {
+    public enum DefaultImplementedLibraries
+    {
+        IPC,
+
+    }
+
     public class TypeLoader
     {
+        public T LoadFromLibrary<T>(DefaultImplementedLibraries library)
+        {
+            return library switch
+            {
+                DefaultImplementedLibraries.IPC => LoadFromLibrary<T>(Defaults.IPCImplementation),
+                _ => default(T),
+            };
+        }
+
         public T LoadFromLibrary<T>(string library)
         {
             var assembly = Assembly.LoadFile(library);
