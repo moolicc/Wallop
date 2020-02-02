@@ -2,10 +2,8 @@ The job of the controller is to send commands to the engine over the IPC.
 The controller does not run indefinitely, and only exists long enough to send commands to the Engine.
 
 Invoked in the format:
-
-controller.exe[connection] {command} {arguments}
-Where connection is an optional connection specifier.If not provided, the command will be
-
+`controller.exe [connection] {command} {arguments}`
+Where connection is an optional connection specifier. If not provided, the command will be
 provided with the active connection.
 
 COMMANDS:
