@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Wallop.Cmd
 {
-    class Option
+    public class Option
     {
         public string Name { get; set; }
         public char ShortName { get; set; }

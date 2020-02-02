@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Wallop.Cmd
 {
-    class CommandSet
+    public class CommandSet
     {
         public List<Command> Commands { get; private set; }
 

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Wallop.Cmd
 {
-    class ParseResults
+    public class ParseResults
     {
         public string Command { get; set; }
 
