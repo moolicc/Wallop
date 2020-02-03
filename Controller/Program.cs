@@ -31,6 +31,7 @@ namespace Wallop.Controller
 
         private static Cmd.Command GetNewCommand()
         {
+            //New resource.
             var command = Cmd.Command.Create("new")
                 .AddOption(o => o.Set(name: "connection", flag: true, group: "conn"))
                 .AddOption(o => o.Set(name: "layout", flag: true, group: "lyt"))

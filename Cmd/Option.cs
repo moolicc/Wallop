@@ -6,6 +6,8 @@ namespace Wallop.Cmd
 {
     public class Option
     {
+        // TODO: When we get to the UI part, we might consider allowing this to provide a target Type
+        // as well as an array of valid values.
         public string Name { get; set; }
         public char ShortName { get; set; }
         public bool IsRequired { get; set;  }
