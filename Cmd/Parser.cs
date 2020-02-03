@@ -56,6 +56,11 @@ namespace Wallop.Cmd
                 var wordIndex = IndexOr(words, s => string.Equals(option.Name, s, StringComparison.OrdinalIgnoreCase));
                 bool isInExclusion = string.Equals(optionGroup, option.ExclusionGroup, StringComparison.OrdinalIgnoreCase);
 
+                if(string.IsNullOrWhiteSpace(option.ExclusionGroup))
+                {
+                    isInExclusion = true;
+                }
+
                 if (wordIndex == -1 && option.IsRequired && isInExclusion)
                 {
                     //TODO: Return error result. Option is required but not provided.
@@ -74,7 +79,11 @@ namespace Wallop.Cmd
                 {
                     //TODO: Return error result. Not in exclusion group.
                 }
-                optionGroup = option.ExclusionGroup;
+
+                if (!string.IsNullOrWhiteSpace(option.ExclusionGroup))
+                {
+                    optionGroup = option.ExclusionGroup;
+                }
 
                 int nextIndex = wordIndex + 1;
                 if (option.IsFlag)

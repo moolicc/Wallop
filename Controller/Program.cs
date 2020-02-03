@@ -35,6 +35,7 @@ namespace Wallop.Controller
                 .AddOption(o => o.Set(name: "connection", flag: true, group: "conn"))
                 .AddOption(o => o.Set(name: "layout", flag: true, group: "lyt"))
                 .AddOption(o => o.Set(name: "layer", flag: true, group: "lyr"))
+                .AddOption(o => o.Set(name: "name", required: true))
                 .Action(HandleNewCommand);
 
             var ipc = _typeLoader.Load<IPC.IPCClient>(Types.Defaults.GetDefaultLibrary(Types.DefaultImplementedLibraries.IPC));
@@ -50,7 +51,8 @@ namespace Wallop.Controller
         {
             if (results.Flag("connection"))
             {
-
+                _typeLoader.LoadFromCache<IPC.IPCClient>(out var ipcClient);
+                ipcClient.CreateActiveConnection(results["name"], results);
             }
             else if(results.Flag("layout"))
             {
