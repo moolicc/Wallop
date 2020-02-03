@@ -90,6 +90,7 @@ namespace Wallop.Cmd
                 //TODO: Return error result. Missing Value.
             }
 
+            command.InvocationTarget?.Invoke(result);
             return result;
         }
 

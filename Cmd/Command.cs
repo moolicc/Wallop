@@ -7,7 +7,9 @@ namespace Wallop.Cmd
     public class Command
     {
         public string Name { get; set; }
+        public Action<ParseResults> InvocationTarget { get; set; }
         public List<Option> Options { get; private set; }
+
 
         public Command()
         {
@@ -37,6 +39,12 @@ namespace Wallop.Cmd
             var option = new Option();
             action(option);
             Options.Add(option);
+            return this;
+        }
+
+        public Command Action(Action<ParseResults> action)
+        {
+            InvocationTarget = action;
             return this;
         }
     }

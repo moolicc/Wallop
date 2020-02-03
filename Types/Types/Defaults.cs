@@ -4,6 +4,12 @@ using System.Text;
 
 namespace Wallop.Types
 {
+    public enum DefaultImplementedLibraries
+    {
+        IPC,
+
+    }
+
     public static class Defaults
     {
         public const string ACTIVE_LIBRARY_IMPL_CONFIG = "active_impl.ini";
@@ -39,6 +45,15 @@ namespace Wallop.Types
         {
             var parser = new IniFileParser.IniFileParser();
             parser.WriteFile(ACTIVE_LIBRARY_IMPL_CONFIG, _data);
+        }
+
+        public static string GetDefaultLibrary(DefaultImplementedLibraries library)
+        {
+            return library switch
+            {
+                DefaultImplementedLibraries.IPC => Defaults.IPCImplementation,
+                _ => "",
+            };
         }
     }
 }

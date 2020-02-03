@@ -23,5 +23,19 @@ namespace Wallop.Cmd
                 return Options[key];
             }
         }
+
+        public bool Flag(string flag) => Contains(flag);
+
+        public bool Contains(string option)
+        {
+            foreach (var item in Options.Keys)
+            {
+                if(string.Equals(option, item, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }
