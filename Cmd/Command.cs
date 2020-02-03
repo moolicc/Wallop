@@ -15,6 +15,11 @@ namespace Wallop.Cmd
             Options = new List<Option>();
         }
 
+        public static Command Create(string name = "")
+        {
+            return new Command { Name = name };
+        }
+
         public Command SetName(string name)
         {
             Name = name;

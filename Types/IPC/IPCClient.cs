@@ -6,9 +6,9 @@ namespace Wallop.IPC
 {
     public abstract class IPCClient
     {
-        public abstract string[] GetOptionNames();
+        public abstract Cmd.Option[] GetOptions();
 
-        public abstract bool CreateActiveConnection(string connectionName, (string, string) options);
+        public abstract bool CreateActiveConnection(string connectionName, Cmd.ParseResults args);
 
         public abstract void DestroyConnection(string connectionName);
 

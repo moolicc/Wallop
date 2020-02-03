@@ -25,7 +25,13 @@ namespace Wallop.Cmd
             HelpText = "";
         }
 
-        public Option Set(string name, char? shortName, bool? required, string defaultValue, bool? flag, string group, string helpText)
+        public static Option Create(string name = "", char? shortName = null, bool? required = null, string defaultValue = null, bool? flag = null, string group = null, string helpText = null)
+        {
+            Option option = new Option();
+            return option.Set(name, shortName, required, defaultValue, flag, group, helpText);
+        }
+
+        public Option Set(string name = "", char? shortName = null, bool? required = null, string defaultValue = null, bool? flag = null, string group = null, string helpText = null)
         {
             if(name != null)
             {
