@@ -7,6 +7,12 @@ namespace Wallop.Cmd
 {
     public class Parser
     {
+        //TODO: Refactorings.
+        // Option -> Argument.
+        // Different kind of arguments need to be inherited.
+        // Write tests
+
+
         public CommandSet CommandSet { get; private set; }
 
         public Parser(CommandSet commandSet)
@@ -28,6 +34,7 @@ namespace Wallop.Cmd
                 return -1;
             }
 
+
             var result = new ParseResults();
             var words = ParseWords(source);
 
@@ -41,9 +48,8 @@ namespace Wallop.Cmd
                 }
             }
 
-            // NOTE: We might need to loop over the words/options in a first-pass to find this.
-            // Then go over all the options later with this knowledge before-hand.
-            var optionGroup = "";
+            var optionGroups = FindGroups(command.Options, words);
+            var selectedGroup = "";
             bool skip = false;
 
             foreach (var option in command.Options)
@@ -54,53 +60,85 @@ namespace Wallop.Cmd
                     continue;
                 }
                 var wordIndex = IndexOr(words, s => string.Equals(option.Name, s, StringComparison.OrdinalIgnoreCase));
-                bool isInExclusion = string.Equals(optionGroup, option.ExclusionGroup, StringComparison.OrdinalIgnoreCase);
+                var validGroup = IsValidGroup(option.ExclusionGroup, optionGroups);
+                if(string.IsNullOrWhiteSpace(selectedGroup))
+                {
+                    if((!string.IsNullOrWhiteSpace(option.ExclusionGroup) || option.GroupsForValues.Length > 0) && wordIndex != -1)
+                    {
+                        //TODO: Appropriately handle option.Values and option.GroupsForValues.
 
-                if(string.IsNullOrWhiteSpace(option.ExclusionGroup))
-                {
-                    isInExclusion = true;
-                }
+                        //If next word is valid value
+                        //group = option.groupsforvalues[index of value in option.validvalues]
 
-                if (wordIndex == -1 && option.IsRequired && isInExclusion)
-                {
-                    //TODO: Return error result. Option is required but not provided.
-                }
-                else if(wordIndex == -1 && isInExclusion)
-                {
-                    result.Options.Add(option.Name, option.DefaultValue);
-                    continue;
-                }
-                else if(wordIndex == -1 && !isInExclusion)
-                {
-                    continue;
-                }
 
-                if (!isInExclusion)
+                        selectedGroup = option.ExclusionGroup;
+                    }
+                }
+                if (!validGroup && wordIndex != -1)
                 {
                     //TODO: Return error result. Not in exclusion group.
                 }
-
-                if (!string.IsNullOrWhiteSpace(option.ExclusionGroup))
+                else if (validGroup && wordIndex == -1 && option.IsRequired)
                 {
-                    optionGroup = option.ExclusionGroup;
+                    //TODO: Return error result. Option is required but not provided.
                 }
-
-                int nextIndex = wordIndex + 1;
-                if (option.IsFlag)
+                else if (validGroup && wordIndex == -1)
                 {
-                    result.Options.Add(option.Name, bool.TrueString);
+                    result.Options.Add(option.Name, option.DefaultValue);
                 }
-                else if(nextIndex < command.Options.Count())
+                else if (validGroup && wordIndex != -1)
                 {
-                    skip = true;
-                    result.Options.Add(option.Name, words.ElementAt(nextIndex));
+                    int nextIndex = wordIndex + 1;
+                    if (option.IsFlag)
+                    {
+                        result.Options.Add(option.Name, bool.TrueString);
+                    }
+                    else if (nextIndex < command.Options.Count)
+                    {
+                        skip = true;
+                        result.Options.Add(option.Name, words.ElementAt(nextIndex));
+                    }
                 }
-
-                //TODO: Return error result. Missing Value.
+                else if (!validGroup && wordIndex == -1)
+                { }
+                else
+                {
+                    //TODO: Return error result. Missing Value.
+                }
             }
 
             command.InvocationTarget?.Invoke(result);
             return result;
+        }
+
+        private IEnumerable<string> FindGroups(IEnumerable<Option> input, IEnumerable<string> words)
+        {
+            foreach (var item in words)
+            {
+                var option = input.FirstOrDefault(o => string.Equals(o.Name, item, StringComparison.OrdinalIgnoreCase));
+                var options = (option.ExclusionGroup + '|').Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var subitem in options)
+                {
+                    yield return subitem;
+                }
+            }
+        }
+
+        private bool IsValidGroup(string group, IEnumerable<string> groups)
+        {
+            if(string.IsNullOrWhiteSpace(group))
+            {
+                return true;
+            }
+            var targetGroups = (group + "|").Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var item in groups)
+            {
+                if(targetGroups.Any(g => string.Equals(g, item, StringComparison.OrdinalIgnoreCase)))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private IEnumerable<string> ParseWords(string source)

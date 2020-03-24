@@ -7,6 +7,7 @@ namespace Wallop.Cmd
     public class Command
     {
         public string Name { get; set; }
+        public string HelpText { get; set; }
         public Action<ParseResults> InvocationTarget { get; set; }
         public List<Option> Options { get; private set; }
 
@@ -17,14 +18,19 @@ namespace Wallop.Cmd
             Options = new List<Option>();
         }
 
-        public static Command Create(string name = "")
+        public static Command Create(string name = "", string helpText = "")
         {
-            return new Command { Name = name };
+            return new Command { Name = name, HelpText = helpText, };
         }
 
         public Command SetName(string name)
         {
             Name = name;
+            return this;
+        }
+        public Command SetHelpText(string helpText)
+        {
+            HelpText = helpText;
             return this;
         }
 

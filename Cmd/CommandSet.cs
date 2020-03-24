@@ -12,5 +12,14 @@ namespace Wallop.Cmd
         {
             Commands = new List<Command>();
         }
+
+        public string GenerateHelpText()
+        {
+            StringBuilder builder = new StringBuilder();
+
+
+
+            return builder.ToString();
+        }
     }
 }

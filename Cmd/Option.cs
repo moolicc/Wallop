@@ -15,6 +15,8 @@ namespace Wallop.Cmd
         public bool IsFlag { get; set; }
         public string ExclusionGroup { get; set; }
         public string HelpText { get; set; }
+        public string[] ValidValues { get; set; }
+        public string[] GroupsForValues { get; set; }
 
         public Option()
         {
@@ -25,6 +27,8 @@ namespace Wallop.Cmd
             IsFlag = false;
             ExclusionGroup = "";
             HelpText = "";
+            ValidValues = new string[0];
+            GroupsForValues = new string[0];
         }
 
         public static Option Create(string name = "", char? shortName = null, bool? required = null, string defaultValue = null, bool? flag = null, string group = null, string helpText = null)
