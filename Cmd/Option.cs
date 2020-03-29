@@ -61,6 +61,10 @@ namespace Wallop.Cmd
             {
                 SetIsFlag(flag.Value);
             }
+            if(groupSelector.HasValue)
+            {
+                SetIsGroupSelector(groupSelector.Value);
+            }
             if(groupSelection != null)
             {
                 SetGroupSelection(groupSelection);

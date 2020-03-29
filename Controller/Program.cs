@@ -63,9 +63,9 @@ namespace Wallop.Controller
         {
             //New resource.
             var command = Cmd.Command.Create(name: "new", helpText: "Provides the creation of resources.")
-                .AddOption(o => o.Set(name: "connection", groupSelector: true, groupSelection: "g_connection"))
-                .AddOption(o => o.Set(name: "layout", groupSelector: true, groupSelection: "g_layout"))
-                .AddOption(o => o.Set(name: "layer", groupSelector: true, groupSelection: "g_layer"))
+                .AddOption(o => o.Set(name: "connection", groupSelector: true, groupSelection: "connection"))
+                .AddOption(o => o.Set(name: "layout", groupSelector: true, groupSelection: "layout"))
+                .AddOption(o => o.Set(name: "layer", groupSelector: true, groupSelection: "layer"))
                 .AddOption(o => o.Set(name: "name", required: true, helpText: "The new resource's name."))
                 .Action(HandleNewCommand);
 

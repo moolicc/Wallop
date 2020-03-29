@@ -67,12 +67,19 @@ namespace Wallop.Cmd
 
             bool usingArgNames = words.Any(w => w.StartsWith("--") || w.StartsWith("-"));
             var optionGroups = FindGroups(command.Options, words);
+
+
             var selectedGroup = "";
             bool skip = false;
             var optionResults = new Dictionary<string, string>();
 
             if(words.Count() > 1)
             {
+                if (optionGroups == null && !usingArgNames)
+                {
+                    // TODO: Return bad format result.
+                }
+
                 int optionIndex = -1;
                 foreach (var option in command.Options)
                 {
@@ -100,7 +107,16 @@ namespace Wallop.Cmd
                         }
                         return result;
                     });
-                    var validGroup = IsValidGroup(option.GroupSelection, optionGroups);
+                    bool validGroup = false;
+                    if(optionGroups != null)
+                    {
+                        validGroup = IsValidGroup(option.GroupSelection, optionGroups);
+                    }
+                    else
+                    {
+
+                    }
+
                     if (string.IsNullOrWhiteSpace(selectedGroup))
                     {
                         if ((!string.IsNullOrWhiteSpace(option.GroupSelection) || option.GroupsForValues.Length > 0) && wordIndex != -1)
@@ -154,16 +170,16 @@ namespace Wallop.Cmd
 
             try
             {
-                command.InvocationTarget?.Invoke(new ParseResults(ParserOutput.Succeeded, command.Name, optionResults));
+                command.InvocationTarget?.Invoke(new ParseResults(ParserOutput.Succeeded, command.Name, optionResults, selectedGroup));
             }
             catch (Exception ex)
             {
 #if DEBUG
                 throw;
 #endif
-                return new ParseResults(ParserOutput.FailedOnInvocationError(ex.Message), command.Name, optionResults);
+                return new ParseResults(ParserOutput.FailedOnInvocationError(ex.Message), command.Name, optionResults, selectedGroup);
             }
-            return new ParseResults(ParserOutput.Succeeded, command.Name, optionResults);
+            return new ParseResults(ParserOutput.Succeeded, command.Name, optionResults, selectedGroup);
         }
 
         private IEnumerable<string> FindGroups(IEnumerable<Option> input, IEnumerable<string> words)

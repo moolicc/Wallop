@@ -17,22 +17,24 @@ namespace Wallop.Cmd
 
         public ParserOutput Output { get; private set; }
 
+        public string SelectedGroup { get; private set; }
+
         public ReadOnlyDictionary<string, string> Options { get; private set; }
 
 
         public ParseResults(ParserOutput output)
-            : this(output, "", null)
+            : this(output, "", null, "")
         {
 
         }
 
         public ParseResults(ParserOutput output, string command)
-            : this(output, command, null)
+            : this(output, command, null, "")
         {
 
         }
 
-        public ParseResults(ParserOutput output, string command, Dictionary<string, string> options)
+        public ParseResults(ParserOutput output, string command, Dictionary<string, string> options, string selectedGroup)
         {
             if(options == null)
             {
@@ -41,6 +43,7 @@ namespace Wallop.Cmd
             Command = command;
             Output = output;
             Options = new ReadOnlyDictionary<string, string>(options);
+            SelectedGroup = selectedGroup;
         }
 
         public string this[string key]
@@ -52,6 +55,8 @@ namespace Wallop.Cmd
         }
 
         public bool Flag(string flag) => Contains(flag);
+
+        public bool Selector(string selector) => Contains(selector);
 
         public bool Contains(string option)
         {
