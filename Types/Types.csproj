@@ -11,9 +11,5 @@
     <PackageReference Include="IniFileParserStandard" Version="1.0.1" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Cmd\Cmd.csproj" />
-  </ItemGroup>
-
 </Project>
 
