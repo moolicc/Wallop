@@ -13,7 +13,8 @@ namespace Wallop.Cmd
         public bool IsRequired { get; set;  }
         public string DefaultValue { get; set; }
         public bool IsFlag { get; set; }
-        public string ExclusionGroup { get; set; }
+        public bool IsSelector { get; set; }
+        public string GroupSelection { get; set; }
         public string HelpText { get; set; }
         public string[] ValidValues { get; set; }
         public string[] GroupsForValues { get; set; }
@@ -25,19 +26,20 @@ namespace Wallop.Cmd
             IsRequired = false;
             DefaultValue = "";
             IsFlag = false;
-            ExclusionGroup = "";
+            IsSelector = false;
+            GroupSelection = "";
             HelpText = "";
             ValidValues = new string[0];
             GroupsForValues = new string[0];
         }
 
-        public static Option Create(string name = "", char? shortName = null, bool? required = null, string defaultValue = null, bool? flag = null, string group = null, string helpText = null)
+        public static Option Create(string name = "", char? shortName = null, bool? required = null, string defaultValue = null, bool? flag = null, bool? groupSelector = null, string groupSelection = null, string helpText = null)
         {
             Option option = new Option();
-            return option.Set(name, shortName, required, defaultValue, flag, group, helpText);
+            return option.Set(name, shortName, required, defaultValue, groupSelector, flag, groupSelection, helpText);
         }
 
-        public Option Set(string name = "", char? shortName = null, bool? required = null, string defaultValue = null, bool? flag = null, string group = null, string helpText = null)
+        public Option Set(string name = "", char? shortName = null, bool? required = null, string defaultValue = null, bool? flag = null, bool? groupSelector = null, string groupSelection = null, string helpText = null)
         {
             if(name != null)
             {
@@ -59,9 +61,9 @@ namespace Wallop.Cmd
             {
                 SetIsFlag(flag.Value);
             }
-            if(group != null)
+            if(groupSelection != null)
             {
-                SetExclusionGroup(group);
+                SetGroupSelection(groupSelection);
             }
             if(helpText != null)
             {
@@ -100,9 +102,15 @@ namespace Wallop.Cmd
             return this;
         }
 
-        public Option SetExclusionGroup(string group)
+        public Option SetIsGroupSelector(bool isSelector)
         {
-            ExclusionGroup = group;
+            IsSelector = isSelector;
+            return this;
+        }
+
+        public Option SetGroupSelection(string group)
+        {
+            GroupSelection = group;
             return this;
         }
 

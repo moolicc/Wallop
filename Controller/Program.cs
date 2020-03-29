@@ -19,7 +19,10 @@ namespace Wallop.Controller
             var parser = new Cmd.Parser(commandSet);
             var parseResults = parser.Parse(Environment.CommandLine);
 
-            Console.WriteLine("Hello World!");
+            if(parseResults.IsEmpty || parseResults.Output.CommandNotFound)
+            {
+                parseResults = parser.Parse("repl");
+            }
 
             return 0;
         }
@@ -28,7 +31,30 @@ namespace Wallop.Controller
         {
             Cmd.CommandSet commandSet = new Cmd.CommandSet();
 
+            commandSet.Commands.Add(new Command().SetName("exit").SetHelpText("Closes the controller."));
             commandSet.Commands.Add(GetNewCommand());
+
+            commandSet.Commands.Add(Command.Create(name: "help", helpText: "Displays useful information... Maybe...")
+                .Action((r) =>
+                {
+                    if(r.Options.TryGetValue("command", out var commandName))
+                    {
+                        var command = commandSet.Commands.Find(c => string.Equals(commandName, c.Name, StringComparison.OrdinalIgnoreCase));
+                        if (command != null)
+                        {
+                            Console.WriteLine(command.GetHelpText());
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Help: Command '{commandName}' not found.");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine(commandSet.GenerateHelpText());
+                        Console.WriteLine("Run 'help [command]' for detailed information on a specific command.");
+                    }
+                }).AddOption(Option.Create("command", required: false, helpText: "A command to see detailed information on.")));
 
             return commandSet;
         }
@@ -37,9 +63,9 @@ namespace Wallop.Controller
         {
             //New resource.
             var command = Cmd.Command.Create(name: "new", helpText: "Provides the creation of resources.")
-                .AddOption(o => o.Set(name: "connection", flag: true, group: "conn"))
-                .AddOption(o => o.Set(name: "layout", flag: true, group: "lyt"))
-                .AddOption(o => o.Set(name: "layer", flag: true, group: "lyr"))
+                .AddOption(o => o.Set(name: "connection", groupSelector: true, groupSelection: "g_connection"))
+                .AddOption(o => o.Set(name: "layout", groupSelector: true, groupSelection: "g_layout"))
+                .AddOption(o => o.Set(name: "layer", groupSelector: true, groupSelection: "g_layer"))
                 .AddOption(o => o.Set(name: "name", required: true, helpText: "The new resource's name."))
                 .Action(HandleNewCommand);
 
@@ -54,16 +80,26 @@ namespace Wallop.Controller
 
         private static void Repl(Cmd.ParseResults results)
         {
+            const string PROMPT = "wallop/controller>";
+
+            string GetInput()
+            {
+                Console.Write(PROMPT);
+                return Console.ReadLine();
+            }
+
             // We can't re-use the commandset from above because then you'd be able to cause an infinite loop of Repl commands.
             var commandSet = GetCommandSet();
             var parser = new Cmd.Parser(commandSet);
-
-            string input = Console.ReadLine();
-            while (!string.Equals(input, "exit", StringComparison.OrdinalIgnoreCase))
+            var parseResults = ParseResults.Empty;
+            do
             {
-                var parseResults = parser.Parse(input);
-                input = Console.ReadLine();
-            }
+                parseResults = parser.Parse(GetInput());
+                parseResults.Output.MatchFailed(
+                    Failed: message => Console.WriteLine($"{PROMPT}{message}"));
+            } while (parseResults.Command != "exit");
+
+            Console.WriteLine("Exiting repl...");
         }
 
         private static void HandleNewCommand(Cmd.ParseResults results)

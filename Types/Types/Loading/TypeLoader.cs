@@ -55,6 +55,10 @@ namespace Wallop.Types.Loading
 
         public T LoadFromLibrary<T>(string library, bool cacheInstance)
         {
+            if(!System.IO.File.Exists(library) || !System.IO.Path.IsPathFullyQualified(library))
+            {
+                library = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, library);
+            }
             var assembly = Assembly.LoadFile(library);
             var types = assembly.GetTypes();
             Type targetType = typeof(T);
@@ -62,7 +66,7 @@ namespace Wallop.Types.Loading
 
             foreach (var item in types)
             {
-                if(item.IsAssignableFrom(targetType))
+                if(item is T || item.IsAssignableFrom(targetType) || item.IsSubclassOf(targetType))
                 {
                     implementorType = item;
                     break;
@@ -78,7 +82,7 @@ namespace Wallop.Types.Loading
             var cacheKey = (Type: typeof(T), Library: library);
             if (cacheInstance)
             {
-                _instanceCache.Add(cacheKey, value);
+                _instanceCache.TryAdd(cacheKey, value);
             }
 
             return value;

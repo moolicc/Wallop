@@ -17,9 +17,13 @@ namespace Wallop.Cmd
         {
             StringBuilder builder = new StringBuilder();
 
+            foreach (var item in Commands)
+            {
+                builder.AppendLine($"{item.Name}");
+                builder.AppendLine($"  {item.HelpText}").AppendLine();
+            }
 
-
-            return builder.ToString();
+            return builder.ToString().TrimEnd();
         }
     }
 }

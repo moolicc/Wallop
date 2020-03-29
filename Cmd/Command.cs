@@ -53,5 +53,66 @@ namespace Wallop.Cmd
             InvocationTarget = action;
             return this;
         }
+
+        public string GetHelpText()
+        {
+            var builder = new StringBuilder();
+
+            builder.AppendLine($"{Name}");
+            builder.AppendLine($"  {HelpText}").AppendLine();
+
+            var options = Options.ToArray();
+            Array.Sort(options, new Comparison<Option>((a, b) => StringComparer.OrdinalIgnoreCase.Compare(a.GroupSelection, b.GroupSelection)));
+            Array.Reverse(options);
+            string lastGroup = null;
+            string indention = "  ";
+            foreach (var option in options)
+            {
+                if (lastGroup == null && !string.IsNullOrEmpty(option.GroupSelection))
+                {
+                    indention = "  ";
+                    lastGroup = option.GroupSelection;
+                    builder.AppendLine($"{indention}{lastGroup}");
+                    indention = "    ";
+                }
+                else if (lastGroup != option.GroupSelection)
+                {
+                    indention = "  ";
+                    builder.AppendLine();
+                    lastGroup = option.GroupSelection;
+                    if (!string.IsNullOrEmpty(option.GroupSelection))
+                    {
+                        builder.AppendLine($"{indention}{lastGroup}");
+                        indention = "    ";
+                    }
+                }
+                if (option.IsSelector)
+                {
+                    continue;
+                }
+
+                builder.Append($"{indention}{option.Name}");
+                if (!option.IsRequired)
+                {
+                    builder.Append("?");
+                }
+                builder.Append(" ");
+                if (option.IsFlag)
+                {
+                    builder.Append("[flag]");
+                }
+                if (!string.IsNullOrEmpty(option.DefaultValue))
+                {
+                    builder.Append($" {option.DefaultValue}");
+                }
+                builder.AppendLine();
+                if (!string.IsNullOrWhiteSpace(option.HelpText))
+                {
+                    builder.AppendLine($"{indention}  {option.HelpText}");
+                }
+            }
+
+            return builder.ToString().TrimEnd();
+        }
     }
 }

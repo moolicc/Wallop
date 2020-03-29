@@ -35,8 +35,19 @@ namespace Wallop.Cmd
             }
 
 
-            var result = new ParseResults();
+
+            if(string.IsNullOrWhiteSpace(source))
+            {
+                return new ParseResults(ParserOutput.SucceededOnEmpty);
+            }
+
+
             var words = ParseWords(source);
+
+            if(words.Count() == 0)
+            {
+                return new ParseResults(ParserOutput.FailedOnBadInput);
+            }
 
             Command command = null;
             foreach (var item in CommandSet.Commands)
@@ -48,67 +59,111 @@ namespace Wallop.Cmd
                 }
             }
 
+
+            if(command == null)
+            {
+                return new ParseResults(ParserOutput.FailedOnNoCommand(words.First()));
+            }
+
+            bool usingArgNames = words.Any(w => w.StartsWith("--") || w.StartsWith("-"));
             var optionGroups = FindGroups(command.Options, words);
             var selectedGroup = "";
             bool skip = false;
+            var optionResults = new Dictionary<string, string>();
 
-            foreach (var option in command.Options)
+            if(words.Count() > 1)
             {
-                if(skip)
+                int optionIndex = -1;
+                foreach (var option in command.Options)
                 {
-                    skip = false;
-                    continue;
-                }
-                var wordIndex = IndexOr(words, s => string.Equals(option.Name, s, StringComparison.OrdinalIgnoreCase));
-                var validGroup = IsValidGroup(option.ExclusionGroup, optionGroups);
-                if(string.IsNullOrWhiteSpace(selectedGroup))
-                {
-                    if((!string.IsNullOrWhiteSpace(option.ExclusionGroup) || option.GroupsForValues.Length > 0) && wordIndex != -1)
+                    optionIndex++;
+                    if (skip)
                     {
-                        //TODO: Appropriately handle option.Values and option.GroupsForValues.
-
-                        //If next word is valid value
-                        //group = option.groupsforvalues[index of value in option.validvalues]
-
-
-                        selectedGroup = option.ExclusionGroup;
+                        skip = false;
+                        continue;
                     }
-                }
-                if (!validGroup && wordIndex != -1)
-                {
-                    //TODO: Return error result. Not in exclusion group.
-                }
-                else if (validGroup && wordIndex == -1 && option.IsRequired)
-                {
-                    //TODO: Return error result. Option is required but not provided.
-                }
-                else if (validGroup && wordIndex == -1)
-                {
-                    result.Options.Add(option.Name, option.DefaultValue);
-                }
-                else if (validGroup && wordIndex != -1)
-                {
-                    int nextIndex = wordIndex + 1;
-                    if (option.IsFlag)
+                    var wordIndex = IndexOr(words, s =>
                     {
-                        result.Options.Add(option.Name, bool.TrueString);
-                    }
-                    else if (nextIndex < command.Options.Count)
+                        var result = string.Equals(option.Name, s, StringComparison.OrdinalIgnoreCase);
+                        if (s.StartsWith("--"))
+                        {
+                            s = s.Substring(2);
+                            result = string.Equals(option.Name, s, StringComparison.OrdinalIgnoreCase);
+                        }
+                        else if (s.StartsWith("-"))
+                        {
+                            s = s.Substring(1);
+                            if (s.Length > 0)
+                            {
+                                result = s[0] == option.ShortName;
+                            }
+                        }
+                        return result;
+                    });
+                    var validGroup = IsValidGroup(option.GroupSelection, optionGroups);
+                    if (string.IsNullOrWhiteSpace(selectedGroup))
                     {
-                        skip = true;
-                        result.Options.Add(option.Name, words.ElementAt(nextIndex));
+                        if ((!string.IsNullOrWhiteSpace(option.GroupSelection) || option.GroupsForValues.Length > 0) && wordIndex != -1)
+                        {
+                            //TODO: Appropriately handle option.Values and option.GroupsForValues.
+
+                            //If next word is valid value
+                            //group = option.groupsforvalues[index of value in option.validvalues]
+
+
+                            selectedGroup = option.GroupSelection;
+                        }
                     }
-                }
-                else if (!validGroup && wordIndex == -1)
-                { }
-                else
-                {
-                    //TODO: Return error result. Missing Value.
+                    if (!validGroup && wordIndex != -1)
+                    {
+                        //TODO: Return error result. Not in exclusion group.
+                    }
+                    else if (validGroup && wordIndex == -1 && option.IsRequired)
+                    {
+                        //TODO: Return error result. Option is required but not provided.
+                    }
+                    else if (validGroup && wordIndex == -1 && !string.IsNullOrEmpty(option.DefaultValue))
+                    {
+                        optionResults.Add(option.Name, option.DefaultValue);
+                    }
+                    else if (validGroup && wordIndex != -1)
+                    {
+                        int nextIndex = wordIndex + 1;
+                        if (option.IsFlag)
+                        {
+                            optionResults.Add(option.Name, bool.TrueString);
+                        }
+                        else if (nextIndex < command.Options.Count)
+                        {
+                            skip = true;
+                            optionResults.Add(option.Name, words.ElementAt(nextIndex));
+                        }
+                    }
+                    else if (validGroup && wordIndex == -1 && !usingArgNames)
+                    {
+                        optionResults.Add(option.Name, words.ElementAt(optionIndex + 1));
+                    }
+                    else if (!validGroup && wordIndex == -1)
+                    { }
+                    else
+                    {
+                        //TODO: Return error result. Missing Value.
+                    }
                 }
             }
 
-            command.InvocationTarget?.Invoke(result);
-            return result;
+            try
+            {
+                command.InvocationTarget?.Invoke(new ParseResults(ParserOutput.Succeeded, command.Name, optionResults));
+            }
+            catch (Exception ex)
+            {
+#if DEBUG
+                throw;
+#endif
+                return new ParseResults(ParserOutput.FailedOnInvocationError(ex.Message), command.Name, optionResults);
+            }
+            return new ParseResults(ParserOutput.Succeeded, command.Name, optionResults);
         }
 
         private IEnumerable<string> FindGroups(IEnumerable<Option> input, IEnumerable<string> words)
@@ -116,7 +171,7 @@ namespace Wallop.Cmd
             foreach (var item in words)
             {
                 var option = input.FirstOrDefault(o => string.Equals(o.Name, item, StringComparison.OrdinalIgnoreCase));
-                var options = (option.ExclusionGroup + '|').Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+                var options = (option.GroupSelection + '|').Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
                 foreach (var subitem in options)
                 {
                     yield return subitem;
@@ -143,7 +198,6 @@ namespace Wallop.Cmd
 
         private IEnumerable<string> ParseWords(string source)
         {
-            var results = new ParseResults();
             var wordBuilder = new StringBuilder();
 
             int index = 0;
@@ -168,7 +222,7 @@ namespace Wallop.Cmd
                 for (i = index; i < source.Length; i++)
                 {
                     var curChar = source[i];
-                    if (char.IsWhiteSpace(curChar))
+                    if (char.IsWhiteSpace(curChar) && !inQuote)
                     {
                         break;
                     }
