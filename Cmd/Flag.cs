@@ -8,7 +8,7 @@ namespace Wallop.Cmd
     {
         public bool Value { get; private set; }
 
-        public Flag(string name, char shortName, string helpText, string selectionGroup, bool value)
+        public Flag(string name, char shortName = '\0', string helpText = "", string selectionGroup = "", bool value = false)
             : base(name, shortName, helpText, selectionGroup)
         {
             Value = value;
