@@ -4,17 +4,14 @@ using System.Text;
 
 namespace Wallop.Cmd.Parsing.Tokens
 {
-    public class ArgValueToken<T> : NameToken
+    public class ArgValueToken : Token
     {
-        public Type ValueType { get; }
-        public T ActualValue { get; }
+        public string Value { get; }
 
 
-        public ArgValueToken(string value, Type valueType, T actualValue)
-            : base(value)
+        public ArgValueToken(string value)
         {
-            ValueType = valueType;
-            ActualValue = actualValue;
+            Value = value;
         }
     }
 }

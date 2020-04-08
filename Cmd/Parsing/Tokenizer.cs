@@ -2,29 +2,30 @@
 using System.Collections.Generic;
 using System.Text;
 using Wallop.Cmd.Parsing.Tokens;
+using System.Linq;
 
 namespace Wallop.Cmd.Parsing
 {
     public class Tokenizer
     {
         public bool AllowMultipleCommands { get; set; }
-        public bool AllowPipingCommands { get; private set; }
-
-        public List<string> Selectors { get; private set; }
+        public bool AllowPipingCommands { get; set; }
 
         private int _index;
 
         public Tokenizer()
         {
-            Selectors = new List<string>();
+            AllowMultipleCommands = true;
+            AllowPipingCommands = false;
+            _index = -1;
         }
 
-        public IEnumerable<Token> GetTokens(string source)
+        public IEnumerable<Token> GetTokens(string source, params string[] selectors)
         {
             source = source.Trim();
             _index = 0;
             bool eocHit = false;
-            foreach (var tok in ReadCommandTokens(source))
+            foreach (var tok in ReadCommandTokens(source, selectors))
             {
                 if(eocHit && !AllowMultipleCommands)
                 {
@@ -38,13 +39,14 @@ namespace Wallop.Cmd.Parsing
             }
         }
 
-        private IEnumerable<Token> ReadCommandTokens(string input)
+        private IEnumerable<Token> ReadCommandTokens(string input, params string[] selectors)
         {
             void InitToken(Token token, string source, int position)
             {
                 token.SetPosition(position);
                 token.SetSource(source);
             }
+            //TODO: Handle tuples and arrays.
 
             bool isCommandName = true;
             Token lastToken = null;
@@ -109,7 +111,7 @@ namespace Wallop.Cmd.Parsing
                 string word = ReadWord(input, i, out consumed);
                 i += consumed;
 
-                if (!startsWithQuote && Selectors.Contains(word))
+                if (!startsWithQuote && selectors.Contains(word))
                 {
                     lastToken = new SelectorToken(word);
                     InitToken(lastToken, word, i);
@@ -117,24 +119,9 @@ namespace Wallop.Cmd.Parsing
                     continue;
                 }
 
-                //TODO: Tuples and arrays.
-                if(!startsWithQuote && long.TryParse(word, out long resultI))
-                {
-                    lastToken = new ArgValueToken<long>(word, typeof(long), resultI);
-                }
-                else if(!startsWithQuote && double.TryParse(word, out double resultN))
-                {
-                    lastToken = new ArgValueToken<double>(word, typeof(double), resultN);
-                }
-                else if(!startsWithQuote && bool.TryParse(word, out bool resultB))
-                {
-                    lastToken = new ArgValueToken<bool>(word, typeof(bool), resultB);
-                }
-                else
-                {
-                    lastToken = new ArgValueToken<string>(word, typeof(string), word);
-                }
+                lastToken = new ArgValueToken(word);
                 InitToken(lastToken, word, i);
+
                 yield return lastToken;
 
                 if(i < input.Length && input[i] == ';')
