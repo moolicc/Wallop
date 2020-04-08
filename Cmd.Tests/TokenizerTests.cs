@@ -202,13 +202,15 @@ namespace Cmd.Tests
         [TestMethod]
         public void ChainedCommandsTest()
         {
-            var source = "cmd selector \"value \\\"1\\\"\" 3.141; cmd selector \"value \\\"1\\\"\" 3.141";
+            var source = "cmd selector \"value \\\"1\\\"\" 3.141; " +
+                " cmd selector \"value \\\"1\\\"\" 3.141;" +
+                "cmd selector \"value \\\"1\\\"\" 3.141";
             var tokenizer = new Tokenizer();
             tokenizer.AllowMultipleCommands = true;
             tokenizer.Selectors.Add("selector");
             var tokens = tokenizer.GetTokens(source).ToArray();
 
-            for (int i = 0; i < 6; i += 5)
+            for (int i = 0; i < 11; i += 5)
             {
                 Assert.IsInstanceOfType(tokens[i], typeof(CommandToken));
                 Assert.AreEqual("cmd", (tokens[i] as CommandToken).Name);
