@@ -198,5 +198,35 @@ namespace Cmd.Tests
 
             Assert.IsInstanceOfType(tokens[4], typeof(EOCToken));
         }
+
+        [TestMethod]
+        public void ChainedCommandsTest()
+        {
+            var source = "cmd selector \"value \\\"1\\\"\" 3.141; cmd selector \"value \\\"1\\\"\" 3.141";
+            var tokenizer = new Tokenizer();
+            tokenizer.AllowMultipleCommands = true;
+            tokenizer.Selectors.Add("selector");
+            var tokens = tokenizer.GetTokens(source).ToArray();
+
+            for (int i = 0; i < 6; i += 5)
+            {
+                Assert.IsInstanceOfType(tokens[i], typeof(CommandToken));
+                Assert.AreEqual("cmd", (tokens[i] as CommandToken).Name);
+
+
+                Assert.IsInstanceOfType(tokens[i + 1], typeof(SelectorToken));
+                Assert.AreEqual("selector", (tokens[i + 1] as SelectorToken).Name);
+
+
+                Assert.IsInstanceOfType(tokens[i + 2], typeof(ArgValueToken<string>));
+                Assert.AreEqual("value \"1\"", (tokens[i + 2] as ArgValueToken<string>).ActualValue);
+
+
+                Assert.IsInstanceOfType(tokens[i + 3], typeof(ArgValueToken<double>));
+                Assert.AreEqual(3.141, (tokens[i + 3] as ArgValueToken<double>).ActualValue);
+
+                Assert.IsInstanceOfType(tokens[i + 4], typeof(EOCToken));
+            }
+        }
     }
 }

@@ -7,7 +7,7 @@ namespace Wallop.Cmd.Parsing
 {
     public class Tokenizer
     {
-        public bool AllowMultipleCommands { get; private set; }
+        public bool AllowMultipleCommands { get; set; }
         public bool AllowPipingCommands { get; private set; }
 
         public List<string> Selectors { get; private set; }
@@ -46,38 +46,40 @@ namespace Wallop.Cmd.Parsing
                 token.SetSource(source);
             }
 
+            bool isCommandName = true;
             Token lastToken = null;
             int consumed = 0;
-            var commandName = ReadWord(input, 0, out consumed);
-
-            if (consumed == 0)
-            {
-                //TODO: Error
-            }
-            _index += consumed;
-            //TODO: This is a bad way to perform this sanity-check.
-            //What if a command actually has no arguments?
-            if (input[_index] != ' ')
-            {
-                //TODO: Error
-            }
-            lastToken = new CommandToken(commandName);
-            InitToken(lastToken, commandName, _index);
-            yield return lastToken;
-
-            SkipSpace(input, _index, out consumed);
-            _index += consumed;
 
             for (int i = _index; i < input.Length; i++)
             {
                 SkipSpace(input, i, out consumed);
                 i += consumed;
                 _index = i;
+
+                if(isCommandName)
+                {
+                    var commandName = ReadWord(input, 0, out consumed);
+
+                    if (consumed == 0)
+                    {
+                        //TODO: Error
+                    }
+                    isCommandName = false;
+
+                    i += consumed;
+                    lastToken = new CommandToken(commandName);
+                    InitToken(lastToken, commandName, _index);
+
+                    yield return lastToken;
+                    continue;
+                }
+
                 if(input[i] == ';')
                 {
                     // We're at the end of the current command.
-                    _index++;
-                    break;
+                    isCommandName = true;
+                    yield return new EOCToken(_index);
+                    continue;
                 }
                 if(input[i] == '-')
                 {
@@ -134,6 +136,11 @@ namespace Wallop.Cmd.Parsing
                 }
                 InitToken(lastToken, word, i);
                 yield return lastToken;
+
+                if(i < input.Length && input[i] == ';')
+                {
+                    i--;
+                }
             }
 
 
