@@ -9,16 +9,16 @@ namespace Wallop.Cmd
         public Type ValueType { get; private set; }
         public object Value { get; private set; }
 
-        public ValuedArgument(string name, char shortName, string helpText, string selectionGroup, Type valueType, object value)
-            : base(name, shortName, helpText, selectionGroup)
+        public ValuedArgument(string name, char shortName = '\0', string helpText = "", string selectionGroup = "", bool required = true, Type valueType = null, object value = null)
+            : base(name, shortName, helpText, selectionGroup, required)
         {
             ValueType = valueType;
             Value = value;
         }
 
-        public ValuedArgument Set(string name = null, char shortName = '\0', string helpText = null, string selectionGroup = null, Type valueType = null, object value = null)
+        public ValuedArgument Set(string name = null, char shortName = '\0', string helpText = null, string selectionGroup = null, bool? required = null, Type valueType = null, object value = null)
         {
-            base.Set<Argument>(name, shortName, helpText, selectionGroup);
+            base.Set<Argument>(name, shortName, helpText, selectionGroup, required);
 
             if (valueType != null)
             {

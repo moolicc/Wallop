@@ -10,16 +10,19 @@ namespace Wallop.Cmd
         public char ShortName { get; private set; }
         public string HelpText { get; private set; }
         public string SelectionGroup { get; private set; }
+        public bool Required { get; private set; }
 
-        protected Argument(string name, char shortName, string helpText, string selectionGroup)
+
+        protected Argument(string name, char shortName, string helpText, string selectionGroup, bool required)
         {
             Name = name;
             ShortName = shortName;
             HelpText = helpText;
             SelectionGroup = selectionGroup;
+            Required = required;
         }
 
-        public T Set<T>(string name = null, char shortName = '\0', string helpText = null, string selectionGroup = null) where T : Argument
+        public T Set<T>(string name = null, char shortName = '\0', string helpText = null, string selectionGroup = null, bool? required = null) where T : Argument
         {
             if(!string.IsNullOrEmpty(name))
             {
@@ -36,6 +39,10 @@ namespace Wallop.Cmd
             if (!string.IsNullOrEmpty(selectionGroup))
             {
                 SelectionGroup = selectionGroup;
+            }
+            if(required.HasValue)
+            {
+                Required = required.Value;
             }
             return (T)this;
         }
