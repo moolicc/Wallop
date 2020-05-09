@@ -9,18 +9,23 @@ namespace Wallop.Cmd.Parsing
     public class Parser
     {
         public Tokenizer Tokenizer { get; private set; }
-        public CommandSet CommandSet { get; private set; }
         public string Source { get; private set; }
+        public CommandTable CommandTable { get; private set; }
 
         private Token[] _tokens;
 
         public Parser(CommandSet commandSet, string source)
+            : this(CommandTable.FromSet(commandSet), source)
+        {
+        }
+
+        public Parser(CommandTable commandTable, string source)
         {
             Tokenizer = new Tokenizer();
-            CommandSet = commandSet;
+            CommandTable = commandTable;
             Source = source;
 
-            _tokens = Tokenizer.GetTokens(source, commandSet.Selectors.ToArray()).ToArray();
+            _tokens = Tokenizer.GetTokens(source, CommandTable.Selectors.ToArray()).ToArray();
         }
 
         public ParseResults Parse()
@@ -92,19 +97,22 @@ namespace Wallop.Cmd.Parsing
             return null;
         }
 
-        private ParsedCommand ResolveCommand(NamedTokenResults command, string selector, ArgResults[] args)
+        private ResolvedCommand ResolveCommand(NamedTokenResults parsedCommand, string selector, ArgResults[] args)
         {
-            ParsedCommand results = ParsedCommand.Empty;
+            ResolvedCommand results = ResolvedCommand.Empty;
+            Command command = null;
+
+
 
 
 
             return results;
         }
 
-        private struct ParsedCommand
+        private struct ResolvedCommand
         {
-            public static readonly ParsedCommand Empty
-                = new ParsedCommand() { Index = -1, ArgValues = new Dictionary<string, object>() };
+            public static readonly ResolvedCommand Empty
+                = new ResolvedCommand() { Index = -1, ArgValues = new Dictionary<string, object>() };
 
             public int Index;
             public Dictionary<string, object> ArgValues;

@@ -6,6 +6,12 @@ namespace Wallop.Cmd
 {
     public class CommandSet
     {
-        public List<string> Selectors { get; private set; }
+        public Dictionary<string, Command> Commands { get; private set; }
+
+        public CommandSet()
+        {
+            Commands = new Dictionary<string, Command>(StringComparer.OrdinalIgnoreCase);
+        }
+
     }
 }

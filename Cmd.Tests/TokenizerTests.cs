@@ -40,8 +40,7 @@ namespace Cmd.Tests
         {
             var source = "cmd selector --arg1 --arg2 -3 -arg4";
             var tokenizer = new Tokenizer();
-            tokenizer.Selectors.Add("selector");
-            var tokens = tokenizer.GetTokens(source).ToArray();
+            var tokens = tokenizer.GetTokens(source, "selector").ToArray();
 
 
             Assert.IsInstanceOfType(tokens[0], typeof(CommandToken));
@@ -71,8 +70,7 @@ namespace Cmd.Tests
         {
             var source = "cmd selector --arg1 value1 --arg2 -3 3.14 -arg4 True --arg5 2020";
             var tokenizer = new Tokenizer();
-            tokenizer.Selectors.Add("selector");
-            var tokens = tokenizer.GetTokens(source).ToArray();
+            var tokens = tokenizer.GetTokens(source, "selector").ToArray();
 
 
             Assert.IsInstanceOfType(tokens[0], typeof(CommandToken));
@@ -85,8 +83,8 @@ namespace Cmd.Tests
             Assert.IsInstanceOfType(tokens[2], typeof(ArgNameToken));
             Assert.AreEqual("arg1", (tokens[2] as ArgNameToken).Name);
 
-            Assert.IsInstanceOfType(tokens[3], typeof(ArgValueToken<string>));
-            Assert.AreEqual("value1", (tokens[3] as ArgValueToken<string>).ActualValue);
+            Assert.IsInstanceOfType(tokens[3], typeof(ArgValueToken));
+            Assert.AreEqual("value1", (tokens[3] as ArgValueToken).Value);
 
 
             Assert.IsInstanceOfType(tokens[4], typeof(ArgNameToken));
@@ -97,24 +95,24 @@ namespace Cmd.Tests
             Assert.IsTrue((tokens[5] as ArgNameToken).IsShort);
             Assert.AreEqual("3", (tokens[5] as ArgNameToken).Name);
 
-            Assert.IsInstanceOfType(tokens[6], typeof(ArgValueToken<double>));
-            Assert.AreEqual(3.14, (tokens[6] as ArgValueToken<double>).ActualValue);
+            Assert.IsInstanceOfType(tokens[6], typeof(ArgValueToken));
+            Assert.AreEqual("3.14", (tokens[6] as ArgValueToken).Value);
 
 
             Assert.IsInstanceOfType(tokens[7], typeof(ArgNameToken));
             Assert.IsFalse((tokens[7] as ArgNameToken).IsShort);
             Assert.AreEqual("arg4", (tokens[7] as ArgNameToken).Name);
 
-            Assert.IsInstanceOfType(tokens[8], typeof(ArgValueToken<bool>));
-            Assert.AreEqual(true, (tokens[8] as ArgValueToken<bool>).ActualValue);
+            Assert.IsInstanceOfType(tokens[8], typeof(ArgValueToken));
+            Assert.AreEqual("True", (tokens[8] as ArgValueToken).Value);
 
 
             Assert.IsInstanceOfType(tokens[9], typeof(ArgNameToken));
             Assert.IsFalse((tokens[9] as ArgNameToken).IsShort);
             Assert.AreEqual("arg5", (tokens[9] as ArgNameToken).Name);
 
-            Assert.IsInstanceOfType(tokens[10], typeof(ArgValueToken<long>));
-            Assert.AreEqual(2020, (tokens[10] as ArgValueToken<long>).ActualValue);
+            Assert.IsInstanceOfType(tokens[10], typeof(ArgValueToken));
+            Assert.AreEqual("2020", (tokens[10] as ArgValueToken).Value);
 
 
             Assert.IsInstanceOfType(tokens[11], typeof(EOCToken));
@@ -126,8 +124,7 @@ namespace Cmd.Tests
         {
             var source = "cmd selector value1 3.141";
             var tokenizer = new Tokenizer();
-            tokenizer.Selectors.Add("selector");
-            var tokens = tokenizer.GetTokens(source).ToArray();
+            var tokens = tokenizer.GetTokens(source, "selector").ToArray();
 
             Assert.IsInstanceOfType(tokens[0], typeof(CommandToken));
             Assert.AreEqual("cmd", (tokens[0] as CommandToken).Name);
@@ -137,12 +134,12 @@ namespace Cmd.Tests
             Assert.AreEqual("selector", (tokens[1] as SelectorToken).Name);
 
 
-            Assert.IsInstanceOfType(tokens[2], typeof(ArgValueToken<string>));
-            Assert.AreEqual("value1", (tokens[2] as ArgValueToken<string>).ActualValue);
+            Assert.IsInstanceOfType(tokens[2], typeof(ArgValueToken));
+            Assert.AreEqual("value1", (tokens[2] as ArgValueToken).Value);
 
 
-            Assert.IsInstanceOfType(tokens[3], typeof(ArgValueToken<double>));
-            Assert.AreEqual(3.141, (tokens[3] as ArgValueToken<double>).ActualValue);
+            Assert.IsInstanceOfType(tokens[3], typeof(ArgValueToken));
+            Assert.AreEqual("3.141", (tokens[3] as ArgValueToken).Value);
 
             Assert.IsInstanceOfType(tokens[4], typeof(EOCToken));
         }
@@ -152,8 +149,7 @@ namespace Cmd.Tests
         {
             var source = "cmd selector \"value 1\" 3.141";
             var tokenizer = new Tokenizer();
-            tokenizer.Selectors.Add("selector");
-            var tokens = tokenizer.GetTokens(source).ToArray();
+            var tokens = tokenizer.GetTokens(source, "selector").ToArray();
 
             Assert.IsInstanceOfType(tokens[0], typeof(CommandToken));
             Assert.AreEqual("cmd", (tokens[0] as CommandToken).Name);
@@ -163,12 +159,12 @@ namespace Cmd.Tests
             Assert.AreEqual("selector", (tokens[1] as SelectorToken).Name);
 
 
-            Assert.IsInstanceOfType(tokens[2], typeof(ArgValueToken<string>));
-            Assert.AreEqual("value 1", (tokens[2] as ArgValueToken<string>).ActualValue);
+            Assert.IsInstanceOfType(tokens[2], typeof(ArgValueToken));
+            Assert.AreEqual("value 1", (tokens[2] as ArgValueToken).Value);
 
 
-            Assert.IsInstanceOfType(tokens[3], typeof(ArgValueToken<double>));
-            Assert.AreEqual(3.141, (tokens[3] as ArgValueToken<double>).ActualValue);
+            Assert.IsInstanceOfType(tokens[3], typeof(ArgValueToken));
+            Assert.AreEqual("3.141", (tokens[3] as ArgValueToken).Value);
 
             Assert.IsInstanceOfType(tokens[4], typeof(EOCToken));
         }
@@ -178,8 +174,7 @@ namespace Cmd.Tests
         {
             var source = "cmd selector \"value \\\"1\\\"\" 3.141";
             var tokenizer = new Tokenizer();
-            tokenizer.Selectors.Add("selector");
-            var tokens = tokenizer.GetTokens(source).ToArray();
+            var tokens = tokenizer.GetTokens(source, "selector").ToArray();
 
             Assert.IsInstanceOfType(tokens[0], typeof(CommandToken));
             Assert.AreEqual("cmd", (tokens[0] as CommandToken).Name);
@@ -189,12 +184,12 @@ namespace Cmd.Tests
             Assert.AreEqual("selector", (tokens[1] as SelectorToken).Name);
 
 
-            Assert.IsInstanceOfType(tokens[2], typeof(ArgValueToken<string>));
-            Assert.AreEqual("value \"1\"", (tokens[2] as ArgValueToken<string>).ActualValue);
+            Assert.IsInstanceOfType(tokens[2], typeof(ArgValueToken));
+            Assert.AreEqual("value \"1\"", (tokens[2] as ArgValueToken).Value);
 
 
-            Assert.IsInstanceOfType(tokens[3], typeof(ArgValueToken<double>));
-            Assert.AreEqual(3.141, (tokens[3] as ArgValueToken<double>).ActualValue);
+            Assert.IsInstanceOfType(tokens[3], typeof(ArgValueToken));
+            Assert.AreEqual("3.141", (tokens[3] as ArgValueToken).Value);
 
             Assert.IsInstanceOfType(tokens[4], typeof(EOCToken));
         }
@@ -207,8 +202,7 @@ namespace Cmd.Tests
                 "cmd selector \"value \\\"1\\\"\" 3.141";
             var tokenizer = new Tokenizer();
             tokenizer.AllowMultipleCommands = true;
-            tokenizer.Selectors.Add("selector");
-            var tokens = tokenizer.GetTokens(source).ToArray();
+            var tokens = tokenizer.GetTokens(source, "selector").ToArray();
 
             for (int i = 0; i < 11; i += 5)
             {
@@ -220,12 +214,12 @@ namespace Cmd.Tests
                 Assert.AreEqual("selector", (tokens[i + 1] as SelectorToken).Name);
 
 
-                Assert.IsInstanceOfType(tokens[i + 2], typeof(ArgValueToken<string>));
-                Assert.AreEqual("value \"1\"", (tokens[i + 2] as ArgValueToken<string>).ActualValue);
+                Assert.IsInstanceOfType(tokens[i + 2], typeof(ArgValueToken));
+                Assert.AreEqual("value \"1\"", (tokens[i + 2] as ArgValueToken).Value);
 
 
-                Assert.IsInstanceOfType(tokens[i + 3], typeof(ArgValueToken<double>));
-                Assert.AreEqual(3.141, (tokens[i + 3] as ArgValueToken<double>).ActualValue);
+                Assert.IsInstanceOfType(tokens[i + 3], typeof(ArgValueToken));
+                Assert.AreEqual("3.141", (tokens[i + 3] as ArgValueToken).Value);
 
                 Assert.IsInstanceOfType(tokens[i + 4], typeof(EOCToken));
             }
