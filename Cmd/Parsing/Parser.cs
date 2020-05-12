@@ -103,7 +103,10 @@ namespace Wallop.Cmd.Parsing
             Command command = null;
 
 
+            // TODO: Resolve command from command table.
+            // Denote the correct command by its index, and store the index in ResolvedCommand.Index.
 
+            // Take args and transform them into ResolvedCommand.ArgValues.
 
 
             return results;
