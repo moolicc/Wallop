@@ -1,16 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
+using System.Linq;
 using System.Text;
 
 namespace Wallop.Cmd
 {
     public class CommandTable
     {
-        public List<string> Selectors { get; private set; }
+        // Flat list of all selectors in use. Contains no duplicates.
+        public string[] Selectors { get; private set; }
+
+        public Command[] Commands { get; private set; }
+
+        // Command signature map. Maps arguments associated with a command to their selector.
+        // Dictionary<sigkey, (command index, args associated with selectort)>
+        private Dictionary<string, (int CommandIndex, List<Argument> Signature)> _commandSigMap;
 
         private CommandTable()
         {
-            Selectors = new List<string>();
+            _commandSigMap = new Dictionary<string, (int, List<Argument>)>();
         }
 
         public static CommandTable FromSet(CommandSet commandSet)
@@ -20,17 +29,70 @@ namespace Wallop.Cmd
             return table;
         }
 
+        private static string BuildSigKey(string commandName, string selectorName)
+        {
+            return $"{commandName}`{selectorName}";
+        }
+
         private void BuildTable(CommandSet commandSet)
         {
+            List<string> selectors = new List<string>();
+
+            int i = 0;
             foreach (var command in commandSet.Commands.Values)
             {
                 foreach (var arg in command.Arguments)
                 {
-                    if(!Selectors.Contains(arg.SelectionGroup))
+                    if (!Selectors.Contains(arg.SelectionGroup))
                     {
-                        Selectors.Add(arg.SelectionGroup);
+                        selectors.Add(arg.SelectionGroup);
                     }
+
+
+                    string sigKey = BuildSigKey(command.Name, arg.SelectionGroup);
+                    if (!_commandSigMap.TryGetValue(sigKey, out var sigValue))
+                    {
+                        sigValue = (i, new List<Argument>());
+                        _commandSigMap.Add(sigKey, sigValue);
+                    }
+
+                    sigValue.Signature.Add(arg);
                 }
+
+                i++;
+            }
+
+            Commands = commandSet.Commands.Values.ToArray();
+            Selectors = selectors.ToArray();
+        }
+
+        internal CommandCandidate FindCandidate(string commandName, string selector)
+        {
+            var result = new CommandCandidate(BuildSigKey(commandName, selector));
+
+            if (_commandSigMap.TryGetValue(result.SignatureKey, out var sigValue))
+            {
+                result.CommandIndex = sigValue.CommandIndex;
+                result.Arguments = sigValue.Signature.ToArray();
+                result.Found = true;
+            }
+
+            return result;
+        }
+
+        internal class CommandCandidate
+        {
+            public string SignatureKey { get; }
+            public bool Found { get; set; }
+            public int CommandIndex { get; set; }
+            public Argument[] Arguments { get; set; }
+
+            public CommandCandidate(string signatureKey)
+            {
+                SignatureKey = signatureKey;
+                Found = false;
+                CommandIndex = -1;
+                Arguments = new Argument[0];
             }
         }
     }
