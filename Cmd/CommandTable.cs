@@ -22,6 +22,31 @@ namespace Wallop.Cmd
             _commandSigMap = new Dictionary<string, (int, List<Argument>)>();
         }
 
+        public string FindSigKey(int commandIndex)
+        {
+            foreach (var item in _commandSigMap)
+            {
+                if (item.Value.CommandIndex == commandIndex)
+                {
+                    return item.Key;
+                }
+            }
+            return string.Empty;
+        }
+
+        public (string CommandName, string Selector) DestructCommandIndex(int commandIndex)
+        {
+            foreach (var item in _commandSigMap)
+            {
+                if(item.Value.CommandIndex == commandIndex)
+                {
+                    var parts = item.Key.Split('`');
+                    return (parts[0], parts[1]);
+                }
+            }
+            throw new KeyNotFoundException($"Command with index {commandIndex} not found.");
+        }
+
         public static CommandTable FromSet(CommandSet commandSet)
         {
             CommandTable table = new CommandTable();

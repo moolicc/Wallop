@@ -58,7 +58,7 @@ namespace Wallop.Cmd.Parsing
             {
                 var resolved = ResolveCommand(currentCommand, currentSelector.Name, currentArgs.ToArray());
 
-                runningResults.AddCommand(new CommandResult(resolved.Index, resolved.ArgValues));
+                runningResults.AddCommand(new CommandResult(resolved.Index, resolved.ArgValues, CommandTable));
 
 
                 currentCommand = NamedTokenResults.Empty;
