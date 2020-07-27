@@ -8,5 +8,7 @@ namespace Wallop.Cmd
     {
         public string Name { get; private set; }
         public List<Argument> Arguments { get; private set; }
+
+        public virtual string Invoke(string input, string selector, Dictionary<string, object> args) { return ""; }
     }
 }

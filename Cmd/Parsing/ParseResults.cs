@@ -13,5 +13,14 @@ namespace Wallop.Cmd.Parsing
 
         public bool HasErrors { get; private set; }
         public ParseErrors Errors { get; private set; }
+        public IEnumerable<CommandResult> Commands => _commands;
+
+        private List<CommandResult> _commands;
+
+        internal void AddCommand(CommandResult result)
+        {
+            _commands.Add(result);
+        }
+
     }
 }

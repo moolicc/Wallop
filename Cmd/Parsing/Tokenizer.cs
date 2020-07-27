@@ -8,6 +8,10 @@ namespace Wallop.Cmd.Parsing
 {
     public class Tokenizer
     {
+        //TODO: >> and << operators.
+        // >> operator pipes command output to the next command
+        // << operator pipes command output to the previous command.
+
         public bool AllowMultipleCommands { get; set; }
         public bool AllowPipingCommands { get; set; }
 

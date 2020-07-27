@@ -34,6 +34,8 @@ namespace Wallop.Cmd.Parsing
             NamedTokenResults currentSelector = NamedTokenResults.Empty;
             List<ArgResults> currentArgs = new List<ArgResults>();
 
+            var runningResults = new ParseResults();
+
             void SetCommand(CommandToken token)
             {
                 if (!currentCommand.IsEmpty())
@@ -54,8 +56,14 @@ namespace Wallop.Cmd.Parsing
 
             void AddCommand()
             {
+                var resolved = ResolveCommand(currentCommand, currentSelector.Name, currentArgs.ToArray());
+
+                runningResults.AddCommand(new CommandResult(resolved.Index, resolved.ArgValues));
+
+
                 currentCommand = NamedTokenResults.Empty;
                 currentSelector = NamedTokenResults.Empty;
+                currentArgs.Clear();
             }
 
             T Peek<T>(int index) where T : Token
@@ -94,15 +102,14 @@ namespace Wallop.Cmd.Parsing
                 }
             }
 
-            return null;
+            return runningResults;
         }
 
         private ResolvedCommand ResolveCommand(NamedTokenResults parsedCommand, string selector, ArgResults[] args)
         {
             ResolvedCommand results = ResolvedCommand.Empty;
-            Command command = null;
 
-            // TODO: Resolve command from command table.
+            // DONE: Resolve command from command table.
             // Denote the correct command by its index, and store the index in ResolvedCommand.Index.
 
             // Take args and transform them into ResolvedCommand.ArgValues.
@@ -163,20 +170,20 @@ namespace Wallop.Cmd.Parsing
             }
 
 
-            foreach (var item in candidate.Arguments)
+            for (int i = 0; i < candidate.Arguments.Length; i++)
             {
-                if(item is Flag flag)
+                var curArg = candidate.Arguments[i];
+                if (curArg is Flag flag)
                 {
-                    results.ArgValues.Add(item.Name, !flag.Inverse);
+                    results.ArgValues.Add(curArg.Name, !flag.Inverse);
                 }
-                else if(item is ValuedArgument value)
+                else if (curArg is ValuedArgument value)
                 {
-                    var argRes = args.FirstOrDefault(ar => NamesEqual(item, ar));
-                    results.ArgValues.Add(item.Name, Convert.ChangeType(argRes.Value, value.ValueType));
+                    results.ArgValues.Add(curArg.Name, Convert.ChangeType(args[i].Value, value.ValueType));
                 }
             }
 
-
+            results.Index = candidate.CommandIndex;
             return results;
         }
 
