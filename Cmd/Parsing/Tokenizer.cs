@@ -11,6 +11,7 @@ namespace Wallop.Cmd.Parsing
         //TODO: >> and << operators.
         // >> operator pipes command output to the next command
         // << operator pipes command output to the previous command.
+        //TODO: We also need operators for concatinating output from commands.
 
         public bool AllowMultipleCommands { get; set; }
         public bool AllowPipingCommands { get; set; }
