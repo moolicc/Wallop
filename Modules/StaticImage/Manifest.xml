@@ -1,0 +1,6 @@
+﻿<manifest>
+  <version>1.0</version>
+  <name>Static Image</name>
+  <description>Displays a static image.</description>
+  <source>StaticImage.csx</source>
+</manifest>

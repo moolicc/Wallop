@@ -1,7 +1,0 @@
-﻿<root>
-  <source>youtube.csx</source>
-  <name>YouTube</name>
-  <description>Plays a youtube video</description>
-  <version>1.0</version>
-  <customeffects>true</customeffects>
-</root>

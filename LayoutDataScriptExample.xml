@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<layout>
+
+  <layer>
+    <module>Module.csx</module>
+    <dimensions>
+      <x>0</x>
+      <y>0</y>
+      <z>0</z>
+      <w>0</w>
+    </dimensions>
+    <name>Layer1</name>
+    <description>The first layer</description>
+  </layer>
+
+</layout>

@@ -1,7 +1,0 @@
-﻿<wamodule version="1.0">
-  <source>default.csx</source>
-  <name>[Default]</name>
-  <description>Default module</description>
-  <version>1.0</version>
-  <customeffects>true</customeffects>
-</wamodule>
