@@ -1,6 +1,10 @@
 
+Basic speciication or a wallop file. This file represents a scene.
+
+> May or may not use this moving forward.. Who knows?
+
 HEADER:
-  First 4 bytes are a string identifier "WAPP".
+  First 6 bytes are a string identifier "WALLOP".
   Next 2 bytes are for a format-version specifier in the form major.minor.
     Different major numbers are incompatible
 	Different minor numbers are compatible
@@ -9,7 +13,7 @@ HEADER:
   Next 4-bytes is an offset from position(0) to (chunk index start)
   Next 4-bytes is an offset from position(0) to (payload start)
   Next byte is for various flags
-	bit-1 - compressed flag
+	bit-1 - Is the payload compressed?
 
 STRING TABLE:
   First byte represents the number of strings to expect
@@ -34,11 +38,3 @@ CHUNK INFO:
 PAYLOAD:
   Just raw data to be consumed later.
   Might be compressed depending on the respective flag in the header.
-
-
-
-
-Implementation Notes:
-AT SOME POINT optimize file serialization with span<T>. This will require an upgrade to .net core 2.1.
-At some point, support embedded modules within a .wapp file.
-TODO: Implement ScriptIsData flag for specifying if the layout script is actually a script or just xml
