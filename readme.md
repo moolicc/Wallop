@@ -37,22 +37,16 @@ To understand, here's a rough timeline. (It's very rough, though the years shoul
   * Added Cake build system.
   * Without even having finished the Great Refactoring, the second large refactoring task has been planned. This one with the goal of further modularizing the app to make it better (tm).
   * Renamed to Wallop.
-  
+* December 2021
+  * Wallop Redux Started with an actual, concrete plan in mind.
+  * Hopeully will get a working implementation by the end of the upcoming Spring 2022 Semester at the University.
 
-So, the point of all that is to explain that right now I'm in the process of performing the extremely large task of refactoring and reorganizing the entire project's structure.
-
-We're going from 3 projects (wasn't done with the refactor from 1 to 3 projects, either), to 7. This will improve productivity in the long-run, make cross-platform easier, and make testing easier.
-   
 
 ## Roadmap
-In the future, I'd like to finish the second Great Refactoring.
-It'd also be nice to make the app more extensible via Runtime and Client plugins.
-We're gonna need a bunch of modules. I would like to make a bunch of modules for user consumption.
-Help the app grow from user-feedback.
-
+* Get the Engine component complete (that's what gets stuff on the screen)
+* Get the Composition component complete (that's what talks to the engine)
+* Write an array of useful plugins and modules
+* Get the builder component complete (that's the UI that talks to the compositor)
 
 ## Building
-WallApp is built on .net Core 3.0 and from with a Cake build script.
-Invoke `./build.ps1` to build the project.
-
-> Note that we use MonoGame 3.5 because 3.7+ had strange sharpdx problems I encountered that I'll look into and report accordingly in the future
+Just build it from within visual studio - no fancy cake scripts anymore (the cake was thus indeed a lie).
