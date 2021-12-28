@@ -157,11 +157,5 @@
     <Resource Include="Resources\tray.ico" />
     <Resource Include="Resources\tray_error.ico" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Bridge\Bridge.csproj">
-      <Project>{cf77269c-3d36-4527-89de-6ecc6a6f82d8}</Project>
-      <Name>Bridge</Name>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
