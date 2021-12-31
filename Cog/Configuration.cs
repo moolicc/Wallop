@@ -113,6 +113,7 @@ namespace Cog
                 {
                     return (T)(object)value;
                 }
+                throw new KeyNotFoundException();
             }
             return _settingValues[key].GetValue<T>();
         }
