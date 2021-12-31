@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Cog.Sources
 {
-    internal class TypedSettingSource : ISettingsSource
+    public class TypedSettingSource : ISettingsSource
     {
         public bool CanSave => false;
 
