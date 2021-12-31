@@ -32,7 +32,7 @@ namespace Cog
             return instance.Select(kvp => new KeyValuePair<string, object>(kvp.Key, kvp.Value.GetValue()));
         }
 
-        public static bool Inherits<TBase>(this Type typeInstance)
-            => typeof(TBase).IsAssignableFrom(typeInstance);
+        public static bool Inherits<TBase>(this Type subType)
+            => typeof(TBase).IsAssignableFrom(subType);
     }
 }
