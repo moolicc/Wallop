@@ -13,7 +13,7 @@ namespace Cog.Sources
         bool HandleOrphanSettings { get; }
         bool HandleUnsavableSettings { get; }
 
-        Task<IEnumerable<KeyValuePair<string, object>>> LoadSettingsAsync();
-        Task SaveSettingsAsync(IEnumerable<KeyValuePair<string, object>> settings);
+        Task<IEnumerable<KeyValuePair<string, string>>> LoadSettingsAsync(ConfigurationOptions options);
+        Task SaveSettingsAsync(IEnumerable<KeyValuePair<string, string>> settings, ConfigurationOptions options);
     }
 }

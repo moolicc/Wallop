@@ -13,4 +13,14 @@
     <PackageReference Include="Veldrid.StartupUtilities" Version="4.8.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Cog\Cog.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="esettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

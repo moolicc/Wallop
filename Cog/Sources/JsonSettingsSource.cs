@@ -24,17 +24,44 @@ namespace Cog.Sources
             HandleUnsavableSettings = true;
         }
 
-        public async Task<IEnumerable<KeyValuePair<string, object>>> LoadSettingsAsync()
+        public async Task<IEnumerable<KeyValuePair<string, string>>> LoadSettingsAsync(ConfigurationOptions options)
         {
-            if(!File.Exists(JsonFile))
+            void VisitJsonElement(JsonProperty element, string hierarchy, Dictionary<string, string> contents)
             {
-                return new Dictionary<string, object>();
+                var tree = $"{hierarchy}{options.HierarchyDelimiter}{element.Name}".Trim(options.HierarchyDelimiter.ToCharArray());
+                if(options.FlattenTree)
+                {
+                    tree = element.Name;
+                }
+
+                if (element.Value.ValueKind == JsonValueKind.Object)
+                {
+                    foreach (var item in element.Value.EnumerateObject())
+                    {
+                        VisitJsonElement(item, tree, contents);
+                    }
+                }
+                else
+                {
+                    contents.Add(tree, element.Value.GetString());
+                }
             }
 
+            if(!File.Exists(JsonFile))
+            {
+                return new Dictionary<string, string>();
+            }
+            
             return await Task.Run(() =>
             {
-                var contents = JsonSerializer.Deserialize<Dictionary<string, object>>(File.ReadAllText(JsonFile));
+                var root = JsonSerializer.Deserialize<JsonElement>(File.ReadAllText(JsonFile));
+                var contents = new Dictionary<string, string>(); //JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(JsonFile));
 
+                foreach(var subNode in root.EnumerateObject())
+                {
+                    VisitJsonElement(subNode, "", contents);
+                }
+                
                 if (contents == null)
                 {
                     throw new FileLoadException("Failed to load settings file.");
@@ -44,9 +71,9 @@ namespace Cog.Sources
             });
         }
 
-        public async Task SaveSettingsAsync(IEnumerable<KeyValuePair<string, object>> settings)
+        public async Task SaveSettingsAsync(IEnumerable<KeyValuePair<string, string>> settings, ConfigurationOptions options)
         {
-            var currentSettings = new Dictionary<string, object>(await LoadSettingsAsync());
+            var currentSettings = new Dictionary<string, string>(await LoadSettingsAsync(options));
             foreach (var item in settings)
             {
                 if(!currentSettings.TryAdd(item.Key, item.Value))

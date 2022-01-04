@@ -47,13 +47,14 @@ void main()
         private Sdl2Window _window;
         private GraphicsDevice _graphicsDevice;
 
+        private Settings.GraphicsSettings _graphicsSettings;
 
-        public EngineApp()
+        public EngineApp(Cog.Configuration config)
         {
-
+            _graphicsSettings = config.Get<Settings.GraphicsSettings>();
         }
 
-        public void Setup(GraphicsBackend backend)
+        public void Setup()
         {
             var windowCi = new WindowCreateInfo()
             {
@@ -71,7 +72,7 @@ void main()
             };
 
             _window = VeldridStartup.CreateWindow(ref windowCi);
-            _graphicsDevice = VeldridStartup.CreateGraphicsDevice(_window, gfxOptions, backend);
+            _graphicsDevice = VeldridStartup.CreateGraphicsDevice(_window, gfxOptions, _graphicsSettings.Backend);
 
             CreateGraphicsResources();
         }

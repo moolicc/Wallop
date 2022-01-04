@@ -27,11 +27,11 @@ namespace Cog
         {
             foreach (var source in Options.Sources)
             {
-                foreach (var entry in await source.LoadSettingsAsync())
+                foreach (var entry in await source.LoadSettingsAsync(Options))
                 {
                     if (_settingValues.ContainsKey(entry.Key))
                     {
-                        _settingValues[entry.Key].SetValue(entry.Value);
+                        _settingValues[entry.Key].SetLiteralValue(entry.Value);
                     }
                     else
                     {
@@ -44,6 +44,7 @@ namespace Cog
             {
                 await ResolveBindingsAsync();
             }
+            LoadIndependentSettingInstances();
         }
 
         public async Task ResolveBindingsAsync()
@@ -67,6 +68,16 @@ namespace Cog
             {
                 return null;
             }
+            var instanceName = resultingInstance.GetType().Name;
+            if(resultingInstance.GetType().Inherits<Settings>())
+            {
+                var settingsInstance = resultingInstance as Settings;
+                if(settingsInstance != null)
+                {
+                    instanceName = settingsInstance.GetHierarchyName();
+                }
+            }
+
 
             var memberNames = ReflectionUtils.GetMemberNames(type);
             await Task.Run(() =>
@@ -75,17 +86,37 @@ namespace Cog
                 {
                     ReflectionUtils.VisitMembers(type, resultingInstance, (p, f) =>
                     {
-                        if(p != null && p.Name == item.Key)
+                        if(p != null)
                         {
-                            item.Value.Binding = new SettingBinding(resultingInstance, p);
-                            _bindingInstances.WaitAdd(p.Name, (Settings)resultingInstance);
-                            return true;
+                            var hierarchyKey = string.Format("{0}{1}{2}", instanceName, Options.HierarchyDelimiter, p.Name);
+                            var flatKey = p.Name;
+                            var settingName = Options.FlattenTree ? flatKey : hierarchyKey;
+
+
+                            if (item.Key == hierarchyKey
+                            || (item.Key == flatKey && Options.FlattenTree))
+                            {
+                                item.Value.Binding = new SettingBinding(resultingInstance, p);
+                                _bindingInstances.WaitAdd(settingName, (Settings)resultingInstance);
+                                item.Value.SetValue(item.Value.GetValue());
+                                return true;
+                            }
+
                         }
-                        else if (f != null && f.Name == item.Key)
+                        else if (f != null)
                         {
-                            item.Value.Binding = new SettingBinding(resultingInstance, f);
-                            _bindingInstances.WaitAdd(f.Name, (Settings)resultingInstance);
-                            return true;
+                            var hierarchyKey = string.Format("{0}{1}{2}", instanceName, Options.HierarchyDelimiter, f.Name);
+                            var flatKey = f.Name;
+                            var settingName = Options.FlattenTree ? flatKey : hierarchyKey;
+
+                            if (item.Key == hierarchyKey
+                            || (item.Key == flatKey && Options.FlattenTree))
+                            {
+                                item.Value.Binding = new SettingBinding(resultingInstance, f);
+                                _bindingInstances.WaitAdd(settingName, (Settings)resultingInstance);
+                                item.Value.SetValue(item.Value.GetValue());
+                                return true;
+                            }
                         }
                         return false;
                     });
@@ -94,21 +125,73 @@ namespace Cog
             return resultingInstance;
         }
 
-        public void Set(string key, object value)
+        private void LoadIndependentSettingInstances()
         {
-            _settingValues.GetOrAdd(key, new SettingInfo(null, value)).SetValue(value);
+            // TODO: Make this operation a flag in the options?
+            foreach (var type in ReflectionUtils.GetSettingsTypes())
+            {
+                if(_bindingInstances.Values.Any(x => x.GetType() == type))
+                {
+                    continue;
+                }
+                var instance = Activator.CreateInstance(type);
+                if(instance == null)
+                {
+                    throw new NullReferenceException();
+                }
+
+                ReflectionUtils.VisitMembers(type, instance, (p, f) =>
+                {
+                    var name = p?.Name ?? f?.Name;
+                    var flatName = name;
+
+                    if (p == null && f == null)
+                    {
+                        throw new NullReferenceException();
+                    }
+                    object? value = null;
+                    SettingInfo? settingInfo = null;
+
+                    if (p == null)
+                    {
+                        value = f.GetValue(instance);
+                        settingInfo = new SettingInfo(value);
+                        settingInfo.Binding = new SettingBinding(instance, f);
+                    }
+                    else
+                    {
+                        value = p.GetValue(instance);
+                        settingInfo = new SettingInfo(value);
+                        settingInfo.Binding = new SettingBinding(instance, p);
+                    }
+
+                    if(!Options.FlattenTree)
+                    {
+                        name = string.Format("{0}{1}{2}", type.Name, Options.HierarchyDelimiter, name);
+                    }
+
+                    _settingValues.WaitAdd(name, settingInfo);
+                    _bindingInstances.WaitAdd(name, (Settings)instance);
+                });
+            }
         }
 
-        public async Task<T> GetAsync<T>(string key)
+        public void Set(string key, object value)
+        {
+            _settingValues.GetOrAdd(key, new SettingInfo(value)).SetValue(value);
+        }
+
+        public async Task<T?> GetAsync<T>(string key)
         {
             return await Task.Run(() =>
                  Get<T>(key));
         }
 
-        public T Get<T>(string key)
+        public T? Get<T>(string key)
         {
             if (typeof(T).Inherits<Settings>())
             {
+                // TODO: This won't work right.
                 if (_bindingInstances.TryGetValue(key, out var value))
                 {
                     return (T)(object)value;
@@ -118,7 +201,7 @@ namespace Cog
             return _settingValues[key].GetValue<T>();
         }
 
-        public async Task<T> GetAsync<T>()
+        public async Task<T?> GetAsync<T>()
         {
             return await Task.Run(() =>
             {
@@ -143,17 +226,38 @@ namespace Cog
                 {
                     if (item.Value.ValueType == typeof(T))
                     {
-                        return (T)item.Value.GetValue();
+                        T? value = item.Value.GetValue<T>();
+                        return value;
                     }
                 }
                 throw new KeyNotFoundException();
             });
         }
 
-        public T Get<T>()
+        public T? Get<T>()
         {
             var get = GetAsync<T>();
             return get.Result;
+        }
+
+        public IEnumerable<KeyValuePair<string, object?>> GetValues(bool preserveHierarchy = true)
+        {
+            if(preserveHierarchy)
+            {
+                foreach (var setting in _bindingInstances)
+                {
+                    yield return new KeyValuePair<string, object?>(setting.Key, setting.Value);
+                }
+            }
+
+            foreach (var item in _settingValues)
+            {
+                if(preserveHierarchy && item.Value.Binding != null)
+                {
+                    continue;
+                }
+                yield return new KeyValuePair<string, object?>(item.Key, item.Value.GetValue());
+            }
         }
 
         public void Persist()
@@ -301,7 +405,12 @@ namespace Cog
 
             foreach (var item in aggregations)
             {
-                tasks[i] = item.Key.SaveSettingsAsync(item.Value.ToValues());
+                var dictionary = new Dictionary<string, string>();
+                foreach (var setting in item.Value)
+                {
+                    dictionary.Add(setting.Key, setting.Value.ValueLiteral);
+                }
+                tasks[i] = item.Key.SaveSettingsAsync(dictionary, Options);
                 i++;
             }
 

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Cog.Sources
 {
-    public class CommandLineSource : ISettingsSource
+    public class CommandLineSource// : ISettingsSource
     {
         public bool CanSave => false;
 

@@ -14,6 +14,8 @@ namespace Cog
     {
         public object Instance { get; private set; }
 
+        public Type ValueType => _property?.PropertyType ?? _field.FieldType;
+        
         private PropertyInfo _property;
         private FieldInfo _field;
 
@@ -49,11 +51,30 @@ namespace Cog
             {
                 _property.SetValue(Instance, value);
             }
+            else if (_field != null)
+            {
+                _field.SetValue(Instance, value);
+            }
+            else
+            {
+                throw new NullReferenceException("Setting has no member associated with it.");
+            }
+        }
+
+        public void SetValue(Type? type, object? value)
+        {
+            if(type == null)
+            {
+                type = ValueType;
+            }
+            if (_property != null)
+            {
+                _property.SetValue(Instance, value);
+            }
             if (_field != null)
             {
                 _field.SetValue(Instance, value);
             }
-            throw new NullReferenceException("Setting has no member associated with it.");
         }
     }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.

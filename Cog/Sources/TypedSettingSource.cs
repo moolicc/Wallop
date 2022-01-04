@@ -19,13 +19,13 @@ namespace Cog.Sources
 
         }
 
-        public async Task<IEnumerable<KeyValuePair<string, object>>> LoadSettingsAsync()
+        public async Task<IEnumerable<KeyValuePair<string, string>>> LoadSettingsAsync(ConfigurationOptions options)
         {
             var types = ReflectionUtils.GetSettingsTypes();
 
             return await Task.Run(() =>
             {
-                var results = new List<KeyValuePair<string, object>>();
+                var results = new List<KeyValuePair<string, string>>();
                 foreach (var type in types)
                 {
                     Settings? instance = Activator.CreateInstance(type) as Settings;
@@ -35,13 +35,13 @@ namespace Cog.Sources
                     }
 
                     ReflectionUtils.VisitMemberValues(type, instance, (k, v) =>
-                        results.Add(new KeyValuePair<string, object>(k, v)));
+                        results.Add(new KeyValuePair<string, string>(options.FlattenTree ? k : $"{type.Name}{options.HierarchyDelimiter}{k}", Serializer.Serialize(v.GetType(), v))));
                 }
                 return results;
             });
         }
 
-        public Task SaveSettingsAsync(IEnumerable<KeyValuePair<string, object>> settings)
+        public Task SaveSettingsAsync(IEnumerable<KeyValuePair<string, string>> settings, ConfigurationOptions options)
         {
             throw new NotImplementedException();
         }
