@@ -1,5 +1,7 @@
 ﻿{
 	"GraphicsSettings": {
-		"Backend": "OpenGL"
+		"Backend": "OpenGL",
+		"WindowWidth": 540,
+		"WindowHeight": 960
 	}
 }

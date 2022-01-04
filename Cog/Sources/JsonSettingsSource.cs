@@ -43,7 +43,7 @@ namespace Cog.Sources
                 }
                 else
                 {
-                    contents.Add(tree, element.Value.GetString());
+                    contents.Add(tree, element.Value.ToString());
                 }
             }
 

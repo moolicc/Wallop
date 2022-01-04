@@ -60,8 +60,8 @@ void main()
             {
                 X = 100,
                 Y = 100,
-                WindowHeight = 540,
-                WindowWidth = 960,
+                WindowHeight = _graphicsSettings.WindowWidth,
+                WindowWidth = _graphicsSettings.WindowHeight,
                 WindowTitle = "Wallop - Engine",
             };
 

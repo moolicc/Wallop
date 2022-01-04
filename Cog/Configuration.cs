@@ -244,7 +244,7 @@ namespace Cog
         {
             if(preserveHierarchy)
             {
-                foreach (var setting in _bindingInstances)
+                foreach (var setting in _bindingInstances.DistinctBy(kvp => kvp.Value))
                 {
                     yield return new KeyValuePair<string, object?>(setting.Key, setting.Value);
                 }
