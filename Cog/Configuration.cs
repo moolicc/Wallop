@@ -12,14 +12,14 @@ namespace Cog
     {
         public ConfigurationOptions Options { get; set; }
 
-        private ConcurrentDictionary<string, Settings> _bindingInstances;
+        private ConcurrentDictionary<string, object> _bindingInstances;
         private ConcurrentDictionary<string, SettingInfo> _settingValues;
 
         public Configuration()
         {
             Options = new ConfigurationOptions();
 
-            _bindingInstances = new ConcurrentDictionary<string, Settings>();
+            _bindingInstances = new ConcurrentDictionary<string, object>();
             _settingValues = new ConcurrentDictionary<string, SettingInfo>();
         }
 
@@ -44,7 +44,8 @@ namespace Cog
             {
                 await ResolveBindingsAsync();
             }
-            LoadIndependentSettingInstances();
+            //TODO: What was this for?
+            //LoadIndependentSettingInstances();
         }
 
         public async Task ResolveBindingsAsync()
@@ -212,7 +213,7 @@ namespace Cog
                     {
                         if (item.Value.GetType() == typeof(T))
                         {
-                            settingsInstance = item.Value;
+                            settingsInstance = (Settings)item.Value;
                             break;
                         }
                     }
@@ -246,7 +247,7 @@ namespace Cog
             {
                 foreach (var setting in _bindingInstances.DistinctBy(kvp => kvp.Value))
                 {
-                    yield return new KeyValuePair<string, object?>(setting.Key, setting.Value);
+                    yield return new KeyValuePair<string, object?>(setting.Value.GetType().Name, setting.Value);
                 }
             }
 

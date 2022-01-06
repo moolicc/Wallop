@@ -9,10 +9,12 @@ var config = new Cog.Configuration();
 
 config.Options.Sources.Add(typedSource);
 config.Options.Sources.Add(jsonSource);
+config.Options.ConfigureBindings = false;
 
 config.LoadSettingsAsync().Wait();
 
 Console.WriteLine("Loaded configuration:");
+config.ResolveBindingsAsync<Engine.Settings.GraphicsSettings>().Wait();
 foreach (var item in config.GetValues())
 {
     Console.WriteLine("{0}: {1}", item.Key, item.Value);
