@@ -17,50 +17,75 @@ namespace PluginPantry
         {
             if (!string.IsNullOrEmpty(pluginId))
             {
-                OnRemoveEntry?.Invoke(pluginId);
+                if(OnRemoveEntry != null)
+                {
+                    OnRemoveEntry(pluginId);
+                }
             }
         }
     }
 
-    internal static class EndPointTable<T>
+    internal class EndPointTable<TEndPointContext>
     {
-        private static List<EndPointTableEntry> _endPoints;
-        private static Type _endPointType;
-        
+        private static Dictionary<PluginContext, EndPointTable<TEndPointContext>> _instances;
+
+        private List<EndPointTableEntry> _endPoints;
+        private Type _endPointType;
+       
         static EndPointTable()
         {
+            _instances = new Dictionary<PluginContext, EndPointTable<TEndPointContext>>();
+        }
+
+        public static void ClearTable(PluginContext context)
+        {
+            _instances.Remove(context);
+        }
+
+        public static EndPointTable<TEndPointContext> ForPluginContext(PluginContext context)
+        {
+            if(!_instances.TryGetValue(context, out var endPointTable))
+            {
+                endPointTable = new EndPointTable<TEndPointContext>();
+                _instances.Add(context, endPointTable);
+            }
+            return endPointTable;
+        }
+
+        private EndPointTable()
+        {
             _endPoints = new List<EndPointTableEntry>();
-            _endPointType = typeof(T);
+            _endPointType = typeof(TEndPointContext);
 
             EndPointTable.OnRemoveEntry += OnRemoveEntry;
         }
 
-        private static void OnRemoveEntry(string pluginId)
+
+        private void OnRemoveEntry(string pluginId)
         {
-            foreach (var item in _endPoints)
+            for (int i = 0; i < _endPoints.Count; i++)
             {
-                if(item.PluginId == pluginId)
+                EndPointTableEntry? item = _endPoints[i];
+                if (item.PluginId == pluginId)
                 {
-                    _endPoints.Remove(item);
-                    item.ExecutionTask?.Wait(500);
+                    _endPoints.RemoveAt(i);
+                    i--;
                 }
             }
         }
 
-        public static void AddEndPoint(string endPoint, object instance, string pluginId)
+        public void AddEndPoint(string endPoint, Type instanceType, object? instance, string pluginId)
         {
-            var instanceType = instance.GetType();
-
             foreach (var method in instanceType.GetMethods())
             {
                 if(method.Name == endPoint)
                 {
-                    _endPoints.Add(new EndPointTableEntry(method, instance, pluginId, _endPointType));
+                    _endPoints.Add(new EndPointTableEntry(method, instanceType, instance, pluginId, _endPointType));
                 }
             }
         }
 
-        public static void VisitEntries(Action<EndPointTableEntry> visitor)
+        public void VisitEntries(Action<EndPointTableEntry> visitor)
         {
             foreach (var entry in _endPoints)
             {
@@ -69,14 +94,11 @@ namespace PluginPantry
         }
     }
 
-    internal record EndPointTableEntry(MethodInfo Target, object Instance, string PluginId, Type EndPointType)
+    internal record EndPointTableEntry(MethodInfo Target, Type InstanceType, object? Instance, string PluginId, Type EndPointType)
     {
-        public Task? ExecutionTask { get; set; }
-        public CancellationTokenSource? ExecutionTaskCancelToken { get; set; }
-
         public long ExecutionStartTime { get; set; }
         public long ExecutionEndTime { get; set; }
 
-        public string Name => $"{EndPointType.Name}:{PluginId}:{Instance.GetType().Name}.{Target.Name}";
+        public string Name => $"{EndPointType.Name}:{PluginId}:{InstanceType.Name}.{Target.Name}";
     }
 }

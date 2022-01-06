@@ -6,51 +6,50 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Reflection;
 
-namespace PluginPantry.Loading
+namespace PluginPantry
 {
     public class PluginLoader
     {
-        public IEnumerable<PluginMetadata> FindPlugins(string baseDir, Type baseType)
+        public Type PluginBaseType { get; set; }
+
+        public PluginLoader()
+        {
+            PluginBaseType = typeof(object);
+        }
+
+        public IEnumerable<PluginMetadata> LoadPlugins(string baseDir, Type baseType)
         {
             var files = Directory.GetFiles(baseDir, "*.dll", SearchOption.AllDirectories);
             foreach (var file in files)
             {
-                var assembly = Assembly.Load(file);
-                foreach(var type in assembly.ExportedTypes)
+                foreach(var pluginFound in LoadPluginAssembly(file))
                 {
-                    if(!type.IsAssignableTo(baseType))
-                    {
-                        // TODO: Message
-                        continue;
-                    }
-
-                    foreach (var method in type.GetMethods())
-                    {
-                        var attrib = method.GetCustomAttribute<Extending.PluginEntryPoint>();
-                        if(attrib == null)
-                        {
-                            continue;
-                        }
-
-                        yield return new PluginMetadata(attrib.PluginName, attrib.PluginVersion, method, file);
-                    }
+                    yield return pluginFound;
                 }
             }
         }
 
-        public void ReloadPluginAssembly(string assembly)
+        public IEnumerable<PluginMetadata> LoadPluginAssembly(string assemblyFile)
         {
-        }
-
-        public void ReloadPlugin(PluginMetadata pluginMetadata)
-        {
-            // TODO: Cleanup plugin
-
-            if (EndPointRunner.CancelTokens.TryGetValue(pluginMetadata.Id, out var cancelToken))
+            var assembly = Assembly.Load(assemblyFile);
+            foreach (var type in assembly.ExportedTypes)
             {
-                cancelToken.Cancel();
-                cancelToken.Dispose();
+                if (!type.IsAssignableTo(PluginBaseType))
+                {
+                    // TODO: Message
+                    continue;
+                }
 
+                foreach (var method in type.GetMethods())
+                {
+                    var attrib = method.GetCustomAttribute<Extending.PluginEntryPoint>();
+                    if (attrib == null)
+                    {
+                        continue;
+                    }
+
+                    yield return new PluginMetadata(attrib.PluginName, attrib.PluginVersion, type, method, assemblyFile);
+                }
             }
         }
     }

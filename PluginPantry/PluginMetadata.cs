@@ -9,18 +9,22 @@ namespace PluginPantry
 {
     public class PluginMetadata
     {
+        public PluginContext? OwningContext { get; internal set; }
+
         public string Name { get; private set; }
         public Version Version { get; private set; }
+        public Type EntryType { get; private set; }
         public MethodInfo EntryPoint { get; private set; }
         public string AssemblyPath { get; private set; }
 
         public string Id => CreateId(this);
 
 
-        internal PluginMetadata(string name, Version version, MethodInfo entryPoint, string assemblyPath)
+        internal PluginMetadata(string name, Version version, Type entryType, MethodInfo entryPoint, string assemblyPath)
         {
             Name = name;
             Version = version;
+            EntryType = entryType;
             EntryPoint = entryPoint;
             AssemblyPath = assemblyPath;
         }
