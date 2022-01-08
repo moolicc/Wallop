@@ -166,6 +166,10 @@ namespace PluginPantry
 
         private long GetAverageExecutionTicks()
         {
+            if (_executions == 0)
+            {
+                return 0;
+            }
             long ticks = _runningExecutionTicks;
             long executions = _executions;
             return ticks / executions;

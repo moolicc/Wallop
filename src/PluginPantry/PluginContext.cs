@@ -61,7 +61,7 @@ namespace PluginPantry
         }
 
         public void BeginPluginExecution<TEntryPointContext>(TEntryPointContext context)
-            where TEntryPointContext : Extending.EntryPointContext
+            where TEntryPointContext : Extending.IEntryPointContext
         {
             foreach (var plugin in _loadedPlugins)
             {
@@ -70,7 +70,7 @@ namespace PluginPantry
         }
 
         public void BeginPluginExecution<TEntryPointContext>(Func<TEntryPointContext> contextFactory)
-            where TEntryPointContext : Extending.EntryPointContext
+            where TEntryPointContext : Extending.IEntryPointContext
         {
             foreach (var plugin in _loadedPlugins)
             {
@@ -79,20 +79,20 @@ namespace PluginPantry
         }
 
         public void BeginPluginExecution<TEntryPointContext>(string pluginId, TEntryPointContext context)
-            where TEntryPointContext : Extending.EntryPointContext
+            where TEntryPointContext : Extending.IEntryPointContext
         {
             var plugin = CheckPluginId(pluginId);
             BeginPluginExecution(plugin, context);
         }
 
         public void BeginPluginExecution<TEntryPointContext>(PluginMetadata plugin, TEntryPointContext context)
-            where TEntryPointContext : Extending.EntryPointContext
+            where TEntryPointContext : Extending.IEntryPointContext
         {
             CheckPluginOwner(plugin);
             object? createdInstance = null;
             if(plugin.EntryType.GetConstructors().Any(c => !c.IsStatic))
             {
-                Activator.CreateInstance(plugin.EntryType);
+                createdInstance = Activator.CreateInstance(plugin.EntryType);
             }
 
             if (createdInstance == null && !plugin.EntryPoint.IsStatic)
@@ -100,14 +100,19 @@ namespace PluginPantry
                 throw new EntryPointNotFoundException();
             }
 
-            if (context.Exposed != null && context.Exposed != Exposed)
+            if(context.PluginInformation == null)
+            {
+                context.PluginInformation = new Extending.PluginInformation();
+            }
+
+            if (context.PluginInformation.Exposed != null && context.PluginInformation.Exposed != Exposed)
             {
                 throw new InvalidOperationException("The same entry point exposure point cannot be shared across plugin contexts.");
             }
-            context.Exposed = Exposed;
-            context.PluginObject = createdInstance;
-            context.PluginType = plugin.EntryType;
-            context.PluginId = plugin.Id;
+            context.PluginInformation.Exposed = Exposed;
+            context.PluginInformation.PluginObject = createdInstance;
+            context.PluginInformation.PluginType = plugin.EntryType;
+            context.PluginInformation.PluginId = plugin.Id;
 
             var invocationResult = Util.TryInvokeMatchingMethod(plugin.EntryPoint, createdInstance, context);
             if (invocationResult == MethodInvocationResults.Failed)
@@ -120,14 +125,24 @@ namespace PluginPantry
             }
         }
 
-        public async Task ExecuteEndPoint<TEndPointContext>(TEndPointContext? context)
+        public async Task ExecuteEndPointAsync<TEndPointContext>(TEndPointContext? context)
         {
             await EndPointRunner<TEndPointContext>.ForPluginContext(this).InvokeEndPointAsync(context);
         }
 
-        public async Task ExecuteEndPoint<TEndPointContext>(Func<TEndPointContext?> contextCreator)
+        public async Task ExecuteEndPointAsync<TEndPointContext>(Func<TEndPointContext?> contextCreator)
         {
             await EndPointRunner<TEndPointContext>.ForPluginContext(this).InvokeEndPointAsync(contextCreator);
+        }
+
+        public IEnumerable<TBase> GetImplementations<TBase>()
+        {
+            return ImplementationTable<TBase>.ForPluginContext(this).GetInstances();
+        }
+
+        public void CreateDynamicImplementations<TBase, TContext>(TContext? context)
+        {
+            DynamicImplementationTable<TBase>.ForPluginContext(this).CreateInstances(context);
         }
 
 

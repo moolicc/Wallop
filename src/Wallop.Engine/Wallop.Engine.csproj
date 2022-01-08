@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Cog\Cog.csproj" />
+    <ProjectReference Include="..\PluginPantry\PluginPantry.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -13,11 +13,16 @@ namespace PluginPantry
         public Type PluginBaseType { get; set; }
 
         public PluginLoader()
+            : this(typeof(object))
         {
-            PluginBaseType = typeof(object);
         }
 
-        public IEnumerable<PluginMetadata> LoadPlugins(string baseDir, Type baseType)
+        public PluginLoader(Type pluginBaseType)
+        {
+            PluginBaseType = pluginBaseType;
+        }
+
+        public IEnumerable<PluginMetadata> LoadPlugins(string baseDir)
         {
             var files = Directory.GetFiles(baseDir, "*.dll", SearchOption.AllDirectories);
             foreach (var file in files)
@@ -31,7 +36,7 @@ namespace PluginPantry
 
         public IEnumerable<PluginMetadata> LoadPluginAssembly(string assemblyFile)
         {
-            var assembly = Assembly.Load(assemblyFile);
+            var assembly = Assembly.LoadFrom(assemblyFile);
             foreach (var type in assembly.ExportedTypes)
             {
                 if (!type.IsAssignableTo(PluginBaseType))

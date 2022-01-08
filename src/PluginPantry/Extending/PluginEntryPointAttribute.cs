@@ -10,12 +10,12 @@ namespace PluginPantry.Extending
     public sealed class PluginEntryPoint : Attribute
     {
         public string PluginName { get; private set; }
-        public Version PluginVersion { get; private set; }
+        public Version PluginVersion { get; }
 
-        public PluginEntryPoint(string pluginName, Version pluginVersion)
+        public PluginEntryPoint(string pluginName, string pluginVersion)
         {
             PluginName = pluginName;
-            PluginVersion = pluginVersion;
+            PluginVersion = Version.Parse(pluginVersion);
         }
     }
 }

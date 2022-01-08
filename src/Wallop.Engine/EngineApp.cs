@@ -9,7 +9,7 @@ using Veldrid.Sdl2;
 using Veldrid.SPIRV;
 using Veldrid.StartupUtilities;
 
-namespace Engine
+namespace Wallop.Engine
 {
     internal class EngineApp : IDisposable
     {
@@ -48,10 +48,14 @@ void main()
         private GraphicsDevice _graphicsDevice;
 
         private Settings.GraphicsSettings _graphicsSettings;
+        private PluginPantry.PluginContext _pluginContext;
 
-        public EngineApp(Cog.Configuration config)
+        public EngineApp(Cog.Configuration config, PluginPantry.PluginContext pluginContext)
         {
-            _graphicsSettings = config.Get<Settings.GraphicsSettings>();
+            _graphicsSettings = config.Get<Settings.GraphicsSettings>() ?? new Settings.GraphicsSettings();
+            _pluginContext = pluginContext;
+
+            _pluginContext.ExecuteEndPointAsync(new Types.Plugins.EngineStartupEndPoint { GraphicsSettings = _graphicsSettings }).Wait();
         }
 
         public void Setup()
