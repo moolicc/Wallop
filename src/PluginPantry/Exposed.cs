@@ -15,6 +15,34 @@ namespace PluginPantry
             PluginContext = context;
         }
 
+        public void RegisterEndPoint<TEndPointContext, THandlerInstance>(string handler, string pluginId)
+        {
+            var instance = Activator.CreateInstance<THandlerInstance>();
+            if(instance == null)
+            {
+                // TODO
+                return;
+            }
+            RegisterEndPoint<TEndPointContext>(handler, instance, pluginId);
+        }
+
+        public void RegisterEndPoint<TEndPointContext>(Delegate handler, string pluginId)
+        {
+            if(handler.Target == null)
+            {
+                if(handler.Method.DeclaringType == null)
+                {
+                    //TODO
+                    return;
+                }
+                RegisterStaticEndPoint<TEndPointContext>(handler.Method.Name, handler.Method.DeclaringType, pluginId);
+            }
+            else
+            {
+                RegisterEndPoint<TEndPointContext>(handler.Method.Name, handler.Target, pluginId);
+            }
+        }
+
         public void RegisterEndPoint<TEndPointContext>(string handler, object handlerInstance, string pluginId)
         {
             EndPointTable<TEndPointContext>.ForPluginContext(PluginContext).AddEndPoint(handler, handlerInstance.GetType(), handlerInstance, pluginId);

@@ -22,11 +22,13 @@ foreach (var item in config.GetValues())
 
 
 var pluginLoader = new PluginPantry.PluginLoader();
-var plugins = pluginLoader.LoadPluginAssembly(@"C:\Users\joel\source\repos\moolicc\Wallop\TestPlugin\bin\Debug\net6.0\TestPlugin.dll");
+//var plugins = pluginLoader.LoadPluginAssembly(@"C:\Users\joel\source\repos\moolicc\Wallop\Plugins\TestPlugin\bin\Debug\net6.0\TestPlugin.dll");
+var morePlugins = pluginLoader.LoadPluginAssembly(@"C:\Users\joel\source\repos\moolicc\Wallop\src\Plugins\EnginePlugins\bin\Debug\net6.0\EnginePlugins.dll");
 
 var context = new PluginPantry.PluginContext();
-context.IncludePlugin(plugins.FirstOrDefault());
-context.BeginPluginExecution(new Wallop.Engine.Types.Plugins.EntryPointContext());
+//context.IncludePlugins(plugins);
+context.IncludePlugins(morePlugins);
+context.BeginPluginExecution(new Wallop.Engine.Types.Plugins.EndPoints.EntryPointContext());
 
 var app = new EngineApp(config, context);
 app.Setup();

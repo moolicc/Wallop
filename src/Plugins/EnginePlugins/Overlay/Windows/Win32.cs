@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Wallop.Presenter
+namespace EnginePlugins.Overlay.Windows
 {
     class Win32
     {
@@ -542,7 +542,7 @@ namespace Wallop.Presenter
         public static extern int GetSystemMetrics(int abc);
 
         [DllImport("user32.dll", EntryPoint = "GetWindowDC")]
-        public static extern IntPtr GetWindowDC(Int32 ptr);
+        public static extern IntPtr GetWindowDC(int ptr);
 
         [DllImport("user32.dll")]
         public static extern bool IsWindowVisible(IntPtr hWnd);
@@ -560,7 +560,7 @@ namespace Wallop.Presenter
         public static extern IntPtr SelectObject(IntPtr hdc, IntPtr bmp);
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        public static extern IntPtr SendMessage(IntPtr hWnd, UInt32 Msg, IntPtr wParam, IntPtr lParam);
+        public static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
 
         [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
         public static extern IntPtr SendMessageTimeout(IntPtr windowHandle, uint Msg, IntPtr wParam, IntPtr lParam, SendMessageTimeoutFlags flags, uint timeout, out IntPtr result);
@@ -616,17 +616,17 @@ namespace Wallop.Presenter
         public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, SetWindowPosFlags uFlags);
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        public static extern Int32 SystemParametersInfo(UInt32 action, UInt32 uParam, string vParam, UInt32 winIni);
+        public static extern int SystemParametersInfo(uint action, uint uParam, string vParam, uint winIni);
 
         public enum GWL
         {
-            GWL_WNDPROC = (-4),
-            GWL_HINSTANCE = (-6),
-            GWL_HWNDPARENT = (-8),
-            GWL_STYLE = (-16),
-            GWL_EXSTYLE = (-20),
-            GWL_USERDATA = (-21),
-            GWL_ID = (-12)
+            GWL_WNDPROC = -4,
+            GWL_HINSTANCE = -6,
+            GWL_HWNDPARENT = -8,
+            GWL_STYLE = -16,
+            GWL_EXSTYLE = -20,
+            GWL_USERDATA = -21,
+            GWL_ID = -12
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -680,13 +680,13 @@ namespace Wallop.Presenter
             public int X
             {
                 get { return Left; }
-                set { Right -= (Left - value); Left = value; }
+                set { Right -= Left - value; Left = value; }
             }
 
             public int Y
             {
                 get { return Top; }
-                set { Bottom -= (Top - value); Top = value; }
+                set { Bottom -= Top - value; Top = value; }
             }
 
             public int Height

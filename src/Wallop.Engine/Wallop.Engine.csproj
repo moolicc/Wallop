@@ -5,12 +5,14 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Veldrid" Version="4.8.0" />
+    <PackageReference Include="Veldrid" Version="4.9.0-gffcf1cdb33" />
+    <PackageReference Include="Veldrid.SDL2" Version="4.9.0-gffcf1cdb33" />
     <PackageReference Include="Veldrid.SPIRV" Version="1.0.14" />
-    <PackageReference Include="Veldrid.StartupUtilities" Version="4.8.0" />
+    <PackageReference Include="Veldrid.StartupUtilities" Version="4.9.0-gffcf1cdb33" />
   </ItemGroup>
 
   <ItemGroup>

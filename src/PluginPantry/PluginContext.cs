@@ -24,6 +24,14 @@ namespace PluginPantry
 
         }
 
+        public void IncludePlugins(IEnumerable<PluginMetadata> plugins)
+        {
+            foreach (var item in plugins)
+            {
+                IncludePlugin(item);
+            }
+        }
+
         public void IncludePlugin(PluginMetadata plugin)
         {
             if(plugin.OwningContext != null)

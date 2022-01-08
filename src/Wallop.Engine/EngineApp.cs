@@ -79,6 +79,15 @@ void main()
             _graphicsDevice = VeldridStartup.CreateGraphicsDevice(_window, gfxOptions, _graphicsSettings.Backend);
 
             CreateGraphicsResources();
+
+            _window.Resized += WindowResized;
+
+            _pluginContext.ExecuteEndPointAsync(new Types.Plugins.EndPoints.OverlayerEndPoint(_window)).Wait();
+        }
+
+        private void WindowResized()
+        {
+            _graphicsDevice.MainSwapchain.Resize((uint)_window.Width, (uint)_window.Height);
         }
 
         private void CreateGraphicsResources()
