@@ -2,6 +2,8 @@
 	"GraphicsSettings": {
 		"Backend": "OpenGL",
 		"WindowWidth": 540,
-		"WindowHeight": 960
+		"WindowHeight": 960,
+		"SkipOverlay": "true",
+		"WindowBorder":  "true"
 	}
 }

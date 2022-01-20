@@ -18,6 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Cog\Cog.csproj" />
     <ProjectReference Include="..\PluginPantry\PluginPantry.csproj" />
+    <ProjectReference Include="..\Wallop.DSLExtension\Wallop.DSLExtension.csproj" />
   </ItemGroup>
 
   <ItemGroup>

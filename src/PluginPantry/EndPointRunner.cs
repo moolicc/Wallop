@@ -21,10 +21,10 @@ namespace PluginPantry
         {
             RunQueue = new ConcurrentQueue<Action>();
             CancelSource = new CancellationTokenSource();
-            Task = Task.Factory.StartNew(PluginTask);
+            Task = PluginTaskAsync();
         }
 
-        private async Task PluginTask()
+        private async Task PluginTaskAsync()
         {
             int consecutiveFailedIterations = 0;
             while (!CancelSource.IsCancellationRequested)
@@ -101,9 +101,23 @@ namespace PluginPantry
     {
         private static Dictionary<PluginContext, EndPointRunner<TEndPointContext>> _instances;
 
+
+        public bool LastInvocationCompleted
+        {
+            get
+            {
+                return _completeFromLastInvocation == _expectedInvocationCount;
+            }
+        }
+
         private PluginContext _pluginContext;
         private long _runningExecutionTicks;
         private long _executions;
+
+
+        private int _curInvocation;
+        private int _completeFromLastInvocation;
+        private int _expectedInvocationCount;
 
         static EndPointRunner()
         {
@@ -113,6 +127,9 @@ namespace PluginPantry
         private EndPointRunner(PluginContext context)
         {
             _pluginContext = context;
+            _curInvocation = 0;
+            _completeFromLastInvocation = 0;
+            _expectedInvocationCount = 0;
         }
 
         public static EndPointRunner<TEndPointContext> ForPluginContext(PluginContext context)
@@ -125,30 +142,36 @@ namespace PluginPantry
             return endPointRunner;
         }
 
-        public async Task InvokeEndPointAsync(TEndPointContext? context)
+        public void InvokeEndPoint(Func<TEndPointContext?> contextCreator)
         {
-            await InvokeEndPointAsync(() => context);
-        }
-
-        public async Task InvokeEndPointAsync(Func<TEndPointContext?> contextCreator)
-        {
-            await Task.Run(() => EndPointTable<TEndPointContext>.ForPluginContext(_pluginContext).VisitEntries(endPoint =>
+            _completeFromLastInvocation = 0;
+            _curInvocation++;
+            _expectedInvocationCount = EndPointTable<TEndPointContext>.ForPluginContext(_pluginContext).GetEntryCount();
+            EndPointTable<TEndPointContext>.ForPluginContext(_pluginContext).VisitEntries(endPoint =>
             {
                 EndPointRunner.QueueRun(endPoint.PluginId, () =>
                 {
+                    int myInvocation = _curInvocation;
+
                     endPoint.ExecutionStartTime = DateTime.Now.Ticks;
                     InvokeEndPoint(endPoint, contextCreator());
                     endPoint.ExecutionEndTime = DateTime.Now.Ticks;
 
                     _executions++;
                     _runningExecutionTicks += endPoint.ExecutionEndTime - endPoint.ExecutionStartTime;
+
+                    // If another invocation has been called before this one finished.
+                    if(myInvocation == _curInvocation)
+                    {
+                        _completeFromLastInvocation++;
+                    }
                 });
 
                 if (DateTime.Now.Ticks - endPoint.ExecutionStartTime > (long)(GetAverageExecutionTicks() * 1.5f))
                 {
                     // TODO: Bubble this up.
                 }
-            }));
+            });
         }
 
         private void InvokeEndPoint(EndPointTableEntry endPoint, TEndPointContext? context)

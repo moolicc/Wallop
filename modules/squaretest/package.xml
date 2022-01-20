@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package>
+    <metadata>
+        <name>Tests</name>
+        <version>1.0</version>
+        <description>Contains various modules</description>
+    </metadata>
+    <modules>
+        <module>
+            <metadata>
+                <name>Square Test</name>
+                <version>1.0</version>
+                <description>Renders a beautiful square</description>
+                <scriptEngine>
+                    <name>Iron Python</name>
+                    <args verbose="true" />
+                </scriptEngine>
+                <type>Actor</type>
+                <source>C:\Users\joel\source\repos\moolicc\Wallop\modules\squaretest\square.py</source>
+            </metadata>
+
+            <settings>
+                <setting>
+                    <name>x</name>
+                    <description>x position of the square</description>
+                    <defaultValue>0</defaultValue>
+                    <type>number</type>
+                    <required>false</required>
+                </setting>
+                <setting>
+                    <name>y</name>
+                    <description>y position of the square</description>
+                    <defaultValue>10</defaultValue>
+                    <type>number</type>
+                    <required>false</required>
+                </setting>
+                <setting>
+                    <name>width</name>
+                    <description>width of the square</description>
+                    <type>number</type>
+                    <required>true</required>
+                </setting>
+                <setting>
+                    <name>width</name>
+                    <description>height of the square</description>
+                    <type>number</type>
+                    <required>true</required>
+                </setting>
+            </settings>
+        </module>
+    </modules>
+</package>

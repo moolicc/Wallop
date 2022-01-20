@@ -2,156 +2,139 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Veldrid;
 using Veldrid.Sdl2;
 using Veldrid.SPIRV;
 using Veldrid.StartupUtilities;
+using Wallop.DSLExtension.Scripting;
+using Wallop.DSLExtension.Types.Plugin;
+using Wallop.Engine.Rendering;
+using Wallop.Engine.SceneManagement;
+using Wallop.Engine.Scripting;
+using Wallop.Engine.Scripting.ECS;
+using Wallop.Engine.Types.Plugins.EndPoints;
+
+
+// TODO:
+// Write a thread-safe rendering mechanism that can be shared by all resources contained in a Layout.
+// Write a feature-rich set of HostApis in the plugin of the same name
+
 
 namespace Wallop.Engine
 {
     internal class EngineApp : IDisposable
     {
-        private const string VERTEX_CODE = @"
-#version 450
-
-layout(location = 0) in vec2 Position;
-layout(location = 1) in vec4 Color;
-
-layout(location = 0) out vec4 fsin_Color;
-
-void main()
-{
-    gl_Position = vec4(Position, 0, 1);
-    fsin_Color = Color;
-}";
-
-        private const string FRAGMENT_CODE = @"
-#version 450
-
-layout(location = 0) in vec4 fsin_Color;
-layout(location = 0) out vec4 fsout_Color;
-
-void main()
-{
-    fsout_Color = fsin_Color;
-}";
-
-        private static CommandList _commandList;
-        private static DeviceBuffer _vertexBuffer;
-        private static DeviceBuffer _indexBuffer;
-        private static Shader[] _shaders;
-        private static Pipeline _pipeline;
-
-        private Sdl2Window _window;
-        private GraphicsDevice _graphicsDevice;
-
         private Settings.GraphicsSettings _graphicsSettings;
+        private Settings.SceneSettings _sceneSettings;
+
         private PluginPantry.PluginContext _pluginContext;
+        private Rendering.GraphicsManager _graphicsManager;
+        private ScriptedActorRunner? _actorRunner;
+
+
+
+
+        private Pipeline _pipeline;
+        private DeviceBuffer _vertexBuffer;
+        private CommandList _commandList;
+        private VertexPositionColor[] _verts;
+
 
         public EngineApp(Cog.Configuration config, PluginPantry.PluginContext pluginContext)
         {
             _graphicsSettings = config.Get<Settings.GraphicsSettings>() ?? new Settings.GraphicsSettings();
-            _pluginContext = pluginContext;
+            _sceneSettings = config.Get<Settings.SceneSettings>() ?? new Settings.SceneSettings();
 
-            _pluginContext.ExecuteEndPointAsync(new Types.Plugins.EngineStartupEndPoint { GraphicsSettings = _graphicsSettings }).Wait();
+            _pluginContext = pluginContext;
+            _pluginContext.ExecuteEndPoint(new Types.Plugins.EngineStartupEndPoint { GraphicsSettings = _graphicsSettings });
+
+            _graphicsManager = new GraphicsManager(_graphicsSettings);
         }
 
         public void Setup()
         {
-            var windowCi = new WindowCreateInfo()
+            _graphicsManager.Setup();
+            if(_graphicsSettings.SkipOverlay)
             {
-                X = 100,
-                Y = 100,
-                WindowHeight = _graphicsSettings.WindowWidth,
-                WindowWidth = _graphicsSettings.WindowHeight,
-                WindowTitle = "Wallop - Engine",
-            };
-
-            var gfxOptions = new GraphicsDeviceOptions()
+                _graphicsManager.EnableRenderingAndShowWindow();
+            }
+            else
             {
-                PreferStandardClipSpaceYDirection = true,
-                PreferDepthRangeZeroToOne = true,
-            };
+                _pluginContext.ExecuteEndPoint(new OverlayerEndPoint(_graphicsManager.Window));
+                _pluginContext.WaitForEndPointExecutionAsync<OverlayerEndPoint>().ContinueWith(_ => _graphicsManager.EnableRenderingAndShowWindow());
+            }
+            LoadModules();
 
-            _window = VeldridStartup.CreateWindow(ref windowCi);
-            _graphicsDevice = VeldridStartup.CreateGraphicsDevice(_window, gfxOptions, _graphicsSettings.Backend);
 
-            CreateGraphicsResources();
+            _vertexBuffer = _graphicsManager.Resources.CreateBuffer(new BufferDescription { Usage = BufferUsage.VertexBuffer, SizeInBytes = 6 * VertexPositionColor.SIZE });
+            
+            _verts = new VertexPositionColor[6];
+            FillRect(ref _verts, new Rectangle(0, 0, 100, 100), RgbaFloat.Red);
+            _graphicsManager.GraphicsDevice.UpdateBuffer(_vertexBuffer, 0, _verts);
 
-            _window.Resized += WindowResized;
-
-            _pluginContext.ExecuteEndPointAsync(new Types.Plugins.EndPoints.OverlayerEndPoint(_window)).Wait();
+            _pipeline = DefaultPipelines.BasicPositionColor_Pipeline;
+            _commandList = _graphicsManager.Resources.CreateCommandList();
         }
 
-        private void WindowResized()
+        private void FillRect(ref VertexPositionColor[] data, Rectangle bounds, RgbaFloat color)
         {
-            _graphicsDevice.MainSwapchain.Resize((uint)_window.Width, (uint)_window.Height);
+            data[0] = new VertexPositionColor(bounds.TopLeft(), color);
+            data[1] = new VertexPositionColor(bounds.TopRight(), color);
+            data[2] = new VertexPositionColor(bounds.BottomLeft(), color);
+
+            data[3] = new VertexPositionColor(bounds.BottomRight(), color);
+            data[4] = new VertexPositionColor(bounds.TopRight(), color);
+            data[5] = new VertexPositionColor(bounds.BottomLeft(), color);
         }
 
-        private void CreateGraphicsResources()
+
+        private void LoadModules()
         {
-            var factory = _graphicsDevice.ResourceFactory;
+            var engineEndPointPluginContext = new ScriptEngineEndPoint();
+            _pluginContext.ExecuteEndPoint<ILoadingScriptEnginesEndPoint>(engineEndPointPluginContext);
+            _pluginContext.WaitForEndPointExecutionAsync<ILoadingScriptEnginesEndPoint>().WaitAndThrow();
 
-            var quadVertices = new[]
+            _sceneSettings = new Settings.SceneSettings()
             {
-                new VertexPositionColor(new Vector2(-0.75f, 0.75f), RgbaFloat.Red),
-                new VertexPositionColor(new Vector2(0.75f, 0.75f), RgbaFloat.Green),
-                new VertexPositionColor(new Vector2(-0.75f, -0.75f), RgbaFloat.Blue),
-                new VertexPositionColor(new Vector2(0.75f, -0.75f), RgbaFloat.Yellow)
+                DirectorModules = new List<Settings.StoredModule>(),
+                Layouts = new List<Settings.StoredLayout>()
+                {
+                    new Settings.StoredLayout()
+                    {
+                        Active = true,
+                        Name = "layout1",
+                        ActorModules = new List<Settings.StoredModule>()
+                        {
+                            new Settings.StoredModule()
+                            {
+                                InstanceName = "Square",
+                                ModuleId = "Square.Test1.0",
+                                Settings = new Dictionary<string, string>()
+                                {
+                                    { "height", "100" },
+                                    { "width", "100" }
+                                }
+                            }
+                        }
+                    }
+                }
             };
+            var sceneLoader = new ScriptedSceneLoader(_sceneSettings);
+            var scene = sceneLoader.LoadFromPackages(@"C:\Users\joel\source\repos\moolicc\Wallop\modules\squaretest");
 
-            ushort[] quadIndices = { 0, 1, 2, 3 };
-
-            _vertexBuffer = factory.CreateBuffer(new BufferDescription(4 * VertexPositionColor.SIZE, BufferUsage.VertexBuffer));
-            _indexBuffer = factory.CreateBuffer(new BufferDescription(4 * sizeof(ushort), BufferUsage.IndexBuffer));
-
-            _graphicsDevice.UpdateBuffer(_vertexBuffer, 0, quadVertices);
-            _graphicsDevice.UpdateBuffer(_indexBuffer, 0, quadIndices);
-
-            var vertexLayout = new VertexLayoutDescription(
-                new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float2),
-                new VertexElementDescription("Color", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4));
-
-            var vertexShaderDesc = new ShaderDescription(ShaderStages.Vertex, Encoding.UTF8.GetBytes(VERTEX_CODE), "main");
-            var fragmentShaderDesc = new ShaderDescription(ShaderStages.Fragment, Encoding.UTF8.GetBytes(FRAGMENT_CODE), "main");
-
-            _shaders = factory.CreateFromSpirv(vertexShaderDesc, fragmentShaderDesc);
-
-            GraphicsPipelineDescription pipelineDescription = new GraphicsPipelineDescription();
-            pipelineDescription.BlendState = BlendStateDescription.SingleOverrideBlend;
-
-            pipelineDescription.DepthStencilState = new DepthStencilStateDescription(
-                depthTestEnabled: true,
-                depthWriteEnabled: true,
-                comparisonKind: ComparisonKind.LessEqual);
-
-            pipelineDescription.RasterizerState = new RasterizerStateDescription(
-                cullMode: FaceCullMode.Back,
-                fillMode: PolygonFillMode.Solid,
-                frontFace: FrontFace.Clockwise,
-                depthClipEnabled: true,
-                scissorTestEnabled: false);
-
-            pipelineDescription.PrimitiveTopology = PrimitiveTopology.TriangleStrip;
-            pipelineDescription.ResourceLayouts = System.Array.Empty<ResourceLayout>();
-
-            pipelineDescription.ShaderSet = new ShaderSetDescription(
-                vertexLayouts: new VertexLayoutDescription[] { vertexLayout },
-                shaders: _shaders);
-
-            pipelineDescription.Outputs = _graphicsDevice.SwapchainFramebuffer.OutputDescription;
-            _pipeline = factory.CreateGraphicsPipeline(pipelineDescription);
-
-            _commandList = factory.CreateCommandList();
+            var initializer = new ScriptedSceneInitializer(scene, _pluginContext);
+            _actorRunner = new ScriptedActorRunner(engineEndPointPluginContext.GetScriptEngineProviders());
+            initializer.InitializeScripts(_actorRunner);
         }
 
         public void Run()
         {
-            while(_window.Exists)
+            while(_graphicsManager.Window.Exists)
             {
-                _window.PumpEvents();
+                _graphicsManager.Window.PumpEvents();
                 Update();
                 Draw();
             }
@@ -159,63 +142,61 @@ void main()
 
         public void Update()
         {
-
+            if(!_graphicsManager.RenderingEnabled)
+            {
+                return;
+            }
+            //_actorRunner.InvokeUpdate();
+            //_actorRunner.WaitAsync().WaitAndThrow();
         }
 
         public void Draw()
         {
-            // Begin() must be called before commands can be issued.
+            if (!_graphicsManager.RenderingEnabled)
+            {
+                return;
+            }
+
             _commandList.Begin();
-
-            // We want to render directly to the output window.
-            _commandList.SetFramebuffer(_graphicsDevice.SwapchainFramebuffer);
-            _commandList.ClearColorTarget(0, RgbaFloat.Black);
-
-            // Set all relevant state to draw our quad.
+            _commandList.SetFramebuffer(_graphicsManager.GraphicsDevice.SwapchainFramebuffer);
+            _commandList.ClearColorTarget(0, RgbaFloat.CornflowerBlue);
             _commandList.SetVertexBuffer(0, _vertexBuffer);
-            _commandList.SetIndexBuffer(_indexBuffer, IndexFormat.UInt16);
             _commandList.SetPipeline(_pipeline);
-            // Issue a Draw command for a single instance with 4 indices.
-            _commandList.DrawIndexed(
-                indexCount: 4,
-                instanceCount: 1,
-                indexStart: 0,
-                vertexOffset: 0,
-                instanceStart: 0);
-
-            // End() must be called before commands can be submitted for execution.
+            _commandList.DrawIndexed(6);
             _commandList.End();
-            _graphicsDevice.SubmitCommands(_commandList);
 
-            // Once commands have been submitted, the rendered image can be presented to the application window.
-            _graphicsDevice.SwapBuffers();
+
+            _graphicsManager.GraphicsDevice.SubmitCommands(_commandList);
+            _graphicsManager.GraphicsDevice.SwapBuffers();
+            //_actorRunner.InvokeRender();
+            //_actorRunner.WaitAsync().WaitAndThrow();
         }
 
         public void Dispose()
         {
-            _pipeline.Dispose();
-            foreach (Shader shader in _shaders)
-            {
-                shader.Dispose();
-            }
-            _commandList.Dispose();
-            _vertexBuffer.Dispose();
-            _indexBuffer.Dispose();
-            _graphicsDevice.Dispose();
+            throw new NotImplementedException();
         }
     }
 }
 
-struct VertexPositionColor
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public struct VertexPositionColor
 {
     public const uint SIZE = 24;
+
+    public static readonly VertexLayoutDescription LayoutDescription = new VertexLayoutDescription(
+        new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float2),
+        new VertexElementDescription("Color", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4)
+    );
 
     public Vector2 Position;
     public RgbaFloat Color;
 
     public VertexPositionColor(Vector2 position, RgbaFloat color)
+        : this()
     {
         Position = position;
         Color = color;
     }
+
 }

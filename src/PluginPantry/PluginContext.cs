@@ -133,14 +133,25 @@ namespace PluginPantry
             }
         }
 
-        public async Task ExecuteEndPointAsync<TEndPointContext>(TEndPointContext? context)
+        public void ExecuteEndPoint<TEndPointContext>(TEndPointContext? context)
         {
-            await EndPointRunner<TEndPointContext>.ForPluginContext(this).InvokeEndPointAsync(context);
+            ExecuteEndPoint(() => context);
         }
 
-        public async Task ExecuteEndPointAsync<TEndPointContext>(Func<TEndPointContext?> contextCreator)
+        public void ExecuteEndPoint<TEndPointContext>(Func<TEndPointContext?> contextCreator)
         {
-            await EndPointRunner<TEndPointContext>.ForPluginContext(this).InvokeEndPointAsync(contextCreator);
+            EndPointRunner<TEndPointContext>.ForPluginContext(this).InvokeEndPoint(contextCreator);
+        }
+
+        public bool GetEndPointExecutionFinished<TEndPointContext>()
+            => EndPointRunner<TEndPointContext>.ForPluginContext(this).LastInvocationCompleted;
+
+        public async Task WaitForEndPointExecutionAsync<TEndPointContext>()
+        {
+            while (!GetEndPointExecutionFinished<TEndPointContext>())
+            {
+                await Task.Delay(100);
+            }
         }
 
         public IEnumerable<TBase> GetImplementations<TBase>()

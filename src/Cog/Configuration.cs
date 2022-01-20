@@ -197,6 +197,11 @@ namespace Cog
                 {
                     return (T)(object)value;
                 }
+                else
+                {
+                    // Auto create an instance of T if there are members in the values dictionary
+                    // with names that look like the belong to T. (ie "{typeof(T).Name()}.*")
+                }
                 throw new KeyNotFoundException();
             }
             return _settingValues[key].GetValue<T>();
@@ -219,7 +224,8 @@ namespace Cog
                     }
                     if (settingsInstance == null)
                     {
-                        throw new KeyNotFoundException();
+                        //throw new KeyNotFoundException();
+                        return default(T);
                     }
                     return (T)(object)settingsInstance;
                 }

@@ -92,6 +92,11 @@ namespace PluginPantry
                 visitor(entry);
             }
         }
+
+        public int GetEntryCount()
+        {
+            return _endPoints.Count;
+        }
     }
 
     internal record EndPointTableEntry(MethodInfo Target, Type InstanceType, object? Instance, string PluginId, Type EndPointType)

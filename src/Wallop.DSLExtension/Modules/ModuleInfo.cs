@@ -1,0 +1,20 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Wallop.DSLExtension.Modules
+{
+    public enum ModuleTypes
+    {
+        Director,
+        Actor,
+    }
+    
+    // TODO: ModuleSettings
+    public record ModuleInfo(string SourcePath, string ScriptName, string ScriptVersion, string ScriptDescription, string ScriptEngineId, IEnumerable<KeyValuePair<string, string>> ScriptEngineArgs, ModuleTypes ScriptType)
+    {
+        public string Id => $"{ScriptName.Replace(' ', '.')}{ScriptVersion}";
+    }
+}
