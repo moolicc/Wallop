@@ -9,13 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Veldrid" Version="4.9.0-gffcf1cdb33" />
-    <PackageReference Include="Veldrid.SDL2" Version="4.9.0-gffcf1cdb33" />
-    <PackageReference Include="Veldrid.SPIRV" Version="1.0.14" />
-    <PackageReference Include="Veldrid.StartupUtilities" Version="4.9.0-gffcf1cdb33" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Cog\Cog.csproj" />
     <ProjectReference Include="..\PluginPantry\PluginPantry.csproj" />
     <ProjectReference Include="..\Wallop.DSLExtension\Wallop.DSLExtension.csproj" />
@@ -29,6 +22,10 @@
 
   <ItemGroup>
     <Folder Include="PluginManagement\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Silk.NET" Version="2.12.0" />
   </ItemGroup>
 
 </Project>

@@ -1,14 +1,12 @@
-﻿using System;
+﻿using Silk.NET.Maths;
+using Silk.NET.OpenGL;
+using Silk.NET.Windowing;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
-using Veldrid;
-using Veldrid.Sdl2;
-using Veldrid.SPIRV;
-using Veldrid.StartupUtilities;
 using Wallop.DSLExtension.Scripting;
 using Wallop.DSLExtension.Types.Plugin;
 using Wallop.Engine.Rendering;
@@ -27,69 +25,66 @@ namespace Wallop.Engine
 {
     internal class EngineApp : IDisposable
     {
+        private IWindow _window;
+
         private Settings.GraphicsSettings _graphicsSettings;
         private Settings.SceneSettings _sceneSettings;
 
+        private GraphicsDevice _graphicsDevice;
+
         private PluginPantry.PluginContext _pluginContext;
-        private Rendering.GraphicsManager _graphicsManager;
-        private ScriptedActorRunner? _actorRunner;
+        private ScriptedActorRunner _actorRunner;
 
-
-
-
-        private Pipeline _pipeline;
-        private DeviceBuffer _vertexBuffer;
-        private CommandList _commandList;
-        private VertexPositionColor[] _verts;
 
 
         public EngineApp(Cog.Configuration config, PluginPantry.PluginContext pluginContext)
         {
             _graphicsSettings = config.Get<Settings.GraphicsSettings>() ?? new Settings.GraphicsSettings();
             _sceneSettings = config.Get<Settings.SceneSettings>() ?? new Settings.SceneSettings();
-
             _pluginContext = pluginContext;
             _pluginContext.ExecuteEndPoint(new Types.Plugins.EngineStartupEndPoint { GraphicsSettings = _graphicsSettings });
-
-            _graphicsManager = new GraphicsManager(_graphicsSettings);
         }
 
         public void Setup()
         {
-            _graphicsManager.Setup();
-            if(_graphicsSettings.SkipOverlay)
-            {
-                _graphicsManager.EnableRenderingAndShowWindow();
-            }
-            else
-            {
-                _pluginContext.ExecuteEndPoint(new OverlayerEndPoint(_graphicsManager.Window));
-                _pluginContext.WaitForEndPointExecutionAsync<OverlayerEndPoint>().ContinueWith(_ => _graphicsManager.EnableRenderingAndShowWindow());
-            }
-            LoadModules();
+            var options = WindowOptions.Default;
+            options.Size = new Vector2D<int>(_graphicsSettings.WindowWidth, _graphicsSettings.WindowHeight);
+            options.WindowBorder = _graphicsSettings.WindowBorder;
+            options.IsVisible = _graphicsSettings.SkipOverlay;
+            options.FramesPerSecond = _graphicsSettings.RefreshRate;
+            options.UpdatesPerSecond = _graphicsSettings.RefreshRate;
+            options.VSync = _graphicsSettings.VSync;
 
+            _window = Window.Create(options);
+            _window.Load += WindowLoad;
+            _window.FramebufferResize += WindowResized;
+            _window.Update += Update;
+            _window.Render += Draw;
+            _window.Closing += Shutdown;
 
-            _vertexBuffer = _graphicsManager.Resources.CreateBuffer(new BufferDescription { Usage = BufferUsage.VertexBuffer, SizeInBytes = 6 * VertexPositionColor.SIZE });
-            
-            _verts = new VertexPositionColor[6];
-            FillRect(ref _verts, new Rectangle(0, 0, 100, 100), RgbaFloat.Red);
-            _graphicsManager.GraphicsDevice.UpdateBuffer(_vertexBuffer, 0, _verts);
-
-            _pipeline = DefaultPipelines.BasicPositionColor_Pipeline;
-            _commandList = _graphicsManager.Resources.CreateCommandList();
+            _window.Run();
         }
 
-        private void FillRect(ref VertexPositionColor[] data, Rectangle bounds, RgbaFloat color)
+        private void WindowLoad()
         {
-            data[0] = new VertexPositionColor(bounds.TopLeft(), color);
-            data[1] = new VertexPositionColor(bounds.TopRight(), color);
-            data[2] = new VertexPositionColor(bounds.BottomLeft(), color);
+            _graphicsDevice = new GraphicsDevice(_window.CreateOpenGL());
 
-            data[3] = new VertexPositionColor(bounds.BottomRight(), color);
-            data[4] = new VertexPositionColor(bounds.TopRight(), color);
-            data[5] = new VertexPositionColor(bounds.BottomLeft(), color);
+            if (!_graphicsSettings.SkipOverlay)
+            {
+                _pluginContext.ExecuteEndPoint(new OverlayerEndPoint(_window));
+                _pluginContext.WaitForEndPointExecutionAsync<OverlayerEndPoint>().ContinueWith(_ =>
+                {
+                    _window.IsVisible = true;
+                });
+            }
+
+            LoadModules();
         }
 
+        private void WindowResized(Vector2D<int> size)
+        {
+            _graphicsDevice.GetOpenGLInstance().Viewport(size);
+        }
 
         private void LoadModules()
         {
@@ -130,73 +125,30 @@ namespace Wallop.Engine
             initializer.InitializeScripts(_actorRunner);
         }
 
-        public void Run()
+
+        public void Update(double delta)
         {
-            while(_graphicsManager.Window.Exists)
-            {
-                _graphicsManager.Window.PumpEvents();
-                Update();
-                Draw();
-            }
+            _actorRunner.InvokeUpdate();
+            _actorRunner.WaitAsync().WaitAndThrow();
         }
 
-        public void Update()
+        public void Draw(double delta)
         {
-            if(!_graphicsManager.RenderingEnabled)
-            {
-                return;
-            }
-            //_actorRunner.InvokeUpdate();
-            //_actorRunner.WaitAsync().WaitAndThrow();
-        }
-
-        public void Draw()
-        {
-            if (!_graphicsManager.RenderingEnabled)
-            {
-                return;
-            }
-
-            _commandList.Begin();
-            _commandList.SetFramebuffer(_graphicsManager.GraphicsDevice.SwapchainFramebuffer);
-            _commandList.ClearColorTarget(0, RgbaFloat.CornflowerBlue);
-            _commandList.SetVertexBuffer(0, _vertexBuffer);
-            _commandList.SetPipeline(_pipeline);
-            _commandList.DrawIndexed(6);
-            _commandList.End();
-
-
-            _graphicsManager.GraphicsDevice.SubmitCommands(_commandList);
-            _graphicsManager.GraphicsDevice.SwapBuffers();
-            //_actorRunner.InvokeRender();
-            //_actorRunner.WaitAsync().WaitAndThrow();
+            _actorRunner.InvokeRender();
+            _actorRunner.WaitAsync().WaitAndThrow();
         }
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+        }
+
+        public void Shutdown()
+        {
+            if(!_window.IsClosing)
+            {
+                _window.Close();
+                return;
+            }
         }
     }
-}
-
-[StructLayout(LayoutKind.Sequential, Pack = 1)]
-public struct VertexPositionColor
-{
-    public const uint SIZE = 24;
-
-    public static readonly VertexLayoutDescription LayoutDescription = new VertexLayoutDescription(
-        new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float2),
-        new VertexElementDescription("Color", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4)
-    );
-
-    public Vector2 Position;
-    public RgbaFloat Color;
-
-    public VertexPositionColor(Vector2 position, RgbaFloat color)
-        : this()
-    {
-        Position = position;
-        Color = color;
-    }
-
 }
