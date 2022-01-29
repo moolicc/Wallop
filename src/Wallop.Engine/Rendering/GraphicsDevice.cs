@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 
 namespace Wallop.Engine.Rendering
@@ -17,7 +18,6 @@ namespace Wallop.Engine.Rendering
         public GraphicsDevice(GL underLyingGLInstance)
         {
             _oglInstance = underLyingGLInstance;
-            _graphicsResources = new List<GraphicsResource>();
 
             Information = new GraphicsInformation(
                 new Version(underLyingGLInstance.GetInteger(GLEnum.MajorVersion), underLyingGLInstance.GetInteger(GLEnum.MinorVersion)),
@@ -51,6 +51,35 @@ namespace Wallop.Engine.Rendering
 
         public GL GetOpenGLInstance()
             => _oglInstance;
+
+        internal void SetEffect(Effect effect)
+            => SetEffect(effect.NativePointer);
+
+        internal void ClearEffect()
+            => SetEffect(0);
+
+        public void SetEffect(uint effectProgram)
+        {
+            _oglInstance.UseProgram(effectProgram);
+        }
+
+
+        internal void SetBufferObject<TData>(BufferObject<TData> vbo) where TData : unmanaged
+            => SetBufferObject(vbo.BufferType, vbo.NativePointer);
+
+        internal void SetBufferObject(BufferTargetARB bufferType, uint buffer)
+        {
+            _oglInstance.BindBuffer(bufferType, buffer);
+        }
+
+        public void Clear(Color color)
+            => Clear(color.R, color.G, color.B, color.A);
+
+        public void Clear(float r, float g, float b, float a)
+        {
+            _oglInstance.ClearColor(r, g, b, a);
+            _oglInstance.Clear(ClearBufferMask.ColorBufferBit);
+        }
 
         public void Log(string? info)
             => Log(null, info);

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Wallop.DSLExtension.Scripting;
+using Wallop.DSLExtension.Types.Plugin;
 using Wallop.Engine.Scripting.ECS;
 
 namespace Wallop.Engine.Scripting
@@ -27,49 +28,51 @@ namespace Wallop.Engine.Scripting
             _handlersByActor = new Dictionary<string, TaskHandler>();
         }
 
-        public void AddActor(ScriptedActor actor, ScriptContext context)
+        public void AddActor<TTag>(ScriptedActor actor, TTag tag, Action<IScriptContext> buildContextCallback)
         {
             var engineProvider = ScriptEngineProviders.FirstOrDefault(ep => ep.Name == actor.ControllingModule.ModuleInfo.ScriptEngineId);
-            if(engineProvider == null)
+            if (engineProvider == null)
             {
                 // TODO:
                 return;
             }
 
+            var context = engineProvider.CreateContext();
             var engine = engineProvider.CreateScriptEngine(actor.ControllingModule.ModuleInfo.ScriptEngineArgs);
-            engine.Init(context);
+            actor.ScriptEngine = engine;
+            engine.AttachContext(context);
+            buildContextCallback(context);
 
             var taskHandler = new TaskHandler(engine);
+            taskHandler.Tag = tag;
             _handlersByActor.Add(actor.Name, taskHandler);
             _handlers.Add(taskHandler);
         }
 
-        public void InvokeInit()
-        {
-            Invoke("init", INIT_THREADED);
-        }
-
-        public void InvokeUpdate()
-        {
-            Invoke("update", UPDATE_THREADED);
-        }
-
-        public void InvokeRender()
-        {
-            Invoke("draw", RENDER_THREADED);
-        }
-
-        public void Invoke(string action, bool threaded)
+        public void Invoke<TTag>(string action, bool threaded, Action<TTag> before, Action<TTag> after)
         {
             foreach (var handler in _handlers)
             {
-                if(threaded)
+                void RunAction(Action a)
                 {
-                    handler.EnqueueAction<Action>(action, (a) => a());
+                    if (before != null && handler.Tag is TTag beforeTag)
+                    {
+                        before(beforeTag);
+                    }
+                    a();
+                    if (after != null && handler.Tag is TTag afterTag)
+                    {
+                        after(afterTag);
+                    }
+                }
+
+                if (threaded)
+                {
+                    handler.EnqueueAction<Action>(action, RunAction);
                 }
                 else
                 {
-                    handler.RunAction<Action>(action, (a) => a());
+                    handler.RunAction<Action>(action, RunAction);
                 }
             }
         }
@@ -77,7 +80,7 @@ namespace Wallop.Engine.Scripting
         public void Invoke(string actorName, string action, bool threaded)
         {
             var handler = _handlersByActor[actorName];
-            if(threaded)
+            if (threaded)
             {
                 handler.EnqueueAction<Action>(action, a => a());
             }
@@ -90,7 +93,7 @@ namespace Wallop.Engine.Scripting
         public void InvokeExecute(string actorName, string source, bool threaded)
         {
             var handler = _handlersByActor[actorName];
-            if(threaded)
+            if (threaded)
             {
                 handler.EnqueueAction(() => handler.ScriptEngine.Execute(source));
             }

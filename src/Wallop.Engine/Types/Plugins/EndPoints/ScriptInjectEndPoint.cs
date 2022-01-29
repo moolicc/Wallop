@@ -12,9 +12,9 @@ namespace Wallop.Engine.Types.Plugins.EndPoints
     {
         public Module CurrentModule { get; private set; }
 
-        public ScriptContext Context { get; private set; }
+        public IScriptContext Context { get; private set; }
 
-        public ScriptInjectEndPoint(Module currentModule, ScriptContext currentContext)
+        public ScriptInjectEndPoint(Module currentModule, IScriptContext currentContext)
         {
             CurrentModule = currentModule;
             Context = currentContext;

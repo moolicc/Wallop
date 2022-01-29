@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Wallop.Engine.Rendering
 {
-    public class Shader : GraphicsResource
+    internal class Shader : GraphicsResource
     {
         public uint NativePointer { get; private set; }
 

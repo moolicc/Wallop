@@ -23,7 +23,7 @@ namespace Scripting.IronPython
             endPoint.RegisterScriptEngineProvider(new PythonScriptEngineProvider());
         }
 
-        public void InjectScriptContext(ScriptContext context)
+        public void InjectScriptContext(IScriptContext context)
         {
             context.AddValue("name", "Albert");
         }

@@ -16,6 +16,8 @@ namespace Wallop.Engine.Settings
         public WindowBorder WindowBorder { get; set; }
 
 
+
+
         public double RefreshRate { get; set; } = 60.0;
         public bool VSync { get; set; } = true;
     }

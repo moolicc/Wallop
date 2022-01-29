@@ -10,6 +10,6 @@ namespace Wallop.DSLExtension.Modules
     {
         public PackageInfo Info { get; set; }
 
-        public IEnumerable<Module> DeclaredModules { get; set; }
+        public Module[] DeclaredModules { get; set; }
     }
 }

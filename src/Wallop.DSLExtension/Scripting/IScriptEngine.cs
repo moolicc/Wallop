@@ -8,10 +8,9 @@ namespace Wallop.DSLExtension.Scripting
 {
     public interface IScriptEngine
     {
-        public void Init(ScriptContext context);
+        public void AttachContext(IScriptContext context);
+        public IScriptContext? GetAttachedScriptContext();
+
         public void Execute(string script);
-        public T GetDelegateAs<T>(string memberName);
-        public object? GetValue(string memberName);
-        public T? GetValue<T>(string memberName);
     }
 }

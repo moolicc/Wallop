@@ -25,25 +25,34 @@ foreach (var item in engineConfig.GetValues())
 var pluginLoader = new PluginPantry.PluginLoader();
 //var plugins = pluginLoader.LoadPluginAssembly(@"C:\Users\joel\source\repos\moolicc\Wallop\Plugins\TestPlugin\bin\Debug\net6.0\TestPlugin.dll");
 var morePlugins = pluginLoader.LoadPluginAssembly(@"C:\Users\joel\source\repos\moolicc\Wallop\src\Plugins\EnginePlugins\bin\Debug\net6.0\EnginePlugins.dll");
+var yetMore = pluginLoader.LoadPluginAssembly(@"C:\Users\joel\source\repos\moolicc\Wallop\src\Plugins\HostApis\bin\Debug\net6.0\HostApis.dll");
 var moarPlugions = pluginLoader.LoadPluginAssembly(@"C:\Users\joel\source\repos\moolicc\Wallop\src\Plugins\Scripting.IronPython\bin\Debug\net6.0\Scripting.IronPython.dll");
 
 var context = new PluginPantry.PluginContext();
 //context.IncludePlugins(plugins);
 context.IncludePlugins(morePlugins);
+context.IncludePlugins(yetMore);
 context.IncludePlugins(moarPlugions);
 context.BeginPluginExecution(new Wallop.Engine.Types.Plugins.EndPoints.EntryPointContext());
 
+
 AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler((o, e) =>
 {
-    Console.WriteLine("Resolving reference {0}.", e.Name);
-
+    Console.WriteLine("Unloaded dependency found: <{0}> on behalf of {1}.", e.Name, e.RequestingAssembly?.GetName().Name ?? "[Not specified]");
+    
     var searchDirectories = new[]
     {
-        @"C:\Users\joel\source\repos\moolicc\Wallop\src\Plugins\Scripting.IronPython\bin\Debug\net6.0"
+        @"C:\Users\joel\source\repos\moolicc\Wallop\src\Plugins\Scripting.IronPython\bin\Debug\net6.0",
+        @"C:\Users\joel\source\repos\moolicc\Wallop\src\Plugins\HostApis\bin\Debug\net6.0",
     };
-    var fileName = $"{e.Name.Substring(0, e.Name.IndexOf(','))}.dll";
+    int subLength = e.Name.Length;
+    if(e.Name.Contains(','))
+    {
+        subLength = e.Name.IndexOf(',');
+    }
+    var fileName = $"{e.Name.Substring(0, subLength)}.dll";
 
-    Console.WriteLine("Searching for reference {0} to resolve dependency on {1}.", fileName, e.Name);
+    Console.WriteLine("Searching for reference assembly {0} to resolve...", fileName, e.Name);
 
     foreach (var dir in searchDirectories)
     {
@@ -61,4 +70,3 @@ AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler((o, e) =>
 
 var app = new EngineApp(engineConfig, context);
 app.Setup();
-app.Run();

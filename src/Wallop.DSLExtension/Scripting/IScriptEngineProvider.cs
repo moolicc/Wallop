@@ -10,6 +10,9 @@ namespace Wallop.DSLExtension.Scripting
     {
         public string Name { get; }
 
+        public IScriptContext CreateContext();
+
         public IScriptEngine CreateScriptEngine(IEnumerable<KeyValuePair<string, string>> engineArgs);
+
     }
 }

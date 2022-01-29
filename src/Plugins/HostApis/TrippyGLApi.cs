@@ -1,0 +1,67 @@
+﻿using Silk.NET.Core.Contexts;
+using Silk.NET.Maths;
+using Silk.NET.Windowing;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using System.Numerics;
+using System.Text;
+using System.Threading.Tasks;
+using TrippyGL;
+using Wallop.DSLExtension.Scripting;
+using Wallop.Engine.Types.Plugins;
+
+namespace HostApis
+{
+    public class TrippyGLApi : Wallop.DSLExtension.Types.Plugin.IHostApi
+    {
+        public string Name => "TrippyGL";
+
+        private static GraphicsDevice _device;
+
+        internal static GraphicsDevice GetDevice(IScriptContext context)
+        {
+            if (_device == null)
+            {
+                _device = new GraphicsDevice(context.GetGLInstance());
+                _device.ClearColor = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+                _device.DepthState = DepthState.None;
+                _device.BlendState = BlendState.NonPremultiplied;
+
+                _device.CullFaceMode = CullingMode.CullBack;
+                _device.FaceCullingEnabled = false;
+            }
+            return _device;
+        }
+
+
+        public void Use(IScriptContext scriptContext)
+        {
+            var device = GetDevice(scriptContext);
+            scriptContext.AddReference(device.GetType().Assembly);
+            scriptContext.AddReference(typeof(TrippyGL.ImageSharp.Texture2DExtensions).Assembly);
+            scriptContext.AddImport("TrippyGL");
+            scriptContext.AddImport("TrippyGL.ImageSharp");
+            scriptContext.AddValue("GraphicsDevice", _device);
+        }
+
+
+        public void AfterDraw(IScriptContext scriptContext)
+        {
+        }
+
+        public void AfterUpdate(IScriptContext scriptContext)
+        {
+        }
+
+        public void BeforeDraw(IScriptContext scriptContext, double delta)
+        {
+        }
+
+        public void BeforeUpdate(IScriptContext scriptContext, double delta)
+        {
+        }
+
+    }
+}

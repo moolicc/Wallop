@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Wallop.Engine.Rendering
 {
-    public abstract class GraphicsResource : IDisposable
+    internal abstract class GraphicsResource : IDisposable
     {
         public string? ResourceName { get; set; }
         public bool IsDisposed { get; private set; }
@@ -28,6 +28,15 @@ namespace Wallop.Engine.Rendering
             {
                 Dispose(false);
             }
+        }
+
+        public GraphicsDevice GetGraphicsDeviceOrThrow()
+        {
+            if(GraphicsDevice == null)
+            {
+                throw new ArgumentNullException(nameof(GraphicsDevice), "GraphicsDevice not bound!");
+            }
+            return GraphicsDevice;
         }
 
         public void Bind(GraphicsDevice device)

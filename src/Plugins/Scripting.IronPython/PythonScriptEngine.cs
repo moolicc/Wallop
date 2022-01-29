@@ -1,23 +1,40 @@
 ﻿using IronPython.Hosting;
 using Microsoft.Scripting.Hosting;
+using Wallop.DSLExtension.Scripting;
 using IronPy = IronPython;
 
 namespace Scripting.IronPython
 {
 
-    public class PythonScriptEngineProvider : Wallop.DSLExtension.Scripting.IScriptEngineProvider
+    public class PythonScriptEngineProvider : IScriptEngineProvider
     {
         public string Name => "Iron Python";
 
-        public Wallop.DSLExtension.Scripting.IScriptEngine CreateScriptEngine(IEnumerable<KeyValuePair<string, string>> args)
+        public IScriptContext CreateContext()
+        {
+            return new PythonScriptContext();
+        }
+
+        public IScriptEngine CreateScriptEngine(IEnumerable<KeyValuePair<string, string>> args)
         {
             var engineArgs = args.Select(x => new KeyValuePair<string, object>(x.Key, x.Value));
             return new PythonScriptEngine(new Dictionary<string, object>(engineArgs));
         }
+
+        public bool TryDeserialize(string value, string targetType, out object? result)
+        {
+            result = null;
+            if(targetType == "number")
+            {
+                result = float.Parse(value);
+            }
+            return true;
+        }
     }
 
-    public class PythonScriptEngine : Wallop.DSLExtension.Scripting.IScriptEngine
+    public class PythonScriptEngine : IScriptEngine
     {
+        private PythonScriptContext? _scriptContext;
         private ScriptEngine _pyEngine;
         private ScriptScope _pyScope;
 
@@ -29,28 +46,17 @@ namespace Scripting.IronPython
             _pyEngine.Execute("import clr", _pyScope);
         }
 
-        public void Init(Wallop.DSLExtension.Scripting.ScriptContext context)
+        public IScriptContext? GetAttachedScriptContext()
+            => _scriptContext;
+
+        public void AttachContext(IScriptContext context)
         {
-            foreach (var reference in context.References)
+            if (context is PythonScriptContext pyScriptContext)
             {
-                _pyEngine.Execute($"clr.AddReference(\"{reference}\")", _pyScope);
+                _scriptContext = pyScriptContext;
+                _scriptContext.SetScope(_pyScope);
+                _scriptContext.SetEngine(_pyEngine);
             }
-
-            foreach (var method in context.ExposedDelegates)
-            {
-                _pyScope.SetVariable(method.MemberName, method.Action);
-            }
-
-            foreach (var member in context.ExposedVariables)
-            {
-                _pyScope.SetVariable(member.MemberName, member.Value);
-            }
-
-            foreach (var import in context.Imports)
-            {
-                _pyEngine.Execute($"from {import.Assembly} import {import.Namespace}", _pyScope);
-            }
-
         }
 
         public void Execute(string script)
@@ -58,21 +64,5 @@ namespace Scripting.IronPython
             var source = _pyEngine.CreateScriptSourceFromString(script);
             source.Execute(_pyScope);
         }
-
-        public object GetValue(string memberName)
-        {
-            return _pyScope.GetVariable(memberName);
-        }
-
-        public T GetValue<T>(string memberName)
-        {
-            return _pyScope.GetVariable<T>(memberName);
-        }
-
-        public T GetDelegateAs<T>(string memberName)
-        {
-            return _pyScope.GetVariable<T>(memberName);
-        }
-
     }
 }

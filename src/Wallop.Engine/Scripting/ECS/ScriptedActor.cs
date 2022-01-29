@@ -13,8 +13,8 @@ namespace Wallop.Engine.Scripting.ECS
     {
         public Module ControllingModule { get; private set; }
         public StoredModule StoredDefinition { get; private set; }
-
         public ScriptedActorRunner? ActorRunner { get; set; }
+        public IScriptEngine? ScriptEngine { get; set; }
 
 
         public ScriptedActor(Module controllingModule, StoredModule storedDefinition)
@@ -30,7 +30,10 @@ namespace Wallop.Engine.Scripting.ECS
             {
                 throw new InvalidOperationException();
             }
-            ActorRunner.InvokeUpdateFor(Name);
+
+            // TODO: Fix
+            ActorRunner.Invoke(Name, "update", false);
+            
         }
 
         public override void Draw()
@@ -39,7 +42,7 @@ namespace Wallop.Engine.Scripting.ECS
             {
                 throw new InvalidOperationException();
             }
-            ActorRunner.InvokeRenderFor(Name);
+            ActorRunner.Invoke(Name, "draw", false);
         }
     }
 }

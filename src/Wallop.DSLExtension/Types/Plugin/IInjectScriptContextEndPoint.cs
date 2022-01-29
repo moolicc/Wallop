@@ -11,6 +11,6 @@ namespace Wallop.DSLExtension.Types.Plugin
     public interface IInjectScriptContextEndPoint
     {
         public Module CurrentModule { get; }
-        public ScriptContext Context { get; }
+        public IScriptContext Context { get; }
     }
 }

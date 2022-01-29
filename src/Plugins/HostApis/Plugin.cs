@@ -9,12 +9,8 @@ namespace HostApis
         [PluginEntryPoint("Host APIs", "1.0.0.0")]
         public void Startup(PluginInformation pluginInfo)
         {
-            pluginInfo.Exposed.RegisterEndPoint<IInjectScriptContextEndPoint>(nameof(InjectScriptContext), this, pluginInfo.PluginId);
-        }
-
-        public void InjectScriptContext(ScriptContext context)
-        {
-            context.AddValue("name", "Albert");
+            pluginInfo.Exposed.RegisterImplementation<IHostApi, TrippyGLApi>();
+            pluginInfo.Exposed.RegisterImplementation<IHostApi, EasyRenderApi>();
         }
     }
 }

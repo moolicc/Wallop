@@ -16,11 +16,15 @@ namespace Wallop.Engine.Scripting
         private SceneSettings _sceneSettings;
         private IEnumerable<Module> _loadedModules;
 
+        private DSLExtension.Modules.SettingTypes.TypeCache _typeCache;
+
         public ScriptedSceneLoader(SceneSettings settings)
         {
             _sceneSettings = settings;
+            _typeCache = new DSLExtension.Modules.SettingTypes.TypeCache();
         }
 
+        // TODO: Actors should be able to have additional settings that are not required that the user can add.
         public Scene LoadFromPackages(string baseDir)
         {
             // Load all the modules across all packages.
@@ -37,13 +41,19 @@ namespace Wallop.Engine.Scripting
 
         private IEnumerable<Module> ResolveModules(IEnumerable<Package> packages)
         {
+            var results = new List<Module>();
             foreach (var package in packages)
             {
                 foreach (var module in package.DeclaredModules)
                 {
-                    yield return module;
+                    foreach (var setting in module.ModuleSettings)
+                    {
+                        setting.CachedType = _typeCache.Types[setting.SettingType];
+                    }
+                    results.Add(module);
                 }
             }
+            return results;
         }
 
         private void CreateLayouts(Scene sceneInstance)
@@ -53,6 +63,8 @@ namespace Wallop.Engine.Scripting
             {
                 // Create the layout which will go in our Scene Tree.
                 var layout = new Layout();
+                layout.ActualSize = new System.Numerics.Vector2(800, 600);
+                layout.RenderSize = new System.Numerics.Vector2(800, 600);
 
                 // Try to set this layout as the scene's active layout.
                 if(layoutSpecified.Active)

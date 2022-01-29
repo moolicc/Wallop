@@ -1,10 +1,10 @@
-﻿using System;
+﻿using Silk.NET.Maths;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
-using Veldrid;
 
 namespace Wallop.Engine
 {
@@ -19,16 +19,36 @@ namespace Wallop.Engine
             }
         }
 
-        public static Vector2 TopLeft(this Rectangle instance)
-            => new Vector2(instance.Left, instance.Top);
+        public static T OrThrow<T>(this T? instance)
+        {
+            if(instance == null)
+            {
+                throw new ArgumentNullException(typeof(T).Name);
+            }
+            return instance;
+        }
 
-        public static Vector2 TopRight(this Rectangle instance)
-            => new Vector2(instance.Right, instance.Top);
+        public static T OrThrow<T>(this T? instance, string exceptionMessage)
+        {
+            if (instance == null)
+            {
+                throw new ArgumentNullException(typeof(T).Name, exceptionMessage);
+            }
+            return instance;
+        }
 
-        public static Vector2 BottomRight(this Rectangle instance)
-            => new Vector2(instance.Right, instance.Bottom);
-
-        public static Vector2 BottomLeft(this Rectangle instance)
-            => new Vector2(instance.Left, instance.Bottom);
+        public static T OrThrow<T, TEx>(this T? instance, string exceptionMessage) where TEx : Exception
+        {
+            if (instance == null)
+            {
+                var ex = (TEx?)Activator.CreateInstance(typeof(T), new object[] { exceptionMessage });
+                if(ex == null)
+                {
+                    throw new Exception(exceptionMessage);
+                }
+                throw ex;
+            }
+            return instance;
+        }
     }
 }

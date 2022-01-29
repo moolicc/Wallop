@@ -20,6 +20,7 @@ namespace Wallop.DSLExtension.Scripting
 
         public IScriptEngine ScriptEngine { get; private set; }
         public RunLoopDelays RunLoopDelay { get; set; }
+        public object? Tag { get; set; }
 
         private CancellationTokenSource _cancelSource;
         private Task _scriptTask;
@@ -37,7 +38,7 @@ namespace Wallop.DSLExtension.Scripting
 
         public void EnqueueAction<TScriptAction>(string scriptTask, Action<TScriptAction> onExecute)
         {
-            _taskQueue.Enqueue(() => onExecute(ScriptEngine.GetDelegateAs<TScriptAction>(scriptTask)));
+            _taskQueue.Enqueue(() => onExecute(ScriptEngine.GetAttachedScriptContext().GetDelegateAs<TScriptAction>(scriptTask)));
         }
 
         public void EnqueueAction(Action task)
@@ -47,7 +48,7 @@ namespace Wallop.DSLExtension.Scripting
 
         public void RunAction<TScriptAction>(string scriptTask, Action<TScriptAction> onExecute)
         {
-            onExecute(ScriptEngine.GetDelegateAs<TScriptAction>(scriptTask));
+            onExecute(ScriptEngine.GetAttachedScriptContext().GetDelegateAs<TScriptAction>(scriptTask));
         }
 
         public void RunAction(Action task)

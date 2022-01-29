@@ -33,7 +33,7 @@ namespace Wallop.DSLExtension.Modules
             return new Package()
             {
                 Info = packageInfo,
-                DeclaredModules = modules
+                DeclaredModules = modules.ToArray()
             };
         }
 
@@ -71,7 +71,7 @@ namespace Wallop.DSLExtension.Modules
             return new Module()
             {
                 ModuleInfo = info,
-                ModuleSettings = settings
+                ModuleSettings = settings.ToArray() // NOTE: This is to allow us to cache the setting type.
             };
         }
 
@@ -85,6 +85,7 @@ namespace Wallop.DSLExtension.Modules
             var commonMetadata = GetCommonMetadataValues(metadataElement);
             var moduleType = metadataElement?.XPathSelectElement("./type")?.Value;
             var moduleSourceFile = metadataElement?.XPathSelectElement("./source")?.Value;
+            var hostApis = GetModuleHostApis(metadataElement?.XPathSelectElement("./apis"));
 
             if (moduleType == null || !Enum.TryParse<ModuleTypes>(moduleType, true, out var typeEnumValue))
             {
@@ -101,7 +102,7 @@ namespace Wallop.DSLExtension.Modules
                 throw new XmlException("Module source file not found.");
             }
 
-            return new ModuleInfo(moduleSourceFile, commonMetadata.Name, commonMetadata.Version, commonMetadata.Description, engineInfo.ScriptEngineName, engineInfo.EngineArgs, typeEnumValue);
+            return new ModuleInfo(moduleSourceFile, commonMetadata.Name, commonMetadata.Version, commonMetadata.Description, engineInfo.ScriptEngineName, engineInfo.EngineArgs, typeEnumValue, hostApis);
         }
 
         private static IEnumerable<ModuleSetting> LoadModuleSettings(XElement? settingRoot)
@@ -130,7 +131,7 @@ namespace Wallop.DSLExtension.Modules
 
             var name = settingElement.XPathSelectElement("name")?.Value;
             var description = settingElement.XPathSelectElement("description")?.Value ?? "";
-            var type = settingElement.XPathSelectElement("type")?.Value;
+            var typeElement = settingElement.XPathSelectElement("type");
             var required = settingElement.XPathSelectElement("required")?.Value ?? "false";
             var defaultValue = settingElement.XPathSelectElement("defaultValue")?.Value;
 
@@ -138,7 +139,7 @@ namespace Wallop.DSLExtension.Modules
             {
                 throw new XmlException("Failed to load module setting name.");
             }
-            if(type == null)
+            if(typeElement == null)
             {
                 throw new XmlException("Failed to load module setting type.");
             }
@@ -155,7 +156,10 @@ namespace Wallop.DSLExtension.Modules
                 defaultValue = "";
             }
 
-            return new ModuleSetting(name, description, defaultValue, type, requiredBool);
+            var type = typeElement.Value;
+            var typeArgs = typeElement.Attributes().Select(a => new KeyValuePair<string, string>(a.Name.ToString(), a.Value));
+
+            return new ModuleSetting(name, description, defaultValue, type, requiredBool, typeArgs);
         }
 
         private static (string ScriptEngineName, IEnumerable<KeyValuePair<string, string>> EngineArgs) GetModuleScriptEngineInfo(XElement? metadataRoot)
@@ -183,6 +187,17 @@ namespace Wallop.DSLExtension.Modules
                 args = argsElement.Attributes().ToDictionary(a => a.Name.ToString(), a => a.Value);
             }
             return (name, args);
+        }
+
+        private static IEnumerable<string> GetModuleHostApis(XElement? apiRoot)
+        {
+            if(apiRoot == null)
+            {
+                return Array.Empty<string>();
+            }
+
+            var subElements = apiRoot.XPathSelectElements("./api");
+            return subElements.Select(e => e.Value);
         }
 
         private static (string Name, string Version, string Description) GetCommonMetadataValues(XElement? metadataRoot)

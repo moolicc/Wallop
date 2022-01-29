@@ -13,6 +13,7 @@ using Wallop.Engine.Rendering;
 using Wallop.Engine.SceneManagement;
 using Wallop.Engine.Scripting;
 using Wallop.Engine.Scripting.ECS;
+using Wallop.Engine.Types.Plugins;
 using Wallop.Engine.Types.Plugins.EndPoints;
 
 
@@ -23,6 +24,7 @@ using Wallop.Engine.Types.Plugins.EndPoints;
 
 namespace Wallop.Engine
 {
+    // TODO: Ensure we're using SDL and not GLFW
     internal class EngineApp : IDisposable
     {
         private IWindow _window;
@@ -30,10 +32,13 @@ namespace Wallop.Engine
         private Settings.GraphicsSettings _graphicsSettings;
         private Settings.SceneSettings _sceneSettings;
 
-        private GraphicsDevice _graphicsDevice;
+        //private GraphicsDevice _graphicsDevice;
+        private GL _gl;
 
         private PluginPantry.PluginContext _pluginContext;
         private ScriptedActorRunner _actorRunner;
+
+
 
 
 
@@ -55,6 +60,7 @@ namespace Wallop.Engine
             options.UpdatesPerSecond = _graphicsSettings.RefreshRate;
             options.VSync = _graphicsSettings.VSync;
 
+            Window.PrioritizeSdl();
             _window = Window.Create(options);
             _window.Load += WindowLoad;
             _window.FramebufferResize += WindowResized;
@@ -67,7 +73,12 @@ namespace Wallop.Engine
 
         private void WindowLoad()
         {
-            _graphicsDevice = new GraphicsDevice(_window.CreateOpenGL());
+            //_graphicsDevice = new GraphicsDevice(GL.GetApi(_window));
+            //var gl = _graphicsDevice.Information;
+            _gl = GL.GetApi(_window);
+
+
+
 
             if (!_graphicsSettings.SkipOverlay)
             {
@@ -83,8 +94,10 @@ namespace Wallop.Engine
 
         private void WindowResized(Vector2D<int> size)
         {
-            _graphicsDevice.GetOpenGLInstance().Viewport(size);
+            //_graphicsDevice.GetOpenGLInstance().Viewport(size);
+            _gl.Viewport(size);
         }
+
 
         private void LoadModules()
         {
@@ -122,19 +135,24 @@ namespace Wallop.Engine
 
             var initializer = new ScriptedSceneInitializer(scene, _pluginContext);
             _actorRunner = new ScriptedActorRunner(engineEndPointPluginContext.GetScriptEngineProviders());
+
+            //initializer.GLInstance = _graphicsDevice.GetOpenGLInstance();
+            initializer.GLInstance = _gl;
+
             initializer.InitializeScripts(_actorRunner);
         }
 
 
         public void Update(double delta)
         {
-            _actorRunner.InvokeUpdate();
+            _actorRunner.Invoke<ScriptedActor>(ScriptContextExtensions.VariableNames.UPDATE, false, BeforeActorUpdate, AfterActorUpdate);
             _actorRunner.WaitAsync().WaitAndThrow();
         }
 
         public void Draw(double delta)
         {
-            _actorRunner.InvokeRender();
+            _gl.Clear(ClearBufferMask.ColorBufferBit);
+            _actorRunner.Invoke<ScriptedActor>(ScriptContextExtensions.VariableNames.DRAW, false, BeforeActorDraw, AfterActorDraw);
             _actorRunner.WaitAsync().WaitAndThrow();
         }
 
@@ -148,6 +166,71 @@ namespace Wallop.Engine
             {
                 _window.Close();
                 return;
+            }
+        }
+
+        // TODO: We need to cache apis on actors.
+        private void BeforeActorUpdate(ScriptedActor actor)
+        {
+            var engine = actor.ScriptEngine.OrThrow("Actor does not have a ScriptEngine bound.");
+            var context = engine.GetAttachedScriptContext().OrThrow("ScriptEngine does not have a context bound.");
+
+            var apis = _pluginContext.GetImplementations<IHostApi>();
+            foreach (var targetApi in actor.ControllingModule.ModuleInfo.HostApis)
+            {
+                var api = apis.FirstOrDefault(a => a.Name == targetApi);
+                if(api != null)
+                {
+                    api.BeforeUpdate(context, 0.0);
+                }
+            }
+        }
+
+        private void AfterActorUpdate(ScriptedActor actor)
+        {
+            var engine = actor.ScriptEngine.OrThrow("Actor does not have a ScriptEngine bound.");
+            var context = engine.GetAttachedScriptContext().OrThrow("ScriptEngine does not have a context bound.");
+
+            var apis = _pluginContext.GetImplementations<IHostApi>();
+            foreach (var targetApi in actor.ControllingModule.ModuleInfo.HostApis)
+            {
+                var api = apis.FirstOrDefault(a => a.Name == targetApi);
+                if (api != null)
+                {
+                    api.AfterUpdate(context);
+                }
+            }
+        }
+
+        private void BeforeActorDraw(ScriptedActor actor)
+        {
+            var engine = actor.ScriptEngine.OrThrow("Actor does not have a ScriptEngine bound.");
+            var context = engine.GetAttachedScriptContext().OrThrow("ScriptEngine does not have a context bound.");
+
+            var apis = _pluginContext.GetImplementations<IHostApi>();
+            foreach (var targetApi in actor.ControllingModule.ModuleInfo.HostApis)
+            {
+                var api = apis.FirstOrDefault(a => a.Name == targetApi);
+                if (api != null)
+                {
+                    api.BeforeDraw(context, 0.0);
+                }
+            }
+        }
+
+        private void AfterActorDraw(ScriptedActor actor)
+        {
+            var engine = actor.ScriptEngine.OrThrow("Actor does not have a ScriptEngine bound.");
+            var context = engine.GetAttachedScriptContext().OrThrow("ScriptEngine does not have a context bound.");
+
+            var apis = _pluginContext.GetImplementations<IHostApi>();
+            foreach (var targetApi in actor.ControllingModule.ModuleInfo.HostApis)
+            {
+                var api = apis.FirstOrDefault(a => a.Name == targetApi);
+                if (api != null)
+                {
+                    api.AfterDraw(context);
+                }
             }
         }
     }
