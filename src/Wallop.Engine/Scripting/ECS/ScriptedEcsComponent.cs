@@ -48,6 +48,11 @@ namespace Wallop.Engine.Scripting
             await TaskHandler.OrThrow().WaitForEmptyAsync();
         }
 
+        public void Shutdown()
+        {
+            TaskHandler.Terminate();
+        }
+
         public IScriptContext GetAttachedScriptContext()
         {
             return ScriptEngine.OrThrow("Actor not bound to a ScriptEngine.").GetAttachedScriptContext().OrThrow("No ScriptContext attached to actor.");

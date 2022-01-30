@@ -91,5 +91,20 @@ namespace Wallop.Engine.SceneManagement
             }
         }
 
+        internal void Shutdown()
+        {
+            if(ActiveLayout == null)
+            {
+                return;
+            }
+
+            foreach (var actor in ActiveLayout.EcsRoot.GetActors())
+            {
+                if(actor is ScriptedEcsComponent scriptedActor)
+                {
+                    scriptedActor.Shutdown();
+                }
+            }
+        }
     }
 }

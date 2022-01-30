@@ -39,9 +39,6 @@ namespace Wallop.Engine
 
         private Scene _scene;
 
-
-
-
         public EngineApp(Cog.Configuration config, PluginPantry.PluginContext pluginContext)
         {
             _graphicsSettings = config.Get<Settings.GraphicsSettings>() ?? new Settings.GraphicsSettings();
@@ -148,6 +145,7 @@ namespace Wallop.Engine
 
         public void Draw(double delta)
         {
+            Console.WriteLine("Draw Delta: {0}", delta);
             _gl.Clear(ClearBufferMask.ColorBufferBit);
             _scene.Draw();
         }
@@ -158,8 +156,10 @@ namespace Wallop.Engine
 
         public void Shutdown()
         {
+            _scene.Shutdown();
             if(!_window.IsClosing)
             {
+                _window.Closing -= Shutdown;
                 _window.Close();
                 return;
             }
