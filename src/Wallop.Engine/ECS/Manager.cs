@@ -16,34 +16,40 @@ namespace Wallop.Engine.ECS
         }
 
 
-        private List<Actor> _actors;
+        private List<IActor> _actors;
 
         public Manager()
         {
-            _actors = new List<Actor>();
+            _actors = new List<IActor>();
         }
 
-        public IEnumerable<Actor> GetActors(string query)
+        public IEnumerable<IActor> GetActors(string query)
         {
             return _actors;
         }
 
-        public IEnumerable<Actor> GetActors()
+        public IEnumerable<IActor> GetActors()
         {
             return GetActors(_allQuery);
         }
 
-        public IEnumerable<TActor> GetActors<TActor>() where TActor : Actor
+        public IEnumerable<TActor> GetActors<TActor>() where TActor : IActor
         {
-            return _actors.Where(a => a.GetType() == typeof(TActor)).Select(a => (TActor)a);
+            foreach (var actor in _actors)
+            {
+                if(actor is TActor tactor)
+                {
+                    yield return tactor;
+                }
+            }
         }
 
-        public IEnumerable<Actor> GetActors(ActorQuerying.Queries.IQuery query)
+        public IEnumerable<IActor> GetActors(ActorQuerying.Queries.IQuery query)
         {
             return ActorQuerying.QueryRunner.RunQuery(query, _actors);
         }
 
-        public void AddActor(Actor actor)
+        public void AddActor(IActor actor)
         {
             _actors.Add(actor);
         }

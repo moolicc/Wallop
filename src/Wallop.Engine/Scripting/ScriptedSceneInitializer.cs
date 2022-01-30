@@ -19,36 +19,68 @@ namespace Wallop.Engine.Scripting
         public GL GLInstance { get; set; }
         public Scene Scene { get; private set; }
         public PluginContext PluginContext { get; private set; }
+        public IEnumerable<IScriptEngineProvider> ScriptEngineProviders { get; private set; }
 
-        public ScriptedSceneInitializer(Scene scene, PluginContext pluginContext)
+        public ScriptedSceneInitializer(GL glInstance, Scene scene, PluginContext pluginContext, IEnumerable<IScriptEngineProvider> scriptEngineProviders)
         {
+            GLInstance = glInstance;
             Scene = scene;
             PluginContext = pluginContext;
+            ScriptEngineProviders = scriptEngineProviders;
         }
 
-        public void InitializeScripts(ScriptedActorRunner actorRunner)
+        public void InitializeDirectorScripts()
+        {
+            foreach (var director in Scene.Directors)
+            {
+
+            }
+        }
+
+        public void InitializeActorScripts()
         {
             foreach (var layout in Scene.Layouts)
             {
                 var actors = layout.EcsRoot.GetActors<ScriptedActor>();
-                InitializeActors(layout, actors, actorRunner);
+                InitializeActors(layout, actors);
             }
         }
 
-        private void InitializeActors(Layout rootLayout, IEnumerable<ScriptedActor> actors, ScriptedActorRunner actorRunner)
+        private void InitializeActors(Layout rootLayout, IEnumerable<ScriptedActor> actors)
         {
             foreach (var actor in actors)
             {
-                var source = string.Empty;
-                // TODO: Error handle this.
-                source = File.ReadAllText(actor.ControllingModule.ModuleInfo.SourcePath);
-
-
-                actorRunner.AddActor(actor, actor, (ctx) => BuildActorContext(ctx, rootLayout, actor));
-
-                actorRunner.InvokeExecute(actor.Name, source, false);
+                InitializeActor(rootLayout, actor);
             }
-            actorRunner.WaitAsync().WaitAndThrow();
+            foreach (var actor in actors)
+            {
+                actor.WaitForExecuteAsync().WaitAndThrow();
+            }
+        }
+
+        private void InitializeActor(Layout rootLayout, ScriptedActor actor)
+        {
+            var engineProvider = ScriptEngineProviders.FirstOrDefault(ep => ep.Name == actor.ModuleDeclaration.ModuleInfo.ScriptEngineId);
+            if (engineProvider == null)
+            {
+                // TODO:
+                return;
+            }
+
+            var source = File.ReadAllText(actor.ModuleDeclaration.ModuleInfo.SourcePath);
+
+            var engine = engineProvider.CreateScriptEngine(actor.ModuleDeclaration.ModuleInfo.ScriptEngineArgs);
+            var context = engineProvider.CreateContext();
+
+            engine.AttachContext(context);
+            BuildActorContext(context, rootLayout, actor);
+
+            actor.InitializeScript(engine, source);
+
+            actor.BeforeUpdateCallback = Scene.BeforeScriptedActorUpdate;
+            actor.AfterUpdateCallback = Scene.AfterScriptedActorUpdate;
+            actor.BeforeDrawCallback = Scene.BeforeScriptedActorDraw;
+            actor.AfterDrawCallback = Scene.AfterScriptedActorDraw;
         }
 
         private void BuildActorContext(IScriptContext context, Layout owningLayout, ScriptedActor actor)
@@ -59,7 +91,7 @@ namespace Wallop.Engine.Scripting
             context.AddReadonlyProperty<ScriptContextExtensions.Getters.GetActualSize>(nameof(Layout.ActualSize), owningLayout);
             context.AddDelegate(ScriptContextExtensions.VariableNames.GET_BASE_DIRECTORY, new ScriptContextExtensions.Getters.GetBaseDirectory(() =>
             {
-                var dir = new FileInfo(actor.ControllingModule.ModuleInfo.SourcePath);
+                var dir = new FileInfo(actor.ModuleDeclaration.ModuleInfo.SourcePath);
                 return dir.Directory.OrThrow().FullName;
             }));
 
@@ -69,7 +101,7 @@ namespace Wallop.Engine.Scripting
                 object? value = setting.Value;
 
                 // Deserialize the value as appropriate for the type of setting.
-                foreach (var declaredSetting in actor.ControllingModule.ModuleSettings)
+                foreach (var declaredSetting in actor.ModuleDeclaration.ModuleSettings)
                 {
                     if(declaredSetting.SettingName == setting.Key)
                     {
@@ -88,13 +120,13 @@ namespace Wallop.Engine.Scripting
             }
 
             // Execute the injection endpoint.
-            var endPointContext = new Types.Plugins.EndPoints.ScriptInjectEndPoint(actor.ControllingModule, context);
+            var endPointContext = new Types.Plugins.EndPoints.ScriptInjectEndPoint(actor.ModuleDeclaration, context);
             PluginContext.ExecuteEndPoint<IInjectScriptContextEndPoint>(endPointContext);
             PluginContext.WaitForEndPointExecutionAsync<IInjectScriptContextEndPoint>().WaitAndThrow();
 
             // Enumerate all HostAPI plugins and for each that this actor uses, run the entry point.
             var hostApis = PluginContext.GetImplementations<IHostApi>();
-            foreach (var targetApi in actor.ControllingModule.ModuleInfo.HostApis)
+            foreach (var targetApi in actor.ModuleDeclaration.ModuleInfo.HostApis)
             {
                 var api = hostApis.First(h => h.Name == targetApi);
                 api.Use(context);
@@ -106,7 +138,7 @@ namespace Wallop.Engine.Scripting
 
         private void ValidateContext(IScriptContext context, ScriptedActor actor)
         {
-            foreach (var declaredSetting in actor.ControllingModule.ModuleSettings)
+            foreach (var declaredSetting in actor.ModuleDeclaration.ModuleSettings)
             {
                 if(declaredSetting.Required && !context.ContainsValue(declaredSetting.SettingName))
                 {

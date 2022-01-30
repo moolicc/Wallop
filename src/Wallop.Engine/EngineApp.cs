@@ -36,8 +36,8 @@ namespace Wallop.Engine
         private GL _gl;
 
         private PluginPantry.PluginContext _pluginContext;
-        private ScriptedActorRunner _actorRunner;
 
+        private Scene _scene;
 
 
 
@@ -131,29 +131,25 @@ namespace Wallop.Engine
                 }
             };
             var sceneLoader = new ScriptedSceneLoader(_sceneSettings);
-            var scene = sceneLoader.LoadFromPackages(@"C:\Users\joel\source\repos\moolicc\Wallop\modules\squaretest");
+            _scene = sceneLoader.LoadFromPackages(@"C:\Users\joel\source\repos\moolicc\Wallop\modules\squaretest");
+            _scene.Init(_pluginContext);
 
-            var initializer = new ScriptedSceneInitializer(scene, _pluginContext);
-            _actorRunner = new ScriptedActorRunner(engineEndPointPluginContext.GetScriptEngineProviders());
+            var initializer = new ScriptedSceneInitializer(_gl, _scene, _pluginContext, engineEndPointPluginContext.GetScriptEngineProviders());
 
-            //initializer.GLInstance = _graphicsDevice.GetOpenGLInstance();
-            initializer.GLInstance = _gl;
-
-            initializer.InitializeScripts(_actorRunner);
+            initializer.InitializeActorScripts();
+            initializer.InitializeDirectorScripts();
         }
 
 
         public void Update(double delta)
         {
-            _actorRunner.Invoke<ScriptedActor>(ScriptContextExtensions.VariableNames.UPDATE, false, BeforeActorUpdate, AfterActorUpdate);
-            _actorRunner.WaitAsync().WaitAndThrow();
+            _scene.Update();
         }
 
         public void Draw(double delta)
         {
             _gl.Clear(ClearBufferMask.ColorBufferBit);
-            _actorRunner.Invoke<ScriptedActor>(ScriptContextExtensions.VariableNames.DRAW, false, BeforeActorDraw, AfterActorDraw);
-            _actorRunner.WaitAsync().WaitAndThrow();
+            _scene.Draw();
         }
 
         public void Dispose()
@@ -166,71 +162,6 @@ namespace Wallop.Engine
             {
                 _window.Close();
                 return;
-            }
-        }
-
-        // TODO: We need to cache apis on actors.
-        private void BeforeActorUpdate(ScriptedActor actor)
-        {
-            var engine = actor.ScriptEngine.OrThrow("Actor does not have a ScriptEngine bound.");
-            var context = engine.GetAttachedScriptContext().OrThrow("ScriptEngine does not have a context bound.");
-
-            var apis = _pluginContext.GetImplementations<IHostApi>();
-            foreach (var targetApi in actor.ControllingModule.ModuleInfo.HostApis)
-            {
-                var api = apis.FirstOrDefault(a => a.Name == targetApi);
-                if(api != null)
-                {
-                    api.BeforeUpdate(context, 0.0);
-                }
-            }
-        }
-
-        private void AfterActorUpdate(ScriptedActor actor)
-        {
-            var engine = actor.ScriptEngine.OrThrow("Actor does not have a ScriptEngine bound.");
-            var context = engine.GetAttachedScriptContext().OrThrow("ScriptEngine does not have a context bound.");
-
-            var apis = _pluginContext.GetImplementations<IHostApi>();
-            foreach (var targetApi in actor.ControllingModule.ModuleInfo.HostApis)
-            {
-                var api = apis.FirstOrDefault(a => a.Name == targetApi);
-                if (api != null)
-                {
-                    api.AfterUpdate(context);
-                }
-            }
-        }
-
-        private void BeforeActorDraw(ScriptedActor actor)
-        {
-            var engine = actor.ScriptEngine.OrThrow("Actor does not have a ScriptEngine bound.");
-            var context = engine.GetAttachedScriptContext().OrThrow("ScriptEngine does not have a context bound.");
-
-            var apis = _pluginContext.GetImplementations<IHostApi>();
-            foreach (var targetApi in actor.ControllingModule.ModuleInfo.HostApis)
-            {
-                var api = apis.FirstOrDefault(a => a.Name == targetApi);
-                if (api != null)
-                {
-                    api.BeforeDraw(context, 0.0);
-                }
-            }
-        }
-
-        private void AfterActorDraw(ScriptedActor actor)
-        {
-            var engine = actor.ScriptEngine.OrThrow("Actor does not have a ScriptEngine bound.");
-            var context = engine.GetAttachedScriptContext().OrThrow("ScriptEngine does not have a context bound.");
-
-            var apis = _pluginContext.GetImplementations<IHostApi>();
-            foreach (var targetApi in actor.ControllingModule.ModuleInfo.HostApis)
-            {
-                var api = apis.FirstOrDefault(a => a.Name == targetApi);
-                if (api != null)
-                {
-                    api.AfterDraw(context);
-                }
             }
         }
     }

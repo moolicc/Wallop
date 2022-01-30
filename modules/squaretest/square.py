@@ -8,4 +8,3 @@ def draw():
     global x
     Image("face.png", x, 0)
     return
-    

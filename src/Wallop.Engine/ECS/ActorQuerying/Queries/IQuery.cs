@@ -11,6 +11,6 @@ namespace Wallop.Engine.ECS.ActorQuerying.Queries
         public IQuery Left { get; }
         public IQuery Right { get; }
 
-        public IEnumerable<Actor> Evaluate(IEnumerable<Actor> workingSet, IEnumerable<Actor> originalSet);
+        public IEnumerable<IActor> Evaluate(IEnumerable<IActor> workingSet, IEnumerable<IActor> originalSet);
     }
 }

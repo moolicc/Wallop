@@ -9,6 +9,7 @@ using Wallop.Engine.Scripting.ECS;
 
 namespace Wallop.Engine.Scripting
 {
+    /*
     internal class ScriptedActorRunner
     {
         private const bool INIT_THREADED = true;
@@ -112,4 +113,5 @@ namespace Wallop.Engine.Scripting
             }
         }
     }
+    */
 }

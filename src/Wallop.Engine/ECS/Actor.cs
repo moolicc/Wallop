@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Wallop.Engine.ECS
 {
-    public class Actor
+    public class Actor : IActor
     {
         public List<Component> Components { get; private set; }
         public string Name { get; private set; }
