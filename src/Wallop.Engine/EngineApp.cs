@@ -15,6 +15,7 @@ using Wallop.Engine.Scripting;
 using Wallop.Engine.Scripting.ECS;
 using Wallop.Engine.Types.Plugins;
 using Wallop.Engine.Types.Plugins.EndPoints;
+using static Wallop.Engine.Scripting.HostData;
 
 
 // TODO:
@@ -35,7 +36,12 @@ namespace Wallop.Engine
         //private GraphicsDevice _graphicsDevice;
         private GL _gl;
 
+        private bool _sceneSetup;
+
         private PluginPantry.PluginContext _pluginContext;
+
+        private ScriptHostFunctions _scriptHostFunctions;
+        private IEnumerable<IScriptEngineProvider> _scriptEngineProviders;
 
         private Scene _scene;
 
@@ -45,9 +51,11 @@ namespace Wallop.Engine
             _sceneSettings = config.Get<Settings.SceneSettings>() ?? new Settings.SceneSettings();
             _pluginContext = pluginContext;
             _pluginContext.ExecuteEndPoint(new Types.Plugins.EngineStartupEndPoint { GraphicsSettings = _graphicsSettings });
+            _sceneSetup = false;
+            _scriptHostFunctions = new ScriptHostFunctions();
         }
 
-        public void Setup()
+        public void SetupWindow()
         {
             var options = WindowOptions.Default;
             options.Size = new Vector2D<int>(_graphicsSettings.WindowWidth, _graphicsSettings.WindowHeight);
@@ -74,9 +82,6 @@ namespace Wallop.Engine
             //var gl = _graphicsDevice.Information;
             _gl = GL.GetApi(_window);
 
-
-
-
             if (!_graphicsSettings.SkipOverlay)
             {
                 _pluginContext.ExecuteEndPoint(new OverlayerEndPoint(_window));
@@ -86,7 +91,7 @@ namespace Wallop.Engine
                 });
             }
 
-            LoadModules();
+            SetupScene();
         }
 
         private void WindowResized(Vector2D<int> size)
@@ -96,15 +101,47 @@ namespace Wallop.Engine
         }
 
 
+
+        public void SetupScene()
+        {
+            LoadModules();
+            LoadScriptEngineProviders();
+            LoadScene();
+
+            _sceneSetup = true;
+        }
+
         private void LoadModules()
+        {
+        }
+
+        private void LoadScriptEngineProviders()
         {
             var engineEndPointPluginContext = new ScriptEngineEndPoint();
             _pluginContext.ExecuteEndPoint<ILoadingScriptEnginesEndPoint>(engineEndPointPluginContext);
             _pluginContext.WaitForEndPointExecutionAsync<ILoadingScriptEnginesEndPoint>().WaitAndThrow();
 
+            _scriptEngineProviders = engineEndPointPluginContext.GetScriptEngineProviders();
+        }
+
+
+        private void LoadScene()
+        {
             _sceneSettings = new Settings.SceneSettings()
             {
-                DirectorModules = new List<Settings.StoredModule>(),
+                DirectorModules = new List<Settings.StoredModule>()
+                {
+                    new Settings.StoredModule()
+                    {
+                        InstanceName = "DirectorTest",
+                        ModuleId = "Director.Test1.0",
+                        Settings = new Dictionary<string, string>()
+                        {
+                            { "height", "100" },
+                            { "width", "100" }
+                        },
+                    },
+                },
                 Layouts = new List<Settings.StoredLayout>()
                 {
                     new Settings.StoredLayout()
@@ -122,6 +159,17 @@ namespace Wallop.Engine
                                     { "height", "100" },
                                     { "width", "100" }
                                 }
+                            },
+                            new Settings.StoredModule()
+                            {
+                                InstanceName = "Square1",
+                                ModuleId = "Square.Test1.0",
+                                Settings = new Dictionary<string, string>()
+                                {
+                                    { "height", "100" },
+                                    { "width", "100" },
+                                    { "y", "200" }
+                                }
                             }
                         }
                     }
@@ -131,7 +179,14 @@ namespace Wallop.Engine
             _scene = sceneLoader.LoadFromPackages(@"C:\Users\joel\source\repos\moolicc\Wallop\modules\squaretest");
             _scene.Init(_pluginContext);
 
-            var initializer = new ScriptedSceneInitializer(_gl, _scene, _pluginContext, engineEndPointPluginContext.GetScriptEngineProviders());
+
+            var hostData = new HostData(_gl, _scene);
+            //_scriptHostFunctions.AddDependencyProperty(MemberNames.GET_NAME, hostData.GetName, null);
+            _scriptHostFunctions.AddDependencies(hostData);
+
+
+
+            var initializer = new ScriptedSceneInitializer(_scriptHostFunctions, _scene, _pluginContext, _scriptEngineProviders);
 
             initializer.InitializeActorScripts();
             initializer.InitializeDirectorScripts();
@@ -140,12 +195,19 @@ namespace Wallop.Engine
 
         public void Update(double delta)
         {
+            if(!_sceneSetup)
+            {
+                return;
+            }
             _scene.Update();
         }
 
         public void Draw(double delta)
         {
-            Console.WriteLine("Draw Delta: {0}", delta);
+            if (!_sceneSetup)
+            {
+                return;
+            }
             _gl.Clear(ClearBufferMask.ColorBufferBit);
             _scene.Draw();
         }

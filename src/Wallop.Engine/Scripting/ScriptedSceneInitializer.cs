@@ -16,14 +16,14 @@ namespace Wallop.Engine.Scripting
 {
     internal class ScriptedSceneInitializer
     {
-        public GL GLInstance { get; set; }
+        ScriptHostFunctions ScriptHostFunctions { get; set; }
         public Scene Scene { get; private set; }
         public PluginContext PluginContext { get; private set; }
         public IEnumerable<IScriptEngineProvider> ScriptEngineProviders { get; private set; }
 
-        public ScriptedSceneInitializer(GL glInstance, Scene scene, PluginContext pluginContext, IEnumerable<IScriptEngineProvider> scriptEngineProviders)
+        public ScriptedSceneInitializer(ScriptHostFunctions hostFunctions, Scene scene, PluginContext pluginContext, IEnumerable<IScriptEngineProvider> scriptEngineProviders)
         {
-            GLInstance = glInstance;
+            ScriptHostFunctions = hostFunctions;
             Scene = scene;
             PluginContext = pluginContext;
             ScriptEngineProviders = scriptEngineProviders;
@@ -33,7 +33,17 @@ namespace Wallop.Engine.Scripting
         {
             foreach (var director in Scene.Directors)
             {
-
+                if(director is ScriptedDirector scriptedDirector)
+                {
+                    InitializeComponent(scriptedDirector, (ctx) => BuildDirectorContext(ctx, scriptedDirector));
+                }
+            }
+            foreach (var director in Scene.Directors)
+            {
+                if (director is ScriptedDirector scriptedDirector)
+                {
+                    scriptedDirector.WaitForExecuteAsync().WaitAndThrow();
+                }
             }
         }
 
@@ -50,7 +60,7 @@ namespace Wallop.Engine.Scripting
         {
             foreach (var actor in actors)
             {
-                InitializeActor(rootLayout, actor);
+                InitializeComponent(actor, (ctx) => BuildActorContext(ctx, rootLayout, actor));
             }
             foreach (var actor in actors)
             {
@@ -58,58 +68,84 @@ namespace Wallop.Engine.Scripting
             }
         }
 
-        private void InitializeActor(Layout rootLayout, ScriptedActor actor)
+        private void InitializeComponent(ScriptedEcsComponent component, Action<IScriptContext> mutateScriptContext)
         {
-            var engineProvider = ScriptEngineProviders.FirstOrDefault(ep => ep.Name == actor.ModuleDeclaration.ModuleInfo.ScriptEngineId);
+            var engineProvider = ScriptEngineProviders.FirstOrDefault(ep => ep.Name == component.ModuleDeclaration.ModuleInfo.ScriptEngineId);
             if (engineProvider == null)
             {
                 // TODO:
                 return;
             }
 
-            var source = File.ReadAllText(actor.ModuleDeclaration.ModuleInfo.SourcePath);
+            string sourceFullpath = component.ModuleDeclaration.ModuleInfo.SourcePath;
 
-            var engine = engineProvider.CreateScriptEngine(actor.ModuleDeclaration.ModuleInfo.ScriptEngineArgs);
+            var source = File.ReadAllText(sourceFullpath);
+
+            var engine = engineProvider.CreateScriptEngine(component.ModuleDeclaration.ModuleInfo.ScriptEngineArgs);
             var context = engineProvider.CreateContext();
 
             engine.AttachContext(context);
-            BuildActorContext(context, rootLayout, actor);
+            ScriptHostFunctions.Inject(context, component.ModuleDeclaration, component);
+            mutateScriptContext(context);
+            AddSettingsToContext(context, component);
+            AddInjectionsToContext(context, component);
+            SetupHostApisForContext(context, component);
+            ValidateContext(context, component);
 
-            actor.InitializeScript(engine, source);
+            component.InitializeScript(engine, source);
 
-            actor.BeforeUpdateCallback = Scene.BeforeScriptedActorUpdate;
-            actor.AfterUpdateCallback = Scene.AfterScriptedActorUpdate;
-            actor.BeforeDrawCallback = Scene.BeforeScriptedActorDraw;
-            actor.AfterDrawCallback = Scene.AfterScriptedActorDraw;
+            component.BeforeUpdateCallback = Scene.OnBeforeScriptedComponentUpdate;
+            component.AfterUpdateCallback = Scene.OnAfterScriptedComponentUpdate;
+            component.BeforeDrawCallback = Scene.OnBeforeScriptedComponentDraw;
+            component.AfterDrawCallback = Scene.OnAfterScriptedComponentDraw;
+
+
+        }
+
+        private void BuildDirectorContext(IScriptContext context, ScriptedDirector director)
+        {
+            //context.AddReadonlyProperty<ScriptContextExtensions.ExplicitGetters.GetGlInstance>(nameof(GLInstance), this);
+            //context.AddDelegate(ScriptContextExtensions.MemberNames.GET_BASE_DIRECTORY, new ScriptContextExtensions.ExplicitGetters.GetBaseDirectory(() =>
+            //{
+            //    var dir = new FileInfo(director.ModuleDeclaration.ModuleInfo.SourcePath);
+            //    return dir.Directory.OrThrow().FullName;
+            //}));
+
+
         }
 
         private void BuildActorContext(IScriptContext context, Layout owningLayout, ScriptedActor actor)
         {
             // Add variables and functions.
-            context.AddReadonlyProperty<ScriptContextExtensions.Getters.GetGlInstance>(nameof(GLInstance), this);
-            context.AddReadonlyProperty<ScriptContextExtensions.Getters.GetRenderSize>(nameof(Layout.RenderSize), owningLayout);
-            context.AddReadonlyProperty<ScriptContextExtensions.Getters.GetActualSize>(nameof(Layout.ActualSize), owningLayout);
-            context.AddDelegate(ScriptContextExtensions.VariableNames.GET_BASE_DIRECTORY, new ScriptContextExtensions.Getters.GetBaseDirectory(() =>
-            {
-                var dir = new FileInfo(actor.ModuleDeclaration.ModuleInfo.SourcePath);
-                return dir.Directory.OrThrow().FullName;
-            }));
+            //context.AddReadonlyProperty<ScriptContextExtensions.ExplicitGetters.GetGlInstance>(nameof(GLInstance), this, ScriptContextExtensions.MemberNames.GET_GL_INSTANCE);
+            //context.AddReadonlyProperty<ScriptContextExtensions.ExplicitGetters.GetRenderSize>(nameof(Layout.RenderSize), owningLayout, ScriptContextExtensions.MemberNames.GET_RENDER_SIZE);
+            //context.AddReadonlyProperty<ScriptContextExtensions.ExplicitGetters.GetActualSize>(nameof(Layout.ActualSize), owningLayout, ScriptContextExtensions.MemberNames.GET_ACTUAL_SIZE);
+            //context.AddDelegate(ScriptContextExtensions.MemberNames.GET_BASE_DIRECTORY, new ScriptContextExtensions.ExplicitGetters.GetBaseDirectory(() =>
+            //{
+            //    var dir = new FileInfo(actor.ModuleDeclaration.ModuleInfo.SourcePath);
+            //    return dir.Directory.OrThrow().FullName;
+            //}));
 
+
+        }
+
+        private void AddSettingsToContext(IScriptContext context, ScriptedEcsComponent component)
+        {
             // Add defined setting values.
-            foreach (var setting in actor.StoredDefinition.Settings)
+            foreach (var setting in component.StoredDefinition.Settings)
             {
                 object? value = setting.Value;
 
                 // Deserialize the value as appropriate for the type of setting.
-                foreach (var declaredSetting in actor.ModuleDeclaration.ModuleSettings)
+                foreach (var declaredSetting in component.ModuleDeclaration.ModuleSettings)
                 {
-                    if(declaredSetting.SettingName == setting.Key)
+                    if (declaredSetting.SettingName == setting.Key)
                     {
-                        if(declaredSetting.CachedType == null)
+                        if (declaredSetting.CachedType == null)
                         {
                             break;
                         }
-                        if(!declaredSetting.CachedType.TryDeserialize(setting.Value, out value, declaredSetting.SettingTypeArgs))
+                        if (!declaredSetting.CachedType.TryDeserialize(setting.Value, out value, declaredSetting.SettingTypeArgs))
                         {
                             // TODO: Message
                             break;
@@ -119,26 +155,30 @@ namespace Wallop.Engine.Scripting
                 context.AddValue(setting.Key, value);
             }
 
+        }
+        
+        private void AddInjectionsToContext(IScriptContext context, ScriptedEcsComponent component)
+        {
             // Execute the injection endpoint.
-            var endPointContext = new Types.Plugins.EndPoints.ScriptInjectEndPoint(actor.ModuleDeclaration, context);
+            var endPointContext = new Types.Plugins.EndPoints.ScriptInjectEndPoint(component.ModuleDeclaration, context);
             PluginContext.ExecuteEndPoint<IInjectScriptContextEndPoint>(endPointContext);
             PluginContext.WaitForEndPointExecutionAsync<IInjectScriptContextEndPoint>().WaitAndThrow();
+        }
 
-            // Enumerate all HostAPI plugins and for each that this actor uses, run the entry point.
+        private void SetupHostApisForContext(IScriptContext context, ScriptedEcsComponent component)
+        {
+            // Enumerate all HostAPI plugins and for each that this component uses, run the entry point.
             var hostApis = PluginContext.GetImplementations<IHostApi>();
-            foreach (var targetApi in actor.ModuleDeclaration.ModuleInfo.HostApis)
+            foreach (var targetApi in component.ModuleDeclaration.ModuleInfo.HostApis)
             {
                 var api = hostApis.First(h => h.Name == targetApi);
                 api.Use(context);
             }
-
-            // Validate the context.
-            ValidateContext(context, actor);
         }
 
-        private void ValidateContext(IScriptContext context, ScriptedActor actor)
+        private void ValidateContext(IScriptContext context, ScriptedEcsComponent component)
         {
-            foreach (var declaredSetting in actor.ModuleDeclaration.ModuleSettings)
+            foreach (var declaredSetting in component.ModuleDeclaration.ModuleSettings)
             {
                 if(declaredSetting.Required && !context.ContainsValue(declaredSetting.SettingName))
                 {

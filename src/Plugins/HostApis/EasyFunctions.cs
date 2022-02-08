@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using TrippyGL;
 using TrippyGL.ImageSharp;
 using Wallop.DSLExtension.Scripting;
-using Wallop.Engine.Types.Plugins;
+using Wallop.Engine.Scripting;
 
 namespace HostApis
 {
@@ -43,10 +43,9 @@ namespace HostApis
                 _textureCache = new Dictionary<string, Texture2D>();
             }
 
-            if(!_textureCache.TryGetValue(texture, out var result))
+            var key = $"{context.GetName()}-{texture}";
+            if(!_textureCache.TryGetValue(key, out var result))
             {
-
-                var key = texture;
                 if (!File.Exists(texture))
                 {
                     texture = Path.Combine(context.GetBaseDirectory(), texture);

@@ -8,6 +8,7 @@ using Wallop.DSLExtension.Scripting;
 using Wallop.DSLExtension.Types.Plugin;
 using Wallop.Engine.ECS;
 using Wallop.Engine.Scripting;
+using Wallop.Engine.Scripting.ECS;
 
 namespace Wallop.Engine.SceneManagement
 {
@@ -17,7 +18,7 @@ namespace Wallop.Engine.SceneManagement
 
         public Layout? ActiveLayout { get; set; }
 
-        public List<Director> Directors { get; set; }
+        public List<IDirector> Directors { get; set; }
 
         public PluginContext? PluginContext { get; set; }
         
@@ -25,7 +26,7 @@ namespace Wallop.Engine.SceneManagement
         {
             Layouts = new List<Layout> { };
             ActiveLayout = null;
-            Directors = new List<Director> { };
+            Directors = new List<IDirector> { };
         }
 
         public void Init(PluginContext plugins)
@@ -33,38 +34,48 @@ namespace Wallop.Engine.SceneManagement
             PluginContext = plugins;
         }
 
-        public void BeforeScriptedActorUpdate(ScriptedEcsComponent actor)
+        public void OnBeforeScriptedComponentUpdate(ScriptedEcsComponent component)
         {
             // TODO: Find delta.
-            ForMatchingHostApis(actor, (api, ctx) => api.BeforeUpdate(ctx, 0.0));
+            ForMatchingHostApis(component, (api, ctx) => api.BeforeUpdate(ctx, 0.0));
         }
 
-        internal void Update()
+
+        public void Update()
         {
             if(ActiveLayout == null)
             {
                 return;
+            }
+            foreach (var director in Directors)
+            {
+                director.Update();
             }
             foreach (var actor in ActiveLayout.EcsRoot.GetActors())
             {
                 actor.Update();
             }
         }
-        public void AfterScriptedActorUpdate(ScriptedEcsComponent actor)
+
+        public void OnAfterScriptedComponentUpdate(ScriptedEcsComponent component)
         {
-            ForMatchingHostApis(actor, (api, ctx) => api.AfterUpdate(ctx));
+            ForMatchingHostApis(component, (api, ctx) => api.AfterUpdate(ctx));
         }
 
-        public void BeforeScriptedActorDraw(ScriptedEcsComponent actor)
+        public void OnBeforeScriptedComponentDraw(ScriptedEcsComponent component)
         {
-            ForMatchingHostApis(actor, (api, ctx) => api.BeforeDraw(ctx, 0.0));
+            ForMatchingHostApis(component, (api, ctx) => api.BeforeDraw(ctx, 0.0));
         }
 
-        internal void Draw()
+        public void Draw()
         {
             if (ActiveLayout == null)
             {
                 return;
+            }
+            foreach (var director in Directors)
+            {
+                director.Draw();
             }
             foreach (var actor in ActiveLayout.EcsRoot.GetActors())
             {
@@ -72,16 +83,16 @@ namespace Wallop.Engine.SceneManagement
             }
         }
 
-        public void AfterScriptedActorDraw(ScriptedEcsComponent actor)
+        public void OnAfterScriptedComponentDraw(ScriptedEcsComponent component)
         {
-            ForMatchingHostApis(actor, (api, ctx) => api.AfterDraw(ctx));
+            ForMatchingHostApis(component, (api, ctx) => api.AfterDraw(ctx));
         }
 
-        private void ForMatchingHostApis(ScriptedEcsComponent actor, Action<IHostApi, IScriptContext> action)
+        private void ForMatchingHostApis(ScriptedEcsComponent component, Action<IHostApi, IScriptContext> action)
         {
-            var context = actor.GetAttachedScriptContext();
+            var context = component.GetAttachedScriptContext();
             var apis = PluginContext.OrThrow("PluginContext not found.").GetImplementations<IHostApi>();
-            foreach (var targetApi in actor.ModuleDeclaration.ModuleInfo.HostApis)
+            foreach (var targetApi in component.ModuleDeclaration.ModuleInfo.HostApis)
             {
                 var api = apis.FirstOrDefault(a => a.Name == targetApi);
                 if (api != null)

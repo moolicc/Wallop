@@ -27,8 +27,10 @@ namespace Wallop.DSLExtension.Modules
             {
                 throw new XmlException("Failed to find root of document.");
             }
+            var fileInfo = new FileInfo(file);
+            var baseDir = fileInfo.Directory?.FullName ?? "";
             var packageInfo = LoadPackageInfo(file, root.XPathSelectElement("./metadata"));
-            var modules = LoadModules(root.XPathSelectElement("./modules"));
+            var modules = LoadModules(root.XPathSelectElement("./modules"), file, baseDir);
 
             return new Package()
             {
@@ -47,7 +49,7 @@ namespace Wallop.DSLExtension.Modules
             return new PackageInfo(xmlFile, commonData.Name, commonData.Version, commonData.Description);
         }
 
-        private static IEnumerable<Module> LoadModules(XElement? rootElement)
+        private static IEnumerable<Module> LoadModules(XElement? rootElement, string packageFile, string baseDir)
         {
             if (rootElement == null)
             {
@@ -55,18 +57,18 @@ namespace Wallop.DSLExtension.Modules
             }
             foreach (var element in rootElement.XPathSelectElements("./module"))
             {
-                yield return LoadModule(element);
+                yield return LoadModule(element, packageFile, baseDir);
             }
         }
 
-        private static Module LoadModule(XElement? moduleElement)
+        private static Module LoadModule(XElement? moduleElement, string packageFile, string baseDir)
         {
             if (moduleElement == null)
             {
                 throw new XmlException("Failed to load module from package.");
             }
 
-            var info = LoadModuleInfo(moduleElement.XPathSelectElement("./metadata"));
+            var info = LoadModuleInfo(moduleElement.XPathSelectElement("./metadata"), packageFile, baseDir);
             var settings = LoadModuleSettings(moduleElement.XPathSelectElement("./settings"));
             return new Module()
             {
@@ -75,7 +77,7 @@ namespace Wallop.DSLExtension.Modules
             };
         }
 
-        private static ModuleInfo LoadModuleInfo(XElement? metadataElement)
+        private static ModuleInfo LoadModuleInfo(XElement? metadataElement, string packageFile, string baseDir)
         {
             if(metadataElement == null)
             {
@@ -99,10 +101,16 @@ namespace Wallop.DSLExtension.Modules
             {
                 // What if potentially a module has its source created dynamically?
                 // Well I guess that's an edge-case that has to be dealt with on a case-by-case basis.
-                throw new XmlException("Module source file not found.");
+
+                moduleSourceFile = Path.Combine(baseDir, moduleSourceFile);
+                if (!File.Exists(moduleSourceFile))
+                {
+                    // TODO: Error.
+                    throw new XmlException($"Module source file not found. File: {moduleSourceFile}");
+                }
             }
 
-            return new ModuleInfo(moduleSourceFile, commonMetadata.Name, commonMetadata.Version, commonMetadata.Description, engineInfo.ScriptEngineName, engineInfo.EngineArgs, typeEnumValue, hostApis);
+            return new ModuleInfo(packageFile, baseDir, moduleSourceFile, commonMetadata.Name, commonMetadata.Version, commonMetadata.Description, engineInfo.ScriptEngineName, engineInfo.EngineArgs, typeEnumValue, hostApis);
         }
 
         private static IEnumerable<ModuleSetting> LoadModuleSettings(XElement? settingRoot)

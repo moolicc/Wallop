@@ -8,7 +8,7 @@ using Wallop.DSLExtension.Scripting;
 using Wallop.Engine.ECS;
 using Wallop.Engine.Settings;
 
-namespace Wallop.Engine.Scripting
+namespace Wallop.Engine.Scripting.ECS
 {
     public class ScriptedEcsComponent : IEcsMember
     {

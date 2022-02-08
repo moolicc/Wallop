@@ -1,8 +1,8 @@
-print("Hello world, from a module!")
+print("Hello world, from a director module!")
 
 def update():
-    global x
-    x += 1
+    global y
+    y += 1
 
 def draw():
     global x, y

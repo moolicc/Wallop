@@ -10,6 +10,7 @@ namespace Wallop.Engine.SceneManagement
 {
     public class Layout
     {
+        public string Name { get; set; }
         public ECS.Manager EcsRoot { get; set; }
         public ScreenInfo Screen { get; set; }
 

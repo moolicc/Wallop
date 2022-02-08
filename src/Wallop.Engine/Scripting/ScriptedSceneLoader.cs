@@ -98,7 +98,7 @@ namespace Wallop.Engine.Scripting
                     // TODO: Error.
                     continue;
                 }
-                var actor = new ScriptedActor(associatedModule, actorDefinition);
+                var actor = new ScriptedActor(associatedModule, actorDefinition, layoutInstance);
                 layoutInstance.EcsRoot.AddActor(actor);
             }
         }

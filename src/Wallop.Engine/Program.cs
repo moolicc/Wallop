@@ -69,4 +69,4 @@ AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler((o, e) =>
 });
 
 var app = new EngineApp(engineConfig, context);
-app.Setup();
+app.SetupWindow();
