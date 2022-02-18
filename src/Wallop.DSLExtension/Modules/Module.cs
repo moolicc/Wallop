@@ -10,6 +10,5 @@ namespace Wallop.DSLExtension.Modules
     {
         public ModuleInfo ModuleInfo { get; set; }
         public IEnumerable<ModuleSetting> ModuleSettings { get; set; }
-
     }
 }
