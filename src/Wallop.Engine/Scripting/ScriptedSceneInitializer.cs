@@ -20,13 +20,15 @@ namespace Wallop.Engine.Scripting
         public Scene Scene { get; private set; }
         public PluginContext PluginContext { get; private set; }
         public IEnumerable<IScriptEngineProvider> ScriptEngineProviders { get; private set; }
+        public Dictionary<string, Type> BindableComponentTypes { get; private set; }
 
-        public ScriptedSceneInitializer(ScriptHostFunctions hostFunctions, Scene scene, PluginContext pluginContext, IEnumerable<IScriptEngineProvider> scriptEngineProviders)
+        public ScriptedSceneInitializer(ScriptHostFunctions hostFunctions, Scene scene, PluginContext pluginContext, IEnumerable<IScriptEngineProvider> scriptEngineProviders, IEnumerable<KeyValuePair<string, Type>> bindableComponentTypes)
         {
             ScriptHostFunctions = hostFunctions;
             Scene = scene;
             PluginContext = pluginContext;
             ScriptEngineProviders = scriptEngineProviders;
+            BindableComponentTypes = new Dictionary<string, Type>(bindableComponentTypes);
         }
 
         public void InitializeDirectorScripts()
@@ -35,7 +37,7 @@ namespace Wallop.Engine.Scripting
             {
                 if(director is ScriptedDirector scriptedDirector)
                 {
-                    InitializeComponent(scriptedDirector, (ctx) => BuildDirectorContext(ctx, scriptedDirector));
+                    InitializeElement(scriptedDirector, (ctx) => BuildDirectorContext(ctx, scriptedDirector));
                 }
             }
             foreach (var director in Scene.Directors)
@@ -60,7 +62,8 @@ namespace Wallop.Engine.Scripting
         {
             foreach (var actor in actors)
             {
-                InitializeComponent(actor, (ctx) => BuildActorContext(ctx, rootLayout, actor));
+                InitializeElement(actor, (ctx) => BuildActorContext(ctx, rootLayout, actor));
+                InitializeSettingBindings(actor, actor.GetAttachedScriptContext());
             }
             foreach (var actor in actors)
             {
@@ -68,7 +71,76 @@ namespace Wallop.Engine.Scripting
             }
         }
 
-        private void InitializeComponent(ScriptedEcsComponent component, Action<IScriptContext> mutateScriptContext)
+        private void InitializeSettingBindings(ScriptedActor actor, IScriptContext context)
+        {
+            Dictionary<Type, BindableType> bindingInstances = new Dictionary<Type, BindableType>();
+
+            // Load bindings defined in the module.
+            foreach (var setting in actor.ModuleDeclaration.ModuleSettings)
+            {
+                foreach (var binding in setting.Bindings)
+                {
+                    if(!BindableComponentTypes.TryGetValue(binding.TypeName, out var bindingType))
+                    {
+                        // TODO: Error / Warning
+                        continue;
+                    }
+
+
+                    if (bindingInstances.TryGetValue(bindingType, out var instance))
+                    {
+                        instance.BindProperty(binding.PropertyName, setting.SettingName);
+                    }
+                    else
+                    {
+                        var newBindable = (BindableType?)Activator.CreateInstance(bindingType);
+                        if (newBindable == null)
+                        {
+                            // TODO: Error / Warning
+                            continue;
+                        }
+
+                        newBindable.Bind(context);
+                        newBindable.BindProperty(binding.PropertyName, setting.SettingName);
+
+                        bindingInstances.Add(bindingType, newBindable);
+                        actor.Components.Add(newBindable);
+                    }
+                }
+            }
+
+            // Load bindings defined in the loaded layoutdefinition/actormodules settings.
+            foreach (var binding in actor.StoredDefinition.StoredBindings)
+            {
+                if (!BindableComponentTypes.TryGetValue(binding.TypeName, out var bindingType))
+                {
+                    // TODO: Error / Warning
+                    continue;
+                }
+
+                if (bindingInstances.TryGetValue(bindingType, out var instance))
+                {
+                    instance.BindProperty(binding.PropertyName, binding.SettingName);
+                }
+                else
+                {
+                    var newBindable = (BindableType?)Activator.CreateInstance(bindingType);
+                    if (newBindable == null)
+                    {
+                        // TODO: Error / Warning
+                        continue;
+                    }
+
+                    newBindable.Bind(context);
+                    newBindable.BindProperty(binding.PropertyName, binding.SettingName);
+
+                    bindingInstances.Add(bindingType, newBindable);
+                    actor.Components.Add(newBindable);
+                }
+            }
+        }
+
+        private void InitializeElement(ScriptedElement component, Action<IScriptContext> mutateScriptContext)
         {
             var engineProvider = ScriptEngineProviders.FirstOrDefault(ep => ep.Name == component.ModuleDeclaration.ModuleInfo.ScriptEngineId);
             if (engineProvider == null)
@@ -94,10 +166,10 @@ namespace Wallop.Engine.Scripting
 
             component.InitializeScript(engine, source);
 
-            component.BeforeUpdateCallback = Scene.OnBeforeScriptedComponentUpdate;
-            component.AfterUpdateCallback = Scene.OnAfterScriptedComponentUpdate;
-            component.BeforeDrawCallback = Scene.OnBeforeScriptedComponentDraw;
-            component.AfterDrawCallback = Scene.OnAfterScriptedComponentDraw;
+            component.BeforeUpdateCallback = Scene.OnBeforeScriptedElementUpdate;
+            component.AfterUpdateCallback = Scene.OnAfterScriptedElementUpdate;
+            component.BeforeDrawCallback = Scene.OnBeforeScriptedElementDraw;
+            component.AfterDrawCallback = Scene.OnAfterScriptedElementDraw;
 
 
         }
@@ -129,7 +201,7 @@ namespace Wallop.Engine.Scripting
 
         }
 
-        private void AddSettingsToContext(IScriptContext context, ScriptedEcsComponent component)
+        private void AddSettingsToContext(IScriptContext context, ScriptedElement component)
         {
             // Add defined setting values.
             foreach (var setting in component.StoredDefinition.Settings)
@@ -152,12 +224,12 @@ namespace Wallop.Engine.Scripting
                         }
                     }
                 }
-                context.AddValue(setting.Key, value);
+                context.SetValue(setting.Key, value);
             }
 
         }
         
-        private void AddInjectionsToContext(IScriptContext context, ScriptedEcsComponent component)
+        private void AddInjectionsToContext(IScriptContext context, ScriptedElement component)
         {
             // Execute the injection endpoint.
             var endPointContext = new Types.Plugins.EndPoints.ScriptInjectEndPoint(component.ModuleDeclaration, context);
@@ -165,7 +237,7 @@ namespace Wallop.Engine.Scripting
             PluginContext.WaitForEndPointExecutionAsync<IInjectScriptContextEndPoint>().WaitAndThrow();
         }
 
-        private void SetupHostApisForContext(IScriptContext context, ScriptedEcsComponent component)
+        private void SetupHostApisForContext(IScriptContext context, ScriptedElement component)
         {
             // Enumerate all HostAPI plugins and for each that this component uses, run the entry point.
             var hostApis = PluginContext.GetImplementations<IHostApi>();
@@ -176,7 +248,7 @@ namespace Wallop.Engine.Scripting
             }
         }
 
-        private void ValidateContext(IScriptContext context, ScriptedEcsComponent component)
+        private void ValidateContext(IScriptContext context, ScriptedElement component)
         {
             foreach (var declaredSetting in component.ModuleDeclaration.ModuleSettings)
             {
@@ -199,7 +271,7 @@ namespace Wallop.Engine.Scripting
                         }
                     }
 
-                    context.AddValue(declaredSetting.SettingName, value);
+                    context.SetValue(declaredSetting.SettingName, value);
                 }
             }
         }

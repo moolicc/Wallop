@@ -69,10 +69,13 @@ namespace Wallop.Engine.Scripting
 
         public Scene Scene { get; private set; }
 
-        public HostData(GL glInstance, Scene scene)
+        public Dictionary<string, Type> BindableComponents { get; private set; }
+
+        public HostData(GL glInstance, Scene scene, IEnumerable<KeyValuePair<string, Type>> bindableTypes)
         {
             GLInstance = glInstance;
             Scene = scene;
+            BindableComponents = new Dictionary<string, Type>(bindableTypes);
         }
 
         [ScriptPropertyFactory("basedir", FactoryPropertyMethod.Getter, ExposedName = MemberNames.GET_BASE_DIRECTORY)]
@@ -99,10 +102,25 @@ namespace Wallop.Engine.Scripting
             return null;
         }
 
+        [ScriptPropertyFactory("presentationsize", FactoryPropertyMethod.Getter, ExposedName = MemberNames.GET_ACTUAL_SIZE)]
+        public Func<Vector2>? GetPresentationSize(IScriptContext context, Module module, object tag)
+        {
+            if (tag is ScriptedActor actor)
+            {
+                return new Func<Vector2>(() => actor.OwningLayout.PresentationSize);
+            }
+            else if (tag is ScriptedDirector director)
+            {
+                return new Func<Vector2>(() => Scene.ActiveLayout.OrThrow().PresentationSize);
+            }
+            return null;
+        }
+
+
         [ScriptPropertyFactory("name", FactoryPropertyMethod.Getter, ExposedName = MemberNames.GET_NAME)]
         public Func<string>? GetName(IScriptContext context, Module module, object tag)
         {
-            if (tag is ScriptedEcsComponent component)
+            if (tag is ScriptedElement component)
             {
                 return new Func<string>(() => component.Name);
             }
@@ -126,5 +144,159 @@ namespace Wallop.Engine.Scripting
             }
             return string.Empty;
         }
+
+        [ScriptFunctionFactory]
+        public Delegate? AddComponent(IScriptContext ctx, Module module, object? tag)
+        {
+            if(tag is ScriptedActor actor)
+            {
+                return new Action<object>(component => actor.Components.Add(component));
+            }
+            else if(tag is ScriptedDirector director)
+            {
+                return new Action<string, object>((actor, component) => FindActor(actor)?.Components.Add(component));
+            }
+            return null;
+        }
+
+        [ScriptFunctionFactory]
+        public Delegate? AddComponentBinding(IScriptContext ctx, Module module, object? tag)
+        {
+            if (tag is ScriptedActor actor)
+            {
+                return new Action<string, object, string>((setting, componentTarget, targetProperty) =>
+                {
+                    if(componentTarget is BindableType bindable)
+                    {
+                        if(!bindable.IsBound)
+                        {
+                            bindable.Bind(ctx);
+                        }
+                        bindable.BindProperty(targetProperty, setting);
+                    }
+                });
+            }
+            else if (tag is ScriptedDirector director)
+            {
+                return new Action<string, string, object, string>((actor, setting, componentTarget, targetProperty) =>
+                {
+                    FindActor(actor);
+
+                    if (componentTarget is BindableType bindable)
+                    {
+                        if (!bindable.IsBound)
+                        {
+                            bindable.Bind(ctx);
+                        }
+                        bindable.BindProperty(targetProperty, setting);
+                    }
+                });
+            }
+            return null;
+        }
+
+        [ScriptFunctionFactory]
+        public Delegate? RemoveComponent(IScriptContext ctx, Module module, object? tag)
+        {
+            if (tag is ScriptedActor actor)
+            {
+                return new Action<object>(component => actor.Components.Remove(component));
+            }
+            else if (tag is ScriptedDirector director)
+            {
+                return new Action<string, object>((actor, component) => FindActor(actor)?.Components.Remove(component));
+            }
+            return null;
+        }
+
+        [ScriptFunctionFactory]
+        public Delegate? GetComponents(IScriptContext ctx, Module module, object? tag)
+        {
+            if (tag is ScriptedActor actor)
+            {
+                return new Func<IEnumerable<object>>(() => actor.Components.ToArray());
+            }
+            else if (tag is ScriptedDirector director)
+            {
+                return new Func<string, IEnumerable<object>>(actor => FindActor(actor)?.Components.ToArray() ?? Array.Empty<object>());
+            }
+            return null;
+        }
+
+
+        [ScriptFunctionFactory]
+        public Delegate? GetComponent(IScriptContext ctx, Module module, object? tag)
+        {
+            if (tag is ScriptedActor actor)
+            {
+                return new Func<Predicate<object>, object?>((selector) => actor.Components.FirstOrDefault(selector));
+            }
+            else if (tag is ScriptedDirector director)
+            {
+                return new Func<string, Predicate<object>, object?>((actor, selector) => FindActor(actor)?.Components.FirstOrDefault(selector));
+            }
+            return null;
+        }
+
+        [ScriptFunctionFactory]
+        public Delegate? FindActors(IScriptContext ctx, Module module, object? tag)
+        {
+            if (tag is ScriptedActor actor)
+            {
+                return new Func<string, IEnumerable<ScriptedActor>>(query => actor.OwningLayout.EcsRoot.GetActors<ScriptedActor>(query));
+            }
+            else if (tag is ScriptedDirector director)
+            {
+                return new Func<string, IEnumerable<ScriptedActor>>(query =>
+                {
+                    var actors = new List<ScriptedActor>();
+                    foreach (var layout in Scene.Layouts)
+                    {
+                        actors.AddRange(layout.EcsRoot.GetActors<ScriptedActor>(query));
+                    }
+                    return actors.ToArray();
+                });
+            }
+            return null;
+        }
+
+        private ScriptedActor? FindActor(string actorId)
+        {
+
+            bool ForLayout(Layout layout, string actorId, out ScriptedActor? result)
+            {
+                foreach (var actor in layout.EcsRoot.GetActors())
+                {
+                    if (actor.Name == actorId)
+                    {
+                        result = (ScriptedActor)actor;
+                        return true;
+                    }
+                }
+                result = null;
+                return false;
+            }
+
+            if (Scene.ActiveLayout != null && ForLayout(Scene.ActiveLayout, actorId, out var result))
+            {
+                return result;
+            }
+
+            foreach (var layout in Scene.Layouts)
+            {
+                if(layout == Scene.ActiveLayout)
+                {
+                    continue;
+                }
+
+                if(ForLayout(layout, actorId, out result))
+                {
+                    return result;
+                }
+            }
+
+            return null;
+        }
+
     }
 }

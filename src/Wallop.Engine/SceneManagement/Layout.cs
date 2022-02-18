@@ -15,9 +15,9 @@ namespace Wallop.Engine.SceneManagement
         public ScreenInfo Screen { get; set; }
 
         public Vector2 RenderSize { get; set; }
-        public Vector2 ActualSize
+        public Vector2 PresentationSize
         {
-            get => _actualSize;
+            get => _presentationSize;
             set
             {
                 //if(value.X > Screen.Bounds.Size.X ||
@@ -25,11 +25,11 @@ namespace Wallop.Engine.SceneManagement
                 //{
                 //    throw new ArgumentException("Actual size must be contained within the screen's bounds.", nameof(value));
                 //}
-                _actualSize = value;
+                _presentationSize = value;
             }
         }
 
-        private Vector2 _actualSize;
+        private Vector2 _presentationSize;
 
         public Layout()
         {

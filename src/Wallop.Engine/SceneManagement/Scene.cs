@@ -34,10 +34,10 @@ namespace Wallop.Engine.SceneManagement
             PluginContext = plugins;
         }
 
-        public void OnBeforeScriptedComponentUpdate(ScriptedEcsComponent component)
+        public void OnBeforeScriptedElementUpdate(ScriptedElement element)
         {
             // TODO: Find delta.
-            ForMatchingHostApis(component, (api, ctx) => api.BeforeUpdate(ctx, 0.0));
+            ForMatchingHostApis(element, (api, ctx) => api.BeforeUpdate(ctx, 0.0));
         }
 
 
@@ -57,14 +57,14 @@ namespace Wallop.Engine.SceneManagement
             }
         }
 
-        public void OnAfterScriptedComponentUpdate(ScriptedEcsComponent component)
+        public void OnAfterScriptedElementUpdate(ScriptedElement element)
         {
-            ForMatchingHostApis(component, (api, ctx) => api.AfterUpdate(ctx));
+            ForMatchingHostApis(element, (api, ctx) => api.AfterUpdate(ctx));
         }
 
-        public void OnBeforeScriptedComponentDraw(ScriptedEcsComponent component)
+        public void OnBeforeScriptedElementDraw(ScriptedElement element)
         {
-            ForMatchingHostApis(component, (api, ctx) => api.BeforeDraw(ctx, 0.0));
+            ForMatchingHostApis(element, (api, ctx) => api.BeforeDraw(ctx, 0.0));
         }
 
         public void Draw()
@@ -83,16 +83,16 @@ namespace Wallop.Engine.SceneManagement
             }
         }
 
-        public void OnAfterScriptedComponentDraw(ScriptedEcsComponent component)
+        public void OnAfterScriptedElementDraw(ScriptedElement element)
         {
-            ForMatchingHostApis(component, (api, ctx) => api.AfterDraw(ctx));
+            ForMatchingHostApis(element, (api, ctx) => api.AfterDraw(ctx));
         }
 
-        private void ForMatchingHostApis(ScriptedEcsComponent component, Action<IHostApi, IScriptContext> action)
+        private void ForMatchingHostApis(ScriptedElement element, Action<IHostApi, IScriptContext> action)
         {
-            var context = component.GetAttachedScriptContext();
+            var context = element.GetAttachedScriptContext();
             var apis = PluginContext.OrThrow("PluginContext not found.").GetImplementations<IHostApi>();
-            foreach (var targetApi in component.ModuleDeclaration.ModuleInfo.HostApis)
+            foreach (var targetApi in element.ModuleDeclaration.ModuleInfo.HostApis)
             {
                 var api = apis.FirstOrDefault(a => a.Name == targetApi);
                 if (api != null)
@@ -111,7 +111,7 @@ namespace Wallop.Engine.SceneManagement
 
             foreach (var actor in ActiveLayout.EcsRoot.GetActors())
             {
-                if(actor is ScriptedEcsComponent scriptedActor)
+                if(actor is ScriptedElement scriptedActor)
                 {
                     scriptedActor.Shutdown();
                 }

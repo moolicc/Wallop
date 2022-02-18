@@ -99,7 +99,7 @@ namespace Wallop.DSLExtension.Scripting
 
             foreach (var action in _actions)
             {
-                context.AddDelegate(action.Name, action.Method.CreateDelegate(action.BackingDelegate, action.Instance));
+                context.SetDelegate(action.Name, action.Method.CreateDelegate(action.BackingDelegate, action.Instance));
             }
 
             foreach (var property in _properties)
@@ -126,7 +126,7 @@ namespace Wallop.DSLExtension.Scripting
 
             foreach (var action in _addedMethods)
             {
-                context.AddDelegate(action.Name, action.Action);
+                context.SetDelegate(action.Name, action.Action);
             }
 
             foreach (var property in _addedProperties)
@@ -140,7 +140,7 @@ namespace Wallop.DSLExtension.Scripting
                         name = name.Remove(0, 3);
                     }
                     name = accessor + name;
-                    context.AddDelegate(name, property.Getter);
+                    context.SetDelegate(name, property.Getter);
                 }
                 if(property.Setter != null)
                 {
@@ -151,7 +151,7 @@ namespace Wallop.DSLExtension.Scripting
                         name = name.Remove(0, 3);
                     }
                     name = accessor + name;
-                    context.AddDelegate(name, property.Setter);
+                    context.SetDelegate(name, property.Setter);
                 }
             }
 
@@ -164,7 +164,7 @@ namespace Wallop.DSLExtension.Scripting
                 var method = factory.Factory(context, onBehalfOf, tag);
                 if(method != null)
                 {
-                    context.AddDelegate(factory.Name, method);
+                    context.SetDelegate(factory.Name, method);
                 }
             }
 
@@ -182,7 +182,7 @@ namespace Wallop.DSLExtension.Scripting
                         name = name.Remove(0, 3);
                     }
                     name = accessor + name;
-                    context.AddDelegate(name, getter);
+                    context.SetDelegate(name, getter);
                 }
                 if (setter != null)
                 {
@@ -193,7 +193,7 @@ namespace Wallop.DSLExtension.Scripting
                         name = name.Remove(0, 3);
                     }
                     name = accessor + name;
-                    context.AddDelegate(name, setter);
+                    context.SetDelegate(name, setter);
                 }
             }
         }

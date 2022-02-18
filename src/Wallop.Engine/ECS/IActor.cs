@@ -8,7 +8,7 @@ namespace Wallop.Engine.ECS
 {
     public interface IActor : IEcsMember
     {
-        public List<Component> Components { get; }
+        public List<object> Components { get; }
 
     }
 }

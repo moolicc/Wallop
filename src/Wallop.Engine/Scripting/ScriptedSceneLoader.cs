@@ -63,7 +63,7 @@ namespace Wallop.Engine.Scripting
             {
                 // Create the layout which will go in our Scene Tree.
                 var layout = new Layout();
-                layout.ActualSize = new System.Numerics.Vector2(800, 600);
+                layout.PresentationSize = new System.Numerics.Vector2(800, 600);
                 layout.RenderSize = new System.Numerics.Vector2(800, 600);
 
                 // Try to set this layout as the scene's active layout.

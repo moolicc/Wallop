@@ -44,14 +44,27 @@ namespace Wallop.Engine.ECS
             }
         }
 
+        public IEnumerable<TActor> GetActors<TActor>(string query) where TActor : IActor
+        {
+            foreach (var actor in GetActors(query))
+            {
+                if (actor is TActor tactor)
+                {
+                    yield return tactor;
+                }
+            }
+        }
+
         public IEnumerable<IActor> GetActors(ActorQuerying.Queries.IQuery query)
         {
             return ActorQuerying.QueryRunner.RunQuery(query, _actors);
         }
 
+
         public void AddActor(IActor actor)
         {
             _actors.Add(actor);
         }
+
     }
 }

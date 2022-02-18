@@ -142,6 +142,8 @@ namespace Wallop.DSLExtension.Modules
             var typeElement = settingElement.XPathSelectElement("type");
             var required = settingElement.XPathSelectElement("required")?.Value ?? "false";
             var defaultValue = settingElement.XPathSelectElement("defaultValue")?.Value;
+            var bindingElements = settingElement.XPathSelectElements("binding");
+            IEnumerable<ModuleSettingBinding> bindings = Array.Empty<ModuleSettingBinding>();
 
             if(name == null)
             {
@@ -163,11 +165,32 @@ namespace Wallop.DSLExtension.Modules
                 }
                 defaultValue = "";
             }
+            if(bindingElements != null)
+            {
+                bindings = LoadBindings(bindingElements);
+            }
 
             var type = typeElement.Value;
             var typeArgs = typeElement.Attributes().Select(a => new KeyValuePair<string, string>(a.Name.ToString(), a.Value));
 
-            return new ModuleSetting(name, description, defaultValue, type, requiredBool, typeArgs);
+            return new ModuleSetting(name, description, defaultValue, type, requiredBool, bindings, typeArgs);
+        }
+
+        private static IEnumerable<ModuleSettingBinding> LoadBindings(IEnumerable<XElement> bindingElements)
+        {
+            const string TYPE_PROPERTY_DELIMITER = ":";
+
+            foreach (var element in bindingElements)
+            {
+                if(!element.Value.Contains(TYPE_PROPERTY_DELIMITER))
+                {
+                    throw new XmlException("Module setting binding is not in a proper format.");
+                }
+                var delimiterIndex = element.Value.IndexOf(TYPE_PROPERTY_DELIMITER);
+                var type = element.Value.Substring(0, delimiterIndex);
+                var property = element.Value.Substring(delimiterIndex + 1);
+                yield return new ModuleSettingBinding(type, property);
+            }
         }
 
         private static (string ScriptEngineName, IEnumerable<KeyValuePair<string, string>> EngineArgs) GetModuleScriptEngineInfo(XElement? metadataRoot)

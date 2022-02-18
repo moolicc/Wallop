@@ -25,10 +25,10 @@ namespace Scripting.IronPython
         }
 
 
-        public void AddDelegate(ExposedDelegate exposedDelegate)
-            => AddDelegate(exposedDelegate.MemberName, exposedDelegate.Action);
+        public void SetDelegate(ExposedDelegate exposedDelegate)
+            => SetDelegate(exposedDelegate.MemberName, exposedDelegate.Action);
 
-        public void AddDelegate(string name, Delegate method)
+        public void SetDelegate(string name, Delegate method)
         {
             _scope.SetVariable(name, method);
         }
@@ -58,10 +58,10 @@ namespace Scripting.IronPython
         }
 
 
-        public void AddValue(ExposedValue valueInfo)
-            => AddValue(valueInfo.MemberName, valueInfo.Value);
+        public void SetValue(ExposedValue valueInfo)
+            => SetValue(valueInfo.MemberName, valueInfo.Value);
 
-        public void AddValue(string name, object? value)
+        public void SetValue(string name, object? value)
         {
             _scope.SetVariable(name, value);
         }

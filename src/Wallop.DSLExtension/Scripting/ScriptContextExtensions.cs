@@ -49,12 +49,12 @@ namespace Wallop.DSLExtension.Scripting
             if (property.CanRead)
             {
                 var getMethod = property.GetGetMethod();
-                context.AddDelegate(getName, getMethod.CreateDelegate<TGetDelegate>(instance));
+                context.SetDelegate(getName, getMethod.CreateDelegate<TGetDelegate>(instance));
             }
             if (property.CanWrite && !forceReadonly)
             {
                 var setMethod = property.GetSetMethod();
-                context.AddDelegate(setName, setMethod.CreateDelegate<TSetDelegate>(instance));
+                context.SetDelegate(setName, setMethod.CreateDelegate<TSetDelegate>(instance));
             }
         }
 
@@ -98,13 +98,13 @@ namespace Wallop.DSLExtension.Scripting
             {
                 var getterType = typeof(Func<>).MakeGenericType(property.PropertyType);
                 var getMethod = property.GetGetMethod();
-                context.AddDelegate(getName, getMethod.CreateDelegate(getterType, instance));
+                context.SetDelegate(getName, getMethod.CreateDelegate(getterType, instance));
             }
             if (property.CanWrite && !forceReadonly)
             {
                 var setterType = typeof(Action<>).MakeGenericType(property.PropertyType);
                 var setMethod = property.GetSetMethod();
-                context.AddDelegate(setName, setMethod.CreateDelegate(setterType, instance));
+                context.SetDelegate(setName, setMethod.CreateDelegate(setterType, instance));
             }
         }
 
@@ -141,7 +141,7 @@ namespace Wallop.DSLExtension.Scripting
             }
 
             var getMethod = property.GetGetMethod();
-            context.AddDelegate(getName, getMethod.CreateDelegate<TGetDelegate>(instance));
+            context.SetDelegate(getName, getMethod.CreateDelegate<TGetDelegate>(instance));
         }
 
 
@@ -177,7 +177,7 @@ namespace Wallop.DSLExtension.Scripting
 
             var getterType = typeof(Func<>).MakeGenericType(property.PropertyType);
             var getter = getMethod.CreateDelegate(getterType, instance);
-            context.AddDelegate(getName, getter);
+            context.SetDelegate(getName, getter);
         }
 
 

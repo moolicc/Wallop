@@ -8,7 +8,7 @@ namespace Wallop.Engine.ECS
 {
     public class Actor : IActor
     {
-        public List<Component> Components { get; private set; }
+        public List<object> Components { get; private set; }
         public string Name { get; private set; }
 
         public Actor()
@@ -18,7 +18,7 @@ namespace Wallop.Engine.ECS
 
         public Actor(string name)
         {
-            Components = new List<Component>();
+            Components = new List<object>();
             Name = name;
         }
 

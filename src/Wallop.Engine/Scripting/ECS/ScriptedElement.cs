@@ -10,7 +10,7 @@ using Wallop.Engine.Settings;
 
 namespace Wallop.Engine.Scripting.ECS
 {
-    public class ScriptedEcsComponent : IEcsMember
+    public class ScriptedElement : IEcsMember
     {
         public const bool OPERATIONS_MULTITHREADED = false;
 
@@ -19,16 +19,16 @@ namespace Wallop.Engine.Scripting.ECS
         public StoredModule StoredDefinition { get; init; }
         public IScriptEngine? ScriptEngine { get; private set; }
 
-        public Action<ScriptedEcsComponent> BeforeUpdateCallback;
-        public Action<ScriptedEcsComponent> AfterUpdateCallback;
-        public Action<ScriptedEcsComponent> BeforeDrawCallback;
+        public Action<ScriptedElement> BeforeUpdateCallback;
+        public Action<ScriptedElement> AfterUpdateCallback;
+        public Action<ScriptedElement> BeforeDrawCallback;
 
-        public Action<ScriptedEcsComponent> AfterDrawCallback;
+        public Action<ScriptedElement> AfterDrawCallback;
 
         private TaskHandler? TaskHandler;
 
 
-        public ScriptedEcsComponent(string name, Module declaringModule, StoredModule storedModule)
+        public ScriptedElement(string name, Module declaringModule, StoredModule storedModule)
         {
             Name = name;
             ModuleDeclaration = declaringModule;
@@ -50,6 +50,7 @@ namespace Wallop.Engine.Scripting.ECS
 
         public void Shutdown()
         {
+            OnShutdown();
             TaskHandler.Terminate();
         }
 
@@ -83,6 +84,9 @@ namespace Wallop.Engine.Scripting.ECS
                 InvokeOnScriptThread(() => AfterDrawCallback(this));
             }
         }
+
+        protected virtual void OnShutdown()
+        { }
 
         private void InvokeOnScriptThread(Action action)
         {

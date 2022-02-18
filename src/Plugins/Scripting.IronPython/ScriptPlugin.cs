@@ -25,7 +25,7 @@ namespace Scripting.IronPython
 
         public void InjectScriptContext(IScriptContext context)
         {
-            context.AddValue("name", "Albert");
+            context.SetValue("name", "Albert");
         }
     }
 }

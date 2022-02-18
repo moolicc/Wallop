@@ -6,10 +6,18 @@ using System.Threading.Tasks;
 
 namespace Wallop.Engine.Settings
 {
+    public class StoredBinding
+    {
+        public string TypeName { get; set; }
+        public string PropertyName { get; set; }
+        public string SettingName { get; set; }
+    }
+
     public class StoredModule
     {
         public string ModuleId { get; set; }
         public Dictionary<string, string> Settings { get; set; }
+        public List<StoredBinding> StoredBindings { get; set; } = new List<StoredBinding>();
         public string InstanceName { get; set; }
     }
 

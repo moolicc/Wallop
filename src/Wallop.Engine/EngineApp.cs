@@ -42,6 +42,7 @@ namespace Wallop.Engine
 
         private ScriptHostFunctions _scriptHostFunctions;
         private IEnumerable<IScriptEngineProvider> _scriptEngineProviders;
+        private IEnumerable<KeyValuePair<string, Type>> _bindableComponentTypes;
 
         private Scene _scene;
 
@@ -121,7 +122,12 @@ namespace Wallop.Engine
             _pluginContext.ExecuteEndPoint<ILoadingScriptEnginesEndPoint>(engineEndPointPluginContext);
             _pluginContext.WaitForEndPointExecutionAsync<ILoadingScriptEnginesEndPoint>().WaitAndThrow();
 
+            var bindableConext = new BindableTypeEndPoint();
+            _pluginContext.ExecuteEndPoint<IBindableTypeRegistrationEndPoint>(bindableConext);
+            _pluginContext.WaitForEndPointExecutionAsync<IBindableTypeRegistrationEndPoint>().WaitAndThrow();
+
             _scriptEngineProviders = engineEndPointPluginContext.GetScriptEngineProviders();
+            _bindableComponentTypes = bindableConext.BindableTypes;
         }
 
 
@@ -169,6 +175,21 @@ namespace Wallop.Engine
                                     { "height", "100" },
                                     { "width", "100" },
                                     { "y", "200" }
+                                },
+                                StoredBindings = new List<Settings.StoredBinding>()
+                                {
+                                    new Settings.StoredBinding()
+                                    {
+                                        PropertyName = "X",
+                                        TypeName = "PositionComponent",
+                                        SettingName = "x",
+                                    },
+                                    new Settings.StoredBinding()
+                                    {
+                                        PropertyName = "Y",
+                                        TypeName = "PositionComponent",
+                                        SettingName = "y",
+                                    },
                                 }
                             }
                         }
@@ -180,13 +201,13 @@ namespace Wallop.Engine
             _scene.Init(_pluginContext);
 
 
-            var hostData = new HostData(_gl, _scene);
+            var hostData = new HostData(_gl, _scene, _bindableComponentTypes);
             //_scriptHostFunctions.AddDependencyProperty(MemberNames.GET_NAME, hostData.GetName, null);
             _scriptHostFunctions.AddDependencies(hostData);
 
 
 
-            var initializer = new ScriptedSceneInitializer(_scriptHostFunctions, _scene, _pluginContext, _scriptEngineProviders);
+            var initializer = new ScriptedSceneInitializer(_scriptHostFunctions, _scene, _pluginContext, _scriptEngineProviders, _bindableComponentTypes);
 
             initializer.InitializeActorScripts();
             initializer.InitializeDirectorScripts();

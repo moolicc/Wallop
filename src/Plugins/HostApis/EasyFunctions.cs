@@ -73,21 +73,21 @@ namespace HostApis
         {
             BoundContext = boundContext;
 
-            boundContext.AddValue(VAR_DEVICE, device);
-            boundContext.AddValue(VAR_SHADER, shader);
-            boundContext.AddValue(VAR_BATCHER, batcher);
+            boundContext.SetValue(VAR_DEVICE, device);
+            boundContext.SetValue(VAR_SHADER, shader);
+            boundContext.SetValue(VAR_BATCHER, batcher);
 
-            boundContext.AddDelegate(nameof(Image), new DrawSeparateCoords(Image));
+            boundContext.SetDelegate(nameof(Image), new DrawSeparateCoords(Image));
             //boundContext.AddDelegate(nameof(Image), new DrawVectorCoords(Image));
 
             //boundContext.AddDelegate(nameof(Image), new DrawSeparateCoordsScale(Image));
             //boundContext.AddDelegate(nameof(Image), new DrawVectorCoordsScale(Image));
 
-            boundContext.AddDelegate(nameof(ImageScaled), new DrawSeparateCoordsSeparateScale(ImageScaled));
+            boundContext.SetDelegate(nameof(ImageScaled), new DrawSeparateCoordsSeparateScale(ImageScaled));
             //boundContext.AddDelegate(nameof(Image), new DrawVectorCoordsVectorScale(Image));
 
 
-            boundContext.AddDelegate(nameof(ImageScaledRotation), new DrawSeparateCoordsSeparateScaleSeparateOrigin(ImageScaledRotation));
+            boundContext.SetDelegate(nameof(ImageScaledRotation), new DrawSeparateCoordsSeparateScaleSeparateOrigin(ImageScaledRotation));
             //boundContext.AddDelegate(nameof(Image), new DrawSeparateCoordsSeparateScaleVectorOrigin(Image));
             //boundContext.AddDelegate(nameof(Image), new DrawVectorCoordsVectorScaleVectorOrigin(Image));
         }

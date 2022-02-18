@@ -43,7 +43,7 @@ namespace HostApis
             scriptContext.AddReference(typeof(TrippyGL.ImageSharp.Texture2DExtensions).Assembly);
             scriptContext.AddImport("TrippyGL");
             scriptContext.AddImport("TrippyGL.ImageSharp");
-            scriptContext.AddValue("GraphicsDevice", _device);
+            scriptContext.SetValue("GraphicsDevice", _device);
         }
 
 

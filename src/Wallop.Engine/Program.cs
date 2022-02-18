@@ -27,12 +27,15 @@ var pluginLoader = new PluginPantry.PluginLoader();
 var morePlugins = pluginLoader.LoadPluginAssembly(@"C:\Users\joel\source\repos\moolicc\Wallop\src\Plugins\EnginePlugins\bin\Debug\net6.0\EnginePlugins.dll");
 var yetMore = pluginLoader.LoadPluginAssembly(@"C:\Users\joel\source\repos\moolicc\Wallop\src\Plugins\HostApis\bin\Debug\net6.0\HostApis.dll");
 var moarPlugions = pluginLoader.LoadPluginAssembly(@"C:\Users\joel\source\repos\moolicc\Wallop\src\Plugins\Scripting.IronPython\bin\Debug\net6.0\Scripting.IronPython.dll");
+var anotherone = pluginLoader.LoadPluginAssembly(@"C:\Users\joel\source\repos\moolicc\Wallop\src\Plugins\StandardComponents\bin\Debug\net6.0\StandardComponents.dll");
+
 
 var context = new PluginPantry.PluginContext();
 //context.IncludePlugins(plugins);
 context.IncludePlugins(morePlugins);
 context.IncludePlugins(yetMore);
 context.IncludePlugins(moarPlugions);
+context.IncludePlugins(anotherone);
 context.BeginPluginExecution(new Wallop.Engine.Types.Plugins.EndPoints.EntryPointContext());
 
 

@@ -14,8 +14,8 @@ namespace Wallop.DSLExtension.Scripting
     public interface IScriptContext
     {
         public bool ContainsValue(string name);
-        public void AddValue(string name, object? value);
-        public void AddValue(ExposedValue valueInfo);
+        public void SetValue(string name, object? value);
+        public void SetValue(ExposedValue valueInfo);
 
         public object? GetValue(string name);
         public T? GetValue<T>(string name);
@@ -29,7 +29,7 @@ namespace Wallop.DSLExtension.Scripting
         public void AddImport(Import import);
 
         bool ContainsDelegate(string name);
-        public void AddDelegate(string name, Delegate method);
-        public void AddDelegate(ExposedDelegate exposedDelegate);
+        public void SetDelegate(string name, Delegate method);
+        public void SetDelegate(ExposedDelegate exposedDelegate);
     }
 }
