@@ -98,6 +98,11 @@ namespace Wallop.Engine.Scripting
             /// </summary>
             public const string FATAL = "fatal";
 
+            /// <summary>
+            /// The name of the fatal function.
+            /// </summary>
+            public const string PANIC = "panic";
+
         }
 
 
@@ -370,6 +375,16 @@ namespace Wallop.Engine.Scripting
             return null;
         }
 
+
+        [ScriptFunctionFactory(ExposedName = MemberNames.PANIC)]
+        public Delegate? Panic(IScriptContext ctx, Module module, object? tag)
+        {
+            if (tag is ScriptedElement element)
+            {
+                return new Action<string>(reason => element.Panic(reason, true));
+            }
+            return null;
+        }
 
 
         private ScriptedActor? FindActor(string actorId)

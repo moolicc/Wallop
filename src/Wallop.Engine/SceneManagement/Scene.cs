@@ -1,5 +1,6 @@
 ﻿using PluginPantry;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -21,17 +22,40 @@ namespace Wallop.Engine.SceneManagement
         public List<IDirector> Directors { get; set; }
 
         public PluginContext? PluginContext { get; set; }
-        
+
+        private ConcurrentStack<ScriptedActor> _panickedActors;
+        private ConcurrentStack<ScriptedDirector> _panickedDirectors;
+
         public Scene()
         {
             Layouts = new List<Layout> { };
             ActiveLayout = null;
             Directors = new List<IDirector> { };
+
+            _panickedActors = new ConcurrentStack<ScriptedActor>();
+            _panickedDirectors = new ConcurrentStack<ScriptedDirector>();
         }
 
         public void Init(PluginContext plugins)
         {
             PluginContext = plugins;
+        }
+
+        public void OnScriptedElementPanic(ScriptedElement element)
+        {
+            element.AfterDrawCallback = null;
+            element.AfterUpdateCallback = null;
+            element.BeforeDrawCallback = null;
+            element.BeforeUpdateCallback = null;
+
+            if (element is ScriptedActor actor)
+            {
+                _panickedActors.Push(actor);
+            }
+            else if(element is ScriptedDirector director)
+            {
+                _panickedDirectors.Push(director);
+            }
         }
 
         public void OnBeforeScriptedElementUpdate(ScriptedElement element)
@@ -55,6 +79,7 @@ namespace Wallop.Engine.SceneManagement
             {
                 actor.Update();
             }
+            CleanPanicked();
         }
 
         public void OnAfterScriptedElementUpdate(ScriptedElement element)
@@ -81,6 +106,7 @@ namespace Wallop.Engine.SceneManagement
             {
                 actor.Draw();
             }
+            CleanPanicked();
         }
 
         public void OnAfterScriptedElementDraw(ScriptedElement element)
@@ -99,6 +125,18 @@ namespace Wallop.Engine.SceneManagement
                 {
                     action(api, context);
                 }
+            }
+        }
+
+        private void CleanPanicked()
+        {
+            while (_panickedActors.TryPop(out var actor) && actor != null)
+            {
+                actor.OwningLayout.EcsRoot.Remove(actor);
+            }
+            while (_panickedDirectors.TryPop(out var director) && director != null)
+            {
+                Directors.Remove(director);
             }
         }
 

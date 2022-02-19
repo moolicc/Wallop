@@ -1,4 +1,5 @@
 ﻿using IronPython.Hosting;
+using IronPython.Runtime.Exceptions;
 using Microsoft.Scripting.Hosting;
 using Wallop.DSLExtension.Scripting;
 using IronPy = IronPython;
@@ -37,6 +38,7 @@ namespace Scripting.IronPython
         private PythonScriptContext? _scriptContext;
         private ScriptEngine _pyEngine;
         private ScriptScope _pyScope;
+        private int _lastLine;
 
         public PythonScriptEngine(Dictionary<string, object> args)
         {
@@ -44,7 +46,10 @@ namespace Scripting.IronPython
             _pyScope = _pyEngine.CreateScope();
             _pyScope.ImportModule("clr");
             _pyEngine.Execute("import clr", _pyScope);
+            _lastLine = -1;
+            //_pyEngine.Runtime.SetTrace(OnTraceback);
         }
+
 
         public IScriptContext? GetAttachedScriptContext()
             => _scriptContext;
@@ -63,6 +68,23 @@ namespace Scripting.IronPython
         {
             var source = _pyEngine.CreateScriptSourceFromString(script);
             source.Execute(_pyScope);
+        }
+
+        public void Panic()
+        {
+            throw new SystemExitException("Panicking");
+        }
+
+        public int GetLastLineExecuted()
+        {
+            return _lastLine;
+        }
+
+        private TracebackDelegate OnTraceback(TraceBackFrame frame, string result, object payload)
+        {
+            _lastLine = (frame.f_lineno as int?) ?? -1;
+
+            return OnTraceback;
         }
     }
 }

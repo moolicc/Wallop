@@ -19,13 +19,16 @@ namespace Wallop.Engine.Scripting.ECS
         public StoredModule StoredDefinition { get; init; }
         public IScriptEngine? ScriptEngine { get; private set; }
 
-        public Action<ScriptedElement> BeforeUpdateCallback;
-        public Action<ScriptedElement> AfterUpdateCallback;
-        public Action<ScriptedElement> BeforeDrawCallback;
+        public bool IsPanicState { get; private set; }
 
-        public Action<ScriptedElement> AfterDrawCallback;
+        public Action<ScriptedElement>? BeforeUpdateCallback;
+        public Action<ScriptedElement>? AfterUpdateCallback;
+        public Action<ScriptedElement>? BeforeDrawCallback;
+        public Action<ScriptedElement>? AfterDrawCallback;
+        public Action<ScriptedElement>? PanicCallback;
 
-        private TaskHandler? TaskHandler;
+        private TaskHandler? _taskHandler;
+        private ScriptPanicException? _panic;
 
 
         public ScriptedElement(string name, Module declaringModule, StoredModule storedModule)
@@ -37,7 +40,7 @@ namespace Wallop.Engine.Scripting.ECS
 
         public void InitializeScript(IScriptEngine engine, string source)
         {
-            TaskHandler = new TaskHandler(engine);
+            _taskHandler = new TaskHandler(engine);
             ScriptEngine = engine;
 
             InvokeOnScriptThread(() => engine.Execute(source));
@@ -45,13 +48,18 @@ namespace Wallop.Engine.Scripting.ECS
 
         public async Task WaitForExecuteAsync()
         {
-            await TaskHandler.OrThrow().WaitForEmptyAsync();
+            await _taskHandler.OrThrow().WaitForEmptyAsync();
         }
 
         public void Shutdown()
         {
+            BeforeUpdateCallback = null;
+            AfterUpdateCallback = null;
+            BeforeDrawCallback = null;
+            AfterDrawCallback = null;
             OnShutdown();
-            TaskHandler.Terminate();
+            _taskHandler?.Terminate();
+            _taskHandler = null;
         }
 
         public IScriptContext GetAttachedScriptContext()
@@ -61,11 +69,29 @@ namespace Wallop.Engine.Scripting.ECS
 
         public void Update()
         {
+            if(IsPanicState)
+            {
+                HandlePendingPanic();
+                return;
+            }
+
             if(BeforeUpdateCallback != null)
             {
                 InvokeOnScriptThread(() => BeforeUpdateCallback(this));
             }
-            InvokeScriptAction("update");
+
+            try
+            {
+                InvokeScriptAction("update");
+            }
+            catch (Exception ex)
+            { Panic(ex, false); }
+
+            if (IsPanicState)
+            {
+                return;
+            }
+
             if (AfterUpdateCallback != null)
             {
                 InvokeOnScriptThread(() => AfterUpdateCallback(this));
@@ -74,16 +100,63 @@ namespace Wallop.Engine.Scripting.ECS
 
         public void Draw()
         {
+            if (IsPanicState)
+            {
+                HandlePendingPanic();
+                return;
+            }
+
             if (BeforeDrawCallback != null)
             {
                 InvokeOnScriptThread(() => BeforeDrawCallback(this));
             }
-            InvokeScriptAction("draw");
+
+            try
+            {
+                InvokeScriptAction("draw");
+            }
+            catch (Exception ex)
+            { Panic(ex, false); }
+
+            if (IsPanicState)
+            {
+                return;
+            }
+
             if (AfterDrawCallback != null)
             {
                 InvokeOnScriptThread(() => AfterDrawCallback(this));
             }
         }
+
+        public void Panic(string reason, bool generatedByScript)
+        {
+            Panic(new ScriptPanicException(reason, this, generatedByScript));
+        }
+
+        public void Panic(Exception cause, bool generatedByScript)
+        {
+            if(cause is ScriptPanicException)
+            {
+                throw new InvalidOperationException($"Panic should not be called with an inner-exception cause of type {nameof(ScriptPanicException)}.");
+            }
+           Panic(new ScriptPanicException(cause.Message, this, generatedByScript, cause));
+        }
+
+        public void Panic(ScriptPanicException exception)
+        {
+            _panic = exception;
+            IsPanicState = true;
+            if (exception.GeneratedByScript)
+            {
+                ScriptEngine?.Panic();
+            }
+            else
+            {
+                HandlePendingPanic();
+            }
+        }
+
 
         protected virtual void OnShutdown()
         { }
@@ -92,11 +165,11 @@ namespace Wallop.Engine.Scripting.ECS
         {
             if (OPERATIONS_MULTITHREADED)
             {
-                TaskHandler.OrThrow().EnqueueAction(action);
+                _taskHandler?.OrThrow().EnqueueAction(action);
             }
             else
             {
-                TaskHandler.OrThrow().RunAction(action);
+                _taskHandler?.OrThrow().RunAction(action);
             }
         }
 
@@ -104,12 +177,26 @@ namespace Wallop.Engine.Scripting.ECS
         {
             if (OPERATIONS_MULTITHREADED)
             {
-                TaskHandler.OrThrow().EnqueueAction<Action>(actionName, a => a());
+                _taskHandler?.OrThrow().EnqueueAction<Action>(actionName, a => a());
             }
             else
             {
-                TaskHandler.OrThrow().RunAction<Action>(actionName, a => a());
+                _taskHandler?.OrThrow().RunAction<Action>(actionName, a => a());
             }
+        }
+
+        private void HandlePendingPanic()
+        {
+            if(_panic == null)
+            {
+                return;
+            }
+
+            EngineLog.For<ScriptedElement>().Error(_panic, "ECS element is panicking! Clearing element state. Last line executed: {line}, Panic Exception: {exc}", ScriptEngine?.GetLastLineExecuted(), _panic);
+            Shutdown();
+            PanicCallback?.Invoke(this);
+
+            _panic = null;
         }
     }
 }

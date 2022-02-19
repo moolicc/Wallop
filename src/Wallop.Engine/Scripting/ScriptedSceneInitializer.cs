@@ -206,6 +206,7 @@ namespace Wallop.Engine.Scripting
             component.AfterUpdateCallback = Scene.OnAfterScriptedElementUpdate;
             component.BeforeDrawCallback = Scene.OnBeforeScriptedElementDraw;
             component.AfterDrawCallback = Scene.OnAfterScriptedElementDraw;
+            component.PanicCallback = Scene.OnScriptedElementPanic;
 
 
             EngineLog.For<ScriptedSceneInitializer>().Info("Script initialized!");

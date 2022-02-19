@@ -9,7 +9,12 @@ namespace Wallop.DSLExtension.Scripting
     public interface IScriptEngine
     {
         public void AttachContext(IScriptContext context);
+
         public IScriptContext? GetAttachedScriptContext();
+
+        public void Panic();
+
+        public int GetLastLineExecuted();
 
         public void Execute(string script);
     }

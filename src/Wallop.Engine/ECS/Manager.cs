@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Wallop.Engine.Scripting.ECS;
 
 namespace Wallop.Engine.ECS
 {
@@ -53,6 +54,11 @@ namespace Wallop.Engine.ECS
                     yield return tactor;
                 }
             }
+        }
+
+        internal void Remove(IActor actor)
+        {
+            _actors.Remove(actor);
         }
 
         public IEnumerable<IActor> GetActors(ActorQuerying.Queries.IQuery query)

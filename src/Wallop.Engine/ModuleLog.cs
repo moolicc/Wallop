@@ -52,7 +52,6 @@ namespace Wallop.Engine
             _logFactory.Configuration = configuration;
         }
 
-
         public static Logger For(Module module, string instanceName)
         {
             var logger = _logFactory.GetLogger(instanceName);
