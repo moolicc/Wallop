@@ -27,11 +27,14 @@ namespace Wallop.Engine.Scripting
         // TODO: Actors should be able to have additional settings that are not required that the user can add.
         public Scene LoadFromPackages(string baseDir)
         {
+            EngineLog.For<ScriptedSceneLoader>().Info("Loading packages from base directory {dir}...", baseDir);
+
             // Load all the modules across all packages.
             var packages = PackageLoader.LoadPackages(baseDir);
             _loadedModules = ResolveModules(packages);
 
             // Create the scene and layouts.
+            EngineLog.For<ScriptedSceneLoader>().Info("Creating scene elements...", baseDir);
             var scene = new Scene();
             CreateLayouts(scene);
             CreateDirectors(scene);
@@ -50,6 +53,7 @@ namespace Wallop.Engine.Scripting
                     {
                         setting.CachedType = _typeCache.Types[setting.SettingType];
                     }
+                    EngineLog.For<ScriptedSceneLoader>().Debug("Resolving module {module}...", module.ModuleInfo);
                     results.Add(module);
                 }
             }
@@ -58,6 +62,8 @@ namespace Wallop.Engine.Scripting
 
         private void CreateLayouts(Scene sceneInstance)
         {
+            EngineLog.For<ScriptedSceneLoader>().Info("Creating {numLayouts} layout elements...", _sceneSettings.Layouts.Count);
+            
             // Iterate over each layout defined in our loaded settings.
             foreach (var layoutSpecified in _sceneSettings.Layouts)
             {
@@ -69,9 +75,10 @@ namespace Wallop.Engine.Scripting
                 // Try to set this layout as the scene's active layout.
                 if(layoutSpecified.Active)
                 {
-                    if(sceneInstance.ActiveLayout != null)
+                    EngineLog.For<ScriptedSceneLoader>().Info("Setting current layout element ({layout}) as active...", layoutSpecified.Name);
+                    if (sceneInstance.ActiveLayout != null)
                     {
-                        // Cannot have more than one active layout.
+                        EngineLog.For<ScriptedSceneLoader>().Warn("The scene already has an active layout ({activeLayout}). The active layout will be changed to ({layout}).", sceneInstance.ActiveLayout.Name, layoutSpecified.Name);
                     }
                     sceneInstance.ActiveLayout = layout;
                 }
@@ -85,6 +92,8 @@ namespace Wallop.Engine.Scripting
 
         private void LoadLayoutActors(Layout layoutInstance, StoredLayout layoutDefinition)
         {
+            EngineLog.For<ScriptedSceneLoader>().Info("Found {actorModules} actor definitions in layout.", layoutDefinition.ActorModules.Count);
+            int loaded = 0;
             // Iterate over each actor we're supposed to load for this layout.
             foreach (var actorDefinition in layoutDefinition.ActorModules)
             {
@@ -95,16 +104,23 @@ namespace Wallop.Engine.Scripting
 
                 if(associatedModule == null)
                 {
-                    // TODO: Error.
+                    EngineLog.For<ScriptedSceneLoader>().Error("Module {module} for actor definition {actor} on layout {layout} not found!", actorDefinition.ModuleId, actorDefinition.InstanceName, layoutInstance.Name);
                     continue;
                 }
+                EngineLog.For<ScriptedSceneLoader>().Debug("Adding actor {actor} to ECS for layout {layout} based on module {module}. ({loaded}/{total})", actorDefinition.InstanceName, layoutInstance.Name, associatedModule.ModuleInfo.Id, loaded + 1, layoutDefinition.ActorModules.Count);
                 var actor = new ScriptedActor(associatedModule, actorDefinition, layoutInstance);
                 layoutInstance.EcsRoot.AddActor(actor);
+                loaded++;
             }
+
+            EngineLog.For<ScriptedSceneLoader>().Info("Loaded {loaded} actors for the current layout.", loaded);
         }
 
         private void CreateDirectors(Scene sceneInstance)
         {
+            EngineLog.For<ScriptedSceneLoader>().Info("Creating {numDirectors} director elements...", _sceneSettings.DirectorModules.Count);
+
+            int loaded = 0;
             foreach (var directorSpecified in _sceneSettings.DirectorModules)
             {
                 var directorModule = _loadedModules.FirstOrDefault(
@@ -113,13 +129,17 @@ namespace Wallop.Engine.Scripting
 
                 if(directorModule == null)
                 {
-                    // TODO: Error.
+                    EngineLog.For<ScriptedSceneLoader>().Error("Module {module} for director definition {director} not found!", directorSpecified.ModuleId, directorSpecified.InstanceName);
                     continue;
                 }
 
+                EngineLog.For<ScriptedSceneLoader>().Debug("Adding director {director} to ECS based on module {module}. ({loaded}/{total})", directorSpecified.InstanceName, directorSpecified.ModuleId, loaded + 1, _sceneSettings.DirectorModules.Count);
                 var director = new ScriptedDirector(directorModule, directorSpecified);
                 sceneInstance.Directors.Add(director);
+                loaded++;
             }
+
+            EngineLog.For<ScriptedSceneLoader>().Info("Loaded {loaded} director elements into the scene.", loaded);
         }
     }
 }

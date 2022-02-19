@@ -11,6 +11,7 @@ using Wallop.Engine.ECS;
 using Wallop.Engine.SceneManagement;
 using Wallop.Engine.Scripting.ECS;
 using Wallop.Engine.Types.Plugins;
+using Wallop.Engine.Types.Plugins.EndPoints;
 
 namespace Wallop.Engine.Scripting
 {
@@ -33,20 +34,25 @@ namespace Wallop.Engine.Scripting
 
         public void InitializeDirectorScripts()
         {
+            EngineLog.For<ScriptedSceneInitializer>().Info("Initializing director scripts...");
             foreach (var director in Scene.Directors)
             {
                 if(director is ScriptedDirector scriptedDirector)
                 {
+                    EngineLog.For<ScriptedSceneInitializer>().Debug("Running director initialization for {director}...", director.Name);
                     InitializeElement(scriptedDirector, (ctx) => BuildDirectorContext(ctx, scriptedDirector));
                 }
             }
+            EngineLog.For<ScriptedSceneInitializer>().Debug("Waiting for director script initialization to complete...");
             foreach (var director in Scene.Directors)
             {
                 if (director is ScriptedDirector scriptedDirector)
                 {
-                    scriptedDirector.WaitForExecuteAsync().WaitAndThrow();
+                    scriptedDirector.WaitForExecuteAsync().WaitAndCall(scriptedDirector, (e, d)
+                        => EngineLog.For<ScriptedSceneInitializer>().Error(e, "Failed to initialize director script! Director: {director}, Message: {message}, Inner message: {innermessage}, Script: {script}.", d.Name, e.Message, e.InnerException?.Message, d.ModuleDeclaration.ModuleInfo.SourcePath));
                 }
             }
+            EngineLog.For<ScriptedSceneInitializer>().Info("***** Director scripts initialization complete! *****");
         }
 
         public void InitializeActorScripts()
@@ -54,20 +60,26 @@ namespace Wallop.Engine.Scripting
             foreach (var layout in Scene.Layouts)
             {
                 var actors = layout.EcsRoot.GetActors<ScriptedActor>();
+                EngineLog.For<ScriptedSceneInitializer>().Info("Initializing actor scripts for layout {layout}...", layout.Name);
                 InitializeActors(layout, actors);
             }
+            EngineLog.For<ScriptedSceneInitializer>().Info("***** Actor scripts initialization complete! *****");
         }
 
         private void InitializeActors(Layout rootLayout, IEnumerable<ScriptedActor> actors)
         {
             foreach (var actor in actors)
             {
+                EngineLog.For<ScriptedSceneInitializer>().Debug("Running actor initialization for {actor}...", actor.Id);
                 InitializeElement(actor, (ctx) => BuildActorContext(ctx, rootLayout, actor));
+                EngineLog.For<ScriptedSceneInitializer>().Debug("Creating bindings for {actor}...", actor.Id);
                 InitializeSettingBindings(actor, actor.GetAttachedScriptContext());
             }
+            EngineLog.For<ScriptedSceneInitializer>().Debug("Waiting for actor script initialization to complete...");
             foreach (var actor in actors)
             {
-                actor.WaitForExecuteAsync().WaitAndThrow();
+                actor.WaitForExecuteAsync().WaitAndCall(actor, (e, a)
+                    => EngineLog.For<ScriptedSceneInitializer>().Error(e, "Failed to initialize actor script! Actor: {actor}, Message: {message}, Inner message: {innermessage}, Script: {script}.", a.Id, e.Message, e.InnerException?.Message, a.ModuleDeclaration.ModuleInfo.SourcePath));
             }
         }
 
@@ -80,15 +92,18 @@ namespace Wallop.Engine.Scripting
             {
                 foreach (var binding in setting.Bindings)
                 {
+                    EngineLog.For<ScriptedSceneInitializer>().Debug("Setting up binding {binding} on setting {setting}.", binding, setting);
+
                     if(!BindableComponentTypes.TryGetValue(binding.TypeName, out var bindingType))
                     {
-                        // TODO: Error / Warning
+                        EngineLog.For<ScriptedSceneInitializer>().Warn("Binding not found on actor {actor}! Binding: {binding}.", actor.Id, binding.TypeName);
                         continue;
                     }
 
 
                     if (bindingInstances.TryGetValue(bindingType, out var instance))
                     {
+                        EngineLog.For<ScriptedSceneInitializer>().Debug("Binding added onto existing bindable for actor {actor} from {setting} to concrete member {property} via {binding}.", actor.Id, setting.SettingName, binding.PropertyName, binding.TypeName);
                         instance.BindProperty(binding.PropertyName, setting.SettingName);
                     }
                     else
@@ -96,7 +111,7 @@ namespace Wallop.Engine.Scripting
                         var newBindable = (BindableType?)Activator.CreateInstance(bindingType);
                         if (newBindable == null)
                         {
-                            // TODO: Error / Warning
+                            EngineLog.For<ScriptedSceneInitializer>().Warn("Binding failed instantiation for actor {actor}! Binding: {binding}.", actor.Id, binding.TypeName);
                             continue;
                         }
 
@@ -105,6 +120,9 @@ namespace Wallop.Engine.Scripting
 
                         bindingInstances.Add(bindingType, newBindable);
                         actor.Components.Add(newBindable);
+
+
+                        EngineLog.For<ScriptedSceneInitializer>().Debug("Binding created on actor {actor} from {setting} to concrete member {property} via {binding}.", actor.Id, setting.SettingName, binding.PropertyName, binding.TypeName);
                     }
                 }
             }
@@ -145,33 +163,52 @@ namespace Wallop.Engine.Scripting
             var engineProvider = ScriptEngineProviders.FirstOrDefault(ep => ep.Name == component.ModuleDeclaration.ModuleInfo.ScriptEngineId);
             if (engineProvider == null)
             {
-                // TODO:
+                EngineLog.For<ScriptedSceneInitializer>().Error("Failed to find ScriptEngineProvider {engine} from module {module} for ECS element {element}.", component.ModuleDeclaration.ModuleInfo.ScriptEngineId, component.ModuleDeclaration.ModuleInfo.Id, component.Name);
                 return;
             }
 
             string sourceFullpath = component.ModuleDeclaration.ModuleInfo.SourcePath;
 
+            EngineLog.For<ScriptedSceneInitializer>().Info("Creating module script resources for {element} from source {filepath}...", component.Name, sourceFullpath);
             var source = File.ReadAllText(sourceFullpath);
 
+            EngineLog.For<ScriptedSceneInitializer>().Debug("Creating script components...");
             var engine = engineProvider.CreateScriptEngine(component.ModuleDeclaration.ModuleInfo.ScriptEngineArgs);
             var context = engineProvider.CreateContext();
 
+            EngineLog.For<ScriptedSceneInitializer>().Debug("Attaching script components...");
             engine.AttachContext(context);
+
+            EngineLog.For<ScriptedSceneInitializer>().Debug("Injecting system host API...");
             ScriptHostFunctions.Inject(context, component.ModuleDeclaration, component);
+
+            EngineLog.For<ScriptedSceneInitializer>().Debug("Caller mutating script context...");
             mutateScriptContext(context);
+
+            EngineLog.For<ScriptedSceneInitializer>().Debug("Injecting script settings into context...");
             AddSettingsToContext(context, component);
+
+            EngineLog.For<ScriptedSceneInitializer>().Debug("Plugins mutating script context...");
             AddInjectionsToContext(context, component);
+
+            EngineLog.For<ScriptedSceneInitializer>().Debug("Plugins injecting apis into script context...");
             SetupHostApisForContext(context, component);
+
+            EngineLog.For<ScriptedSceneInitializer>().Debug("Performing validation over script context...");
             ValidateContext(context, component);
 
+
+            EngineLog.For<ScriptedSceneInitializer>().Debug("Executing script initialization...");
             component.InitializeScript(engine, source);
 
+            EngineLog.For<ScriptedSceneInitializer>().Debug("Setting up ECS element callback scene triggers...");
             component.BeforeUpdateCallback = Scene.OnBeforeScriptedElementUpdate;
             component.AfterUpdateCallback = Scene.OnAfterScriptedElementUpdate;
             component.BeforeDrawCallback = Scene.OnBeforeScriptedElementDraw;
             component.AfterDrawCallback = Scene.OnAfterScriptedElementDraw;
 
 
+            EngineLog.For<ScriptedSceneInitializer>().Info("Script initialized!");
         }
 
         private void BuildDirectorContext(IScriptContext context, ScriptedDirector director)
@@ -232,9 +269,12 @@ namespace Wallop.Engine.Scripting
         private void AddInjectionsToContext(IScriptContext context, ScriptedElement component)
         {
             // Execute the injection endpoint.
-            var endPointContext = new Types.Plugins.EndPoints.ScriptInjectEndPoint(component.ModuleDeclaration, context);
+            EngineLog.For<ScriptedSceneInitializer>().Info("Calling " + nameof(ScriptInjectEndPoint) + " plugin end point...");
+            var endPointContext = new ScriptInjectEndPoint(component.ModuleDeclaration, context);
             PluginContext.ExecuteEndPoint<IInjectScriptContextEndPoint>(endPointContext);
-            PluginContext.WaitForEndPointExecutionAsync<IInjectScriptContextEndPoint>().WaitAndThrow();
+
+            PluginContext.WaitForEndPointExecutionAsync<IInjectScriptContextEndPoint>().WaitAndCall(component, (e, c)
+                => EngineLog.For<ScriptedSceneInitializer>().Error(e, "Plugin execution error on ECS element {element}!", c.Name));
         }
 
         private void SetupHostApisForContext(IScriptContext context, ScriptedElement component)
@@ -243,7 +283,15 @@ namespace Wallop.Engine.Scripting
             var hostApis = PluginContext.GetImplementations<IHostApi>();
             foreach (var targetApi in component.ModuleDeclaration.ModuleInfo.HostApis)
             {
-                var api = hostApis.First(h => h.Name == targetApi);
+                EngineLog.For<ScriptedSceneInitializer>().Debug("Using HostAPI {api} on ECS element {element}...", targetApi, component.Name);
+                var api = hostApis.FirstOrDefault(h => h.Name == targetApi);
+
+                if (api == null)
+                {
+                    EngineLog.For<ScriptedSceneInitializer>().Warn("HostAPI {api} not found!", targetApi);
+                    continue;
+                }
+
                 api.Use(context);
             }
         }
@@ -254,7 +302,8 @@ namespace Wallop.Engine.Scripting
             {
                 if(declaredSetting.Required && !context.ContainsValue(declaredSetting.SettingName))
                 {
-                    throw new InvalidOperationException("Actor is missing required module setting.");
+                    EngineLog.For<ScriptedSceneInitializer>().Warn("ECS element {element} is missing required module setting {setting}!", component.Name, declaredSetting.SettingName);
+                    continue;
                 }
 
                 if(!declaredSetting.Required && !context.ContainsValue(declaredSetting.SettingName))
@@ -266,11 +315,12 @@ namespace Wallop.Engine.Scripting
                     {
                         if (!declaredSetting.CachedType.TryDeserialize(declaredSetting.DefaultValue, out value, declaredSetting.SettingTypeArgs))
                         {
-                            // TODO: Message
+                            EngineLog.For<ScriptedSceneInitializer>().Warn("ECS element {element} attempted to use default setting value {value} for setting {setting}, but deserialization failed! ", component.Name, value, declaredSetting.SettingName);
                             break;
                         }
                     }
 
+                    EngineLog.For<ScriptedSceneInitializer>().Debug("Added setting value ({setting} = {value}) to script context...", declaredSetting.SettingName, value);
                     context.SetValue(declaredSetting.SettingName, value);
                 }
             }

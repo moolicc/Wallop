@@ -19,6 +19,46 @@ namespace Wallop.Engine
             }
         }
 
+        public static Exception? WaitAndGet(this Task task)
+        {
+            Exception? result = null;
+            try
+            {
+                task.Wait();
+            }
+            catch (Exception ex)
+            {
+                result = ex;
+            }
+            if (task.IsFaulted && task.Exception != null)
+            {
+                result = task.Exception;
+            }
+            return result;
+        }
+
+        public static void WaitAndCall<T>(this Task task, T state, Action<Exception, T> action)
+        {
+            Exception? result = null;
+            try
+            {
+                task.Wait();
+            }
+            catch (Exception ex)
+            {
+                result = ex;
+            }
+            if (task.IsFaulted && task.Exception != null)
+            {
+                result = task.Exception;
+            }
+            if(result != null)
+            {
+                action(result, state);
+
+            }
+        }
+
         public static T OrThrow<T>(this T? instance)
         {
             if(instance == null)
