@@ -48,16 +48,22 @@ namespace Wallop.Engine
 
         public EngineApp(Cog.Configuration config, PluginPantry.PluginContext pluginContext)
         {
+            EngineLog.For<EngineApp>().Debug("Loading configurations...");
             _graphicsSettings = config.Get<Settings.GraphicsSettings>() ?? new Settings.GraphicsSettings();
             _sceneSettings = config.Get<Settings.SceneSettings>() ?? new Settings.SceneSettings();
+
+
+            EngineLog.For<EngineApp>().Debug("Executing plugins on EngineStartup...");
             _pluginContext = pluginContext;
             _pluginContext.ExecuteEndPoint(new Types.Plugins.EngineStartupEndPoint { GraphicsSettings = _graphicsSettings });
+
             _sceneSetup = false;
             _scriptHostFunctions = new ScriptHostFunctions();
         }
 
         public void SetupWindow()
         {
+            EngineLog.For<EngineApp>().Info("Creating window with options: {options}", _graphicsSettings);
             var options = WindowOptions.Default;
             options.Size = new Vector2D<int>(_graphicsSettings.WindowWidth, _graphicsSettings.WindowHeight);
             options.WindowBorder = _graphicsSettings.WindowBorder;
@@ -73,7 +79,11 @@ namespace Wallop.Engine
             _window.Update += Update;
             _window.Render += Draw;
             _window.Closing += Shutdown;
+        }
 
+        public void Run()
+        {
+            EngineLog.For<EngineApp>().Info("Beginning Engine Execution!");
             _window.Run();
         }
 
@@ -85,11 +95,16 @@ namespace Wallop.Engine
 
             if (!_graphicsSettings.SkipOverlay)
             {
+                EngineLog.For<EngineApp>().Info("Running execution of Engine Overlay plugin...");
                 _pluginContext.ExecuteEndPoint(new OverlayerEndPoint(_window));
                 _pluginContext.WaitForEndPointExecutionAsync<OverlayerEndPoint>().ContinueWith(_ =>
                 {
                     _window.IsVisible = true;
                 });
+            }
+            else
+            {
+                EngineLog.For<EngineApp>().Info("Skipping execution of Engine Overlay plugin due to settings specified in configuration.");
             }
 
             SetupScene();
@@ -105,11 +120,13 @@ namespace Wallop.Engine
 
         public void SetupScene()
         {
+            EngineLog.For<EngineApp>().Info("Warming things up...");
             LoadModules();
             LoadScriptEngineProviders();
             LoadScene();
 
             _sceneSetup = true;
+            EngineLog.For<EngineApp>().Info("Setup complete!");
         }
 
         private void LoadModules()
@@ -118,21 +135,26 @@ namespace Wallop.Engine
 
         private void LoadScriptEngineProviders()
         {
+            EngineLog.For<EngineApp>().Info("Initializing ScriptEngines providers...");
+
             var engineEndPointPluginContext = new ScriptEngineEndPoint();
             _pluginContext.ExecuteEndPoint<ILoadingScriptEnginesEndPoint>(engineEndPointPluginContext);
             _pluginContext.WaitForEndPointExecutionAsync<ILoadingScriptEnginesEndPoint>().WaitAndThrow();
+            _scriptEngineProviders = engineEndPointPluginContext.GetScriptEngineProviders();
+            EngineLog.For<EngineApp>().Info("{engines} ScriptEngines found.", _scriptEngineProviders.Count());
 
+            EngineLog.For<EngineApp>().Info("Initializing BindableType registrations...");
             var bindableConext = new BindableTypeEndPoint();
             _pluginContext.ExecuteEndPoint<IBindableTypeRegistrationEndPoint>(bindableConext);
             _pluginContext.WaitForEndPointExecutionAsync<IBindableTypeRegistrationEndPoint>().WaitAndThrow();
-
-            _scriptEngineProviders = engineEndPointPluginContext.GetScriptEngineProviders();
             _bindableComponentTypes = bindableConext.BindableTypes;
+            EngineLog.For<EngineApp>().Info("{types} BindableTypes found.", _bindableComponentTypes.Count());
         }
 
 
         private void LoadScene()
         {
+            EngineLog.For<EngineApp>().Info("Loading scene settings...");
             _sceneSettings = new Settings.SceneSettings()
             {
                 DirectorModules = new List<Settings.StoredModule>()
@@ -196,19 +218,23 @@ namespace Wallop.Engine
                     }
                 }
             };
+
+
+            EngineLog.For<EngineApp>().Info("Constructing scene...");
             var sceneLoader = new ScriptedSceneLoader(_sceneSettings);
             _scene = sceneLoader.LoadFromPackages(@"C:\Users\joel\source\repos\moolicc\Wallop\modules\squaretest");
             _scene.Init(_pluginContext);
 
 
+            EngineLog.For<EngineApp>().Debug("Injecting script HostData...");
             var hostData = new HostData(_gl, _scene, _bindableComponentTypes);
             //_scriptHostFunctions.AddDependencyProperty(MemberNames.GET_NAME, hostData.GetName, null);
             _scriptHostFunctions.AddDependencies(hostData);
 
 
 
+            EngineLog.For<EngineApp>().Info("Initializing scene and associated modules...");
             var initializer = new ScriptedSceneInitializer(_scriptHostFunctions, _scene, _pluginContext, _scriptEngineProviders, _bindableComponentTypes);
-
             initializer.InitializeActorScripts();
             initializer.InitializeDirectorScripts();
         }
@@ -239,8 +265,11 @@ namespace Wallop.Engine
 
         public void Shutdown()
         {
+            EngineLog.For<EngineApp>().Info("Shutting down Engine...");
+            EngineLog.For<EngineApp>().Info("...Scene...");
             _scene.Shutdown();
-            if(!_window.IsClosing)
+            EngineLog.For<EngineApp>().Info("Scene shutdown.");
+            if (!_window.IsClosing)
             {
                 _window.Closing -= Shutdown;
                 _window.Close();
