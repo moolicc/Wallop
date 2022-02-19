@@ -46,6 +46,12 @@ namespace Wallop.Engine.Scripting
             /// </summary>
             public const string GET_BASE_DIRECTORY = "getBaseDirectory";
 
+            /// <summary>
+            /// The name of the getter that retrieves the actor/director's logger.
+            /// </summary>
+            public const string GET_LOGGER = "getLogger";
+
+
 
             /// <summary>
             /// The name of the update function.
@@ -61,6 +67,37 @@ namespace Wallop.Engine.Scripting
             /// The name of the function that retrieves the actor/director's name.
             /// </summary>
             public const string GET_NAME = "getName";
+
+            /// <summary>
+            /// The name of the trace function.
+            /// </summary>
+            public const string TRACE = "trace";
+
+            /// <summary>
+            /// The name of the debug function.
+            /// </summary>
+            public const string DEBUG = "debug";
+
+            /// <summary>
+            /// The name of the info function.
+            /// </summary>
+            public const string INFO = "info";
+
+            /// <summary>
+            /// The name of the warn function.
+            /// </summary>
+            public const string WARN = "warn";
+
+            /// <summary>
+            /// The name of the error function.
+            /// </summary>
+            public const string ERROR = "error";
+
+            /// <summary>
+            /// The name of the fatal function.
+            /// </summary>
+            public const string FATAL = "fatal";
+
         }
 
 
@@ -259,6 +296,81 @@ namespace Wallop.Engine.Scripting
             }
             return null;
         }
+
+
+
+
+        [ScriptFunctionFactory(ExposedName = MemberNames.TRACE)]
+        public Delegate? Trace(IScriptContext ctx, Module module, object? tag)
+        {
+            if (tag is ScriptedElement element)
+            {
+                return new Action<string>(msg => ModuleLog.For(module, element.Name).Trace(msg));
+            }
+            return null;
+        }
+
+        [ScriptFunctionFactory(ExposedName = MemberNames.DEBUG)]
+        public Delegate? Debug(IScriptContext ctx, Module module, object? tag)
+        {
+            if (tag is ScriptedElement element)
+            {
+                return new Action<string>(msg => ModuleLog.For(module, element.Name).Debug(msg));
+            }
+            return null;
+        }
+
+        [ScriptFunctionFactory(ExposedName = MemberNames.INFO)]
+        public Delegate? Info(IScriptContext ctx, Module module, object? tag)
+        {
+            if (tag is ScriptedElement element)
+            {
+                return new Action<string>(msg => ModuleLog.For(module, element.Name).Info(msg));
+            }
+            return null;
+        }
+
+        [ScriptFunctionFactory(ExposedName = MemberNames.WARN)]
+        public Delegate? Warn(IScriptContext ctx, Module module, object? tag)
+        {
+            if (tag is ScriptedElement element)
+            {
+                return new Action<string>(msg => ModuleLog.For(module, element.Name).Warn(msg));
+            }
+            return null;
+        }
+
+        [ScriptFunctionFactory(ExposedName = MemberNames.ERROR)]
+        public Delegate? Error(IScriptContext ctx, Module module, object? tag)
+        {
+            if (tag is ScriptedElement element)
+            {
+                return new Action<string>(msg => ModuleLog.For(module, element.Name).Error(msg));
+            }
+            return null;
+        }
+
+        [ScriptFunctionFactory(ExposedName = MemberNames.FATAL)]
+        public Delegate? Fatal(IScriptContext ctx, Module module, object? tag)
+        {
+            if (tag is ScriptedElement element)
+            {
+                return new Action<string>(msg => ModuleLog.For(module, element.Name).Trace(msg));
+            }
+            return null;
+        }
+
+        [ScriptPropertyFactory("logger", FactoryPropertyMethod.Getter, ExposedName = MemberNames.GET_LOGGER)]
+        public Delegate? Logger(IScriptContext ctx, Module module, object? tag)
+        {
+            if (tag is ScriptedElement element)
+            {
+                return new Func<NLog.Logger>(() => ModuleLog.For(module, element.Name));
+            }
+            return null;
+        }
+
+
 
         private ScriptedActor? FindActor(string actorId)
         {

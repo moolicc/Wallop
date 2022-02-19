@@ -35,5 +35,6 @@ namespace Wallop.Engine
         {
             return _logFactory.GetLogger(typeof(T).Name);
         }
+
     }
 }
