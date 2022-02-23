@@ -12,7 +12,7 @@ namespace Wallop.Engine.Scripting.ECS
 {
     public class ScriptedElement : IEcsMember
     {
-        public const bool OPERATIONS_MULTITHREADED = false;
+        public const bool OPERATIONS_MULTITHREADED = true;
 
         public string Name { get; init; }
         public Module ModuleDeclaration { get; init; }
@@ -27,7 +27,7 @@ namespace Wallop.Engine.Scripting.ECS
         public Action<ScriptedElement>? AfterDrawCallback;
         public Action<ScriptedElement>? PanicCallback;
 
-        private TaskHandler? _taskHandler;
+        private TaskHandlerProvider? _taskProvider;
         private ScriptPanicException? _panic;
 
 
@@ -36,19 +36,21 @@ namespace Wallop.Engine.Scripting.ECS
             Name = name;
             ModuleDeclaration = declaringModule;
             StoredDefinition = storedModule;
+
         }
 
-        public void InitializeScript(IScriptEngine engine, string source)
+        public void InitializeScript(TaskHandlerProvider handlerProvider, IScriptEngine engine, string source)
         {
-            _taskHandler = new TaskHandler(engine);
+            _taskProvider = handlerProvider;
             ScriptEngine = engine;
-
-            InvokeOnScriptThread(() => engine.Execute(source));
+            _taskProvider.GetDrawHandler(this).QueueTask(source, (src)
+                => engine.Execute(src.OrThrow().ToString().OrThrow()));
         }
 
         public async Task WaitForExecuteAsync()
         {
-            await _taskHandler.OrThrow().WaitForEmptyAsync();
+            await _taskProvider.OrThrow().GetUpdateHandler(this).WaitForEmptyAsync();
+            await _taskProvider.OrThrow().GetDrawHandler(this).WaitForEmptyAsync();
         }
 
         public void Shutdown()
@@ -58,13 +60,12 @@ namespace Wallop.Engine.Scripting.ECS
             BeforeDrawCallback = null;
             AfterDrawCallback = null;
             OnShutdown();
-            _taskHandler?.Terminate();
-            _taskHandler = null;
+            _taskProvider.OrThrow().CleanupHandlers(this);
         }
 
         public IScriptContext GetAttachedScriptContext()
         {
-            return ScriptEngine.OrThrow("Actor not bound to a ScriptEngine.").GetAttachedScriptContext().OrThrow("No ScriptContext attached to actor.");
+            return ScriptEngine.OrThrow("Element not bound to a ScriptEngine.").GetAttachedScriptContext().OrThrow("No ScriptContext attached to element.");
         }
 
         public void Update()
@@ -75,14 +76,16 @@ namespace Wallop.Engine.Scripting.ECS
                 return;
             }
 
-            if(BeforeUpdateCallback != null)
+            var handler = _taskProvider.OrThrow().GetUpdateHandler(this);
+
+            if (BeforeUpdateCallback != null)
             {
-                InvokeOnScriptThread(() => BeforeUpdateCallback(this));
+                handler.QueueTask(this, s => BeforeUpdateCallback((ScriptedElement)s));
             }
 
             try
             {
-                InvokeScriptAction("update");
+                RunScriptAction(handler, "update");
             }
             catch (Exception ex)
             { Panic(ex, false); }
@@ -94,7 +97,7 @@ namespace Wallop.Engine.Scripting.ECS
 
             if (AfterUpdateCallback != null)
             {
-                InvokeOnScriptThread(() => AfterUpdateCallback(this));
+                handler.QueueTask(this, s => AfterUpdateCallback((ScriptedElement)s));
             }
         }
 
@@ -106,14 +109,15 @@ namespace Wallop.Engine.Scripting.ECS
                 return;
             }
 
+            var handler = _taskProvider.OrThrow().GetDrawHandler(this);
             if (BeforeDrawCallback != null)
             {
-                InvokeOnScriptThread(() => BeforeDrawCallback(this));
+                handler.QueueTask(this, s => BeforeDrawCallback((ScriptedElement)s));
             }
 
             try
             {
-                InvokeScriptAction("draw");
+                RunScriptAction(handler, "draw");
             }
             catch (Exception ex)
             { Panic(ex, false); }
@@ -125,7 +129,7 @@ namespace Wallop.Engine.Scripting.ECS
 
             if (AfterDrawCallback != null)
             {
-                InvokeOnScriptThread(() => AfterDrawCallback(this));
+                handler.QueueTask(this, s => AfterDrawCallback((ScriptedElement)s));
             }
         }
 
@@ -147,11 +151,7 @@ namespace Wallop.Engine.Scripting.ECS
         {
             _panic = exception;
             IsPanicState = true;
-            if (exception.GeneratedByScript)
-            {
-                ScriptEngine?.Panic();
-            }
-            else
+            if (!exception.GeneratedByScript)
             {
                 HandlePendingPanic();
             }
@@ -161,28 +161,13 @@ namespace Wallop.Engine.Scripting.ECS
         protected virtual void OnShutdown()
         { }
 
-        private void InvokeOnScriptThread(Action action)
+        private void RunScriptAction(TaskHandler handler, string actionName)
         {
-            if (OPERATIONS_MULTITHREADED)
+            handler.QueueTask((GetAttachedScriptContext(), actionName), (values) =>
             {
-                _taskHandler?.OrThrow().EnqueueAction(action);
-            }
-            else
-            {
-                _taskHandler?.OrThrow().RunAction(action);
-            }
-        }
-
-        private void InvokeScriptAction(string actionName)
-        {
-            if (OPERATIONS_MULTITHREADED)
-            {
-                _taskHandler?.OrThrow().EnqueueAction<Action>(actionName, a => a());
-            }
-            else
-            {
-                _taskHandler?.OrThrow().RunAction<Action>(actionName, a => a());
-            }
+                var tup = ((IScriptContext, string))values;
+                tup.Item1.GetDelegateAs<Action>(tup.Item2)();
+            });
         }
 
         private void HandlePendingPanic()

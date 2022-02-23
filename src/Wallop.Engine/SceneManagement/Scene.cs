@@ -75,9 +75,25 @@ namespace Wallop.Engine.SceneManagement
             {
                 director.Update();
             }
+            foreach (var director in Directors)
+            {
+                if (director is ScriptedElement ele)
+                {
+                    ele.WaitForExecuteAsync().WaitAndThrow();
+                }
+            }
+
+
             foreach (var actor in ActiveLayout.EcsRoot.GetActors())
             {
                 actor.Update();
+            }
+            foreach (var actor in ActiveLayout.EcsRoot.GetActors())
+            {
+                if (actor is ScriptedElement ele)
+                {
+                    ele.WaitForExecuteAsync().WaitAndThrow();
+                }
             }
             CleanPanicked();
         }
@@ -102,9 +118,24 @@ namespace Wallop.Engine.SceneManagement
             {
                 director.Draw();
             }
+            foreach (var director in Directors)
+            {
+                if (director is ScriptedElement ele)
+                {
+                    ele.WaitForExecuteAsync().WaitAndThrow();
+                }
+            }
+
             foreach (var actor in ActiveLayout.EcsRoot.GetActors())
             {
                 actor.Draw();
+            }
+            foreach (var actor in ActiveLayout.EcsRoot.GetActors())
+            {
+                if (actor is ScriptedElement ele)
+                {
+                    ele.WaitForExecuteAsync().WaitAndThrow();
+                }
             }
             CleanPanicked();
         }

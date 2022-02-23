@@ -234,7 +234,11 @@ namespace Wallop.Engine
 
 
             EngineLog.For<EngineApp>().Info("Initializing scene and associated modules...");
-            var initializer = new ScriptedSceneInitializer(_scriptHostFunctions, _scene, _pluginContext, _scriptEngineProviders, _bindableComponentTypes);
+            var provider = new TaskHandlerProvider(ThreadingPolicy.Multithread, ThreadingPolicy.SingleThread, () =>
+            {
+                //_window.MakeCurrent();
+            });
+            var initializer = new ScriptedSceneInitializer(_scriptHostFunctions, _scene, _pluginContext, provider, _scriptEngineProviders, _bindableComponentTypes);
             initializer.InitializeActorScripts();
             initializer.InitializeDirectorScripts();
         }

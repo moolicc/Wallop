@@ -13,41 +13,54 @@ namespace Wallop.DSLExtension.Scripting
         LongDelay,
     }
 
+    internal record struct RunTask(Action<object?> Action, object? State);
+
     public class TaskHandler
     {
-        private const int SHORT_DELAY = 100;
-        private const int LONG_DELAY = 1000;
+        private static int TaskHandlerCount;
 
-        public IScriptEngine ScriptEngine { get; private set; }
         public RunLoopDelays RunLoopDelay { get; set; }
+        public bool RunsOnCallingThread { get; private set; }
+        public Thread BackingThread => _backingTask;
+
 
         private CancellationTokenSource _cancelSource;
-        private Task _scriptTask;
-        private ConcurrentQueue<Action> _taskQueue;
+        private Thread _backingTask;
+        private ConcurrentQueue<RunTask> _taskQueue;
 
-        public TaskHandler(IScriptEngine scriptEngine)
+
+        static TaskHandler()
         {
-            ScriptEngine = scriptEngine;
+            TaskHandlerCount = 1;
+        }
+
+        public TaskHandler()
+            : this(false)
+        {
+        }
+
+        public TaskHandler(bool runOnCallingThread)
+        {
+            RunsOnCallingThread = runOnCallingThread;
+
             RunLoopDelay = RunLoopDelays.ShortDelay;
-            _taskQueue = new ConcurrentQueue<Action>();
+            _taskQueue = new ConcurrentQueue<RunTask>();
 
             _cancelSource = new CancellationTokenSource();
-            _scriptTask = Task.Factory.StartNew(RunScript, _cancelSource.Token);
-        }
 
-        public void EnqueueAction<TScriptAction>(string scriptTask, Action<TScriptAction> onExecute)
-        {
-            _taskQueue.Enqueue(() => onExecute(ScriptEngine.GetAttachedScriptContext().GetDelegateAs<TScriptAction>(scriptTask)));
-        }
+            if(runOnCallingThread)
+            {
+                _backingTask = Thread.CurrentThread;
+            }
+            else
+            {
+                _backingTask = new Thread(RunTask);
+                _backingTask.IsBackground = true;
+                _backingTask.Name = $"TaskHandler # {TaskHandlerCount}";
+                _backingTask.Start();
+            }
 
-        public void EnqueueAction(Action task)
-        {
-            _taskQueue.Enqueue(task);
-        }
-
-        public void RunAction<TScriptAction>(string scriptTask, Action<TScriptAction> onExecute)
-        {
-            onExecute(ScriptEngine.GetAttachedScriptContext().GetDelegateAs<TScriptAction>(scriptTask));
+            TaskHandlerCount++;
         }
 
         public void Terminate()
@@ -56,9 +69,15 @@ namespace Wallop.DSLExtension.Scripting
             _taskQueue.Clear();
         }
 
-        public void RunAction(Action task)
+        public void QueueTask(object? state, Action<object?> action)
         {
-            task();
+            if(RunsOnCallingThread)
+            {
+                action(state);
+                return;
+            }
+
+            _taskQueue.Enqueue(new RunTask(action, state));
         }
 
         public bool IsQueueEmpty()
@@ -73,25 +92,18 @@ namespace Wallop.DSLExtension.Scripting
 
             while (_taskQueue.Count > 0)
             {
-                await Task.Delay(100);
+                await Task.Delay(1);
             }
         }
 
-        private async Task RunScript()
+        private void RunTask()
         {
             while (!_cancelSource.IsCancellationRequested)
             {
                 if(_taskQueue.TryDequeue(out var scriptTask))
                 {
-                    scriptTask();
+                    scriptTask.Action(scriptTask.State);
                 }
-
-                var delayMs = SHORT_DELAY;
-                if(RunLoopDelay == RunLoopDelays.LongDelay)
-                {
-                    delayMs = LONG_DELAY;
-                }
-                await Task.Delay(delayMs, _cancelSource.Token);
             }
         }
     }

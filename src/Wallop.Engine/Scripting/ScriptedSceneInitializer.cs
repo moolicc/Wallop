@@ -17,17 +17,19 @@ namespace Wallop.Engine.Scripting
 {
     internal class ScriptedSceneInitializer
     {
-        ScriptHostFunctions ScriptHostFunctions { get; set; }
+        public ScriptHostFunctions ScriptHostFunctions { get; set; }
         public Scene Scene { get; private set; }
         public PluginContext PluginContext { get; private set; }
         public IEnumerable<IScriptEngineProvider> ScriptEngineProviders { get; private set; }
         public Dictionary<string, Type> BindableComponentTypes { get; private set; }
+        public TaskHandlerProvider TaskProvider { get; private set; }
 
-        public ScriptedSceneInitializer(ScriptHostFunctions hostFunctions, Scene scene, PluginContext pluginContext, IEnumerable<IScriptEngineProvider> scriptEngineProviders, IEnumerable<KeyValuePair<string, Type>> bindableComponentTypes)
+        public ScriptedSceneInitializer(ScriptHostFunctions hostFunctions, Scene scene, PluginContext pluginContext, TaskHandlerProvider taskProvider, IEnumerable<IScriptEngineProvider> scriptEngineProviders, IEnumerable<KeyValuePair<string, Type>> bindableComponentTypes)
         {
             ScriptHostFunctions = hostFunctions;
             Scene = scene;
             PluginContext = pluginContext;
+            TaskProvider = taskProvider;
             ScriptEngineProviders = scriptEngineProviders;
             BindableComponentTypes = new Dictionary<string, Type>(bindableComponentTypes);
         }
@@ -199,7 +201,7 @@ namespace Wallop.Engine.Scripting
 
 
             EngineLog.For<ScriptedSceneInitializer>().Debug("Executing script initialization...");
-            component.InitializeScript(engine, source);
+            component.InitializeScript(TaskProvider, engine, source);
 
             EngineLog.For<ScriptedSceneInitializer>().Debug("Setting up ECS element callback scene triggers...");
             component.BeforeUpdateCallback = Scene.OnBeforeScriptedElementUpdate;
