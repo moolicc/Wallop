@@ -71,7 +71,7 @@ namespace Wallop.Engine.Scripting
                 else
                 {
                     handler = new TaskHandler(false);
-                    EngineLog.For<TaskHandlerProvider>().Info("Creating update handler on thread {thread}", handler.BackingThread.Name);
+                    EngineLog.For<TaskHandlerProvider>().Info("Creating update handler for {element} on thread {thread}", element.Name, handler.BackingThread.Name);
                 }
 
                 _updateHandlers.Add(element, handler);
@@ -91,7 +91,7 @@ namespace Wallop.Engine.Scripting
                 else
                 {
                     handler = new TaskHandler(true);
-                    EngineLog.For<TaskHandlerProvider>().Info("Creating draw handler on thread {thread}", handler.BackingThread.Name);
+                    EngineLog.For<TaskHandlerProvider>().Info("Creating draw handler for {element} on thread {thread}", element.Name, handler.BackingThread.Name);
                     handler.QueueTask(null, _ => DrawFirstRunCallback());
                 }
 

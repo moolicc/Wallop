@@ -281,6 +281,23 @@ namespace Wallop.Engine.Scripting
         }
 
         [ScriptFunctionFactory]
+        public Delegate? GetComponentByName(IScriptContext ctx, Module module, object? tag)
+        {
+            if (tag is ScriptedActor actor)
+            {
+                return new Func<Predicate<object>, object?>((selector) => actor.Components.FirstOrDefault(selector));
+            }
+            else if (tag is ScriptedDirector director)
+            {
+                return new Func<string, string, object?>((actor, componentName) =>
+                {
+                    return FindActor(actor)?.Components.FirstOrDefault(c => c.GetType().Name == componentName);
+                });
+            }
+            return null;
+        }
+
+        [ScriptFunctionFactory]
         public Delegate? FindActors(IScriptContext ctx, Module module, object? tag)
         {
             if (tag is ScriptedActor actor)

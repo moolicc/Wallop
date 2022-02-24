@@ -72,7 +72,6 @@ namespace Scripting.IronPython
 
         public void Panic()
         {
-            throw new SystemExitException("Panicking");
         }
 
         public int GetLastLineExecuted()
@@ -82,7 +81,10 @@ namespace Scripting.IronPython
 
         private TracebackDelegate OnTraceback(TraceBackFrame frame, string result, object payload)
         {
-            _lastLine = (frame.f_lineno as int?) ?? -1;
+            if(frame.f_lineno is int i)
+            {
+                _lastLine = i;
+            }
 
             return OnTraceback;
         }

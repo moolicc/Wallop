@@ -49,12 +49,18 @@ namespace Wallop.Engine.Scripting.ECS
 
         public async Task WaitForExecuteAsync()
         {
+            if(IsPanicState)
+            {
+                return;
+            }
+
             await _taskProvider.OrThrow().GetUpdateHandler(this).WaitForEmptyAsync();
             await _taskProvider.OrThrow().GetDrawHandler(this).WaitForEmptyAsync();
         }
 
         public void Shutdown()
         {
+            EngineLog.For<ScriptedElement>().Info("Shutting down element {element}...", Name);
             BeforeUpdateCallback = null;
             AfterUpdateCallback = null;
             BeforeDrawCallback = null;
@@ -92,6 +98,7 @@ namespace Wallop.Engine.Scripting.ECS
 
             if (IsPanicState)
             {
+                HandlePendingPanic();
                 return;
             }
 
@@ -124,6 +131,7 @@ namespace Wallop.Engine.Scripting.ECS
 
             if (IsPanicState)
             {
+                HandlePendingPanic();
                 return;
             }
 
@@ -165,8 +173,15 @@ namespace Wallop.Engine.Scripting.ECS
         {
             handler.QueueTask((GetAttachedScriptContext(), actionName), (values) =>
             {
-                var tup = ((IScriptContext, string))values;
-                tup.Item1.GetDelegateAs<Action>(tup.Item2)();
+                try
+                {
+                    var tup = ((IScriptContext, string))values;
+                    tup.Item1.GetDelegateAs<Action>(tup.Item2)();
+                }
+                catch (Exception ex)
+                {
+                    Panic(ex, true);
+                }
             });
         }
 
@@ -177,7 +192,7 @@ namespace Wallop.Engine.Scripting.ECS
                 return;
             }
 
-            EngineLog.For<ScriptedElement>().Error(_panic, "ECS element is panicking! Clearing element state. Last line executed: {line}, Panic Exception: {exc}", ScriptEngine?.GetLastLineExecuted(), _panic);
+            EngineLog.For<ScriptedElement>().Error(_panic, "ECS element {element} is panicking! {reason} Last line executed: {line}, Panic Exception: {exc}", Name, _panic.PanicReason, ScriptEngine?.GetLastLineExecuted(), _panic);
             Shutdown();
             PanicCallback?.Invoke(this);
 
