@@ -15,6 +15,7 @@ namespace Wallop.Engine.SceneManagement
 {
     public class Scene
     {
+        public string Name { get; private set; }
         public List<Layout> Layouts { get; set; }
 
         public Layout? ActiveLayout { get; set; }
@@ -26,8 +27,9 @@ namespace Wallop.Engine.SceneManagement
         private ConcurrentStack<ScriptedActor> _panickedActors;
         private ConcurrentStack<ScriptedDirector> _panickedDirectors;
 
-        public Scene()
+        public Scene(string name)
         {
+            Name = name;
             Layouts = new List<Layout> { };
             ActiveLayout = null;
             Directors = new List<IDirector> { };

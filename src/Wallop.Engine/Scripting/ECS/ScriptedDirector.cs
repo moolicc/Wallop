@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Wallop.DSLExtension.Modules;
-using Wallop.Engine.Settings;
+using Wallop.Engine.SceneManagement;
 
 namespace Wallop.Engine.Scripting.ECS
 {

@@ -20,6 +20,9 @@ namespace Wallop.DSLExtension.Scripting
         public object? GetValue(string name);
         public T? GetValue<T>(string name);
 
+        public IEnumerable<KeyValuePair<string, object?>> GetValues();
+        public IEnumerable<KeyValuePair<string, object?>> GetAddedValues();
+
         public T GetDelegateAs<T>(string memberName);
 
         public void AddReference(Assembly assembly);

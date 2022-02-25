@@ -7,6 +7,8 @@ namespace Wallop
 
     class Program
     {
+        private const string CONF_FILE = "engineconf.json";
+
         static int Main()
         {
             EngineLog.For<Program>().Info("Loading configuration...");
@@ -14,7 +16,8 @@ namespace Wallop
             EngineLog.For<Program>().Info("Configuration loaded");
 
             EngineLog.For<Program>().Info("Resolving config bindings...");
-            engineConfig.ResolveBindingsAsync<Wallop.Engine.Settings.GraphicsSettings>().Wait();
+            engineConfig.ResolveBindingsAsync<Engine.Settings.GraphicsSettings>().Wait();
+            engineConfig.ResolveBindingsAsync<Engine.Settings.SceneSettings>().Wait();
             foreach (var item in engineConfig.GetValues())
             {
                 EngineLog.For<Program>().Debug("{key}: {value}", item.Key, item.Value);
@@ -58,7 +61,7 @@ namespace Wallop
         private static Cog.Configuration LoadSettings()
         {
             var typedSource = new Cog.Sources.TypedSettingSource();
-            var jsonSource = new Cog.Sources.JsonSettingsSource("esettings.json");
+            var jsonSource = new Cog.Sources.JsonSettingsSource(CONF_FILE);
             var engineConfig = new Cog.Configuration();
 
             engineConfig.Options.Sources.Add(typedSource);

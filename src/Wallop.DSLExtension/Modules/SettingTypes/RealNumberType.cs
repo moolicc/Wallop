@@ -19,7 +19,13 @@ namespace Wallop.DSLExtension.Modules.SettingTypes
 
         public string Serialize(object value, IEnumerable<KeyValuePair<string, string>>? args)
         {
-            return (string)value;
+            return value.ToString() ?? "0.0";
+        }
+
+        public bool TrySerialize(object value, out string? result, IEnumerable<KeyValuePair<string, string>>? args)
+        {
+            result = value.ToString();
+            return true;
         }
 
         public bool TryDeserialize(string value, out object? result, IEnumerable<KeyValuePair<string, string>>? args)

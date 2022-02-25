@@ -87,5 +87,28 @@ namespace Scripting.IronPython
 
         public bool ContainsDelegate(string name)
             => _scope.ContainsVariable(name);
+
+        public IEnumerable<KeyValuePair<string, object?>> GetValues()
+        {
+            return _scope.GetVariableNames().Select(name => new KeyValuePair<string, object?>(name, _scope.GetVariable(name)));
+        }
+
+        public IEnumerable<KeyValuePair<string, object?>> GetAddedValues()
+        {
+            foreach (var name in _scope.GetVariableNames())
+            {
+                if(name == "__builtins__" || name == "__file__" || name == "__name__" || name == "__doc__")
+                {
+                    continue;
+                }
+                
+                var value = _scope.GetVariable<object>(name);
+                if(value != null && (value.GetType().FullName ?? "").Contains("IronPython"))
+                {
+                    continue;
+                }
+                yield return new KeyValuePair<string, object?>(name, value);
+            }
+        }
     }
 }

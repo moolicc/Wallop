@@ -163,7 +163,6 @@ namespace Wallop.DSLExtension.Modules
                 {
                     throw new XmlException("Module setting is not required and thus requires a default value.");
                 }
-                defaultValue = "";
             }
             if(bindingElements != null)
             {

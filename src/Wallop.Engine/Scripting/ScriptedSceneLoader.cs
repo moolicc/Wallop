@@ -13,12 +13,13 @@ namespace Wallop.Engine.Scripting
 {
     internal class ScriptedSceneLoader
     {
-        private SceneSettings _sceneSettings;
+        private StoredScene _sceneSettings;
         private IEnumerable<Module> _loadedModules;
 
+        // TODO: Populate this from plugins.
         private DSLExtension.Modules.SettingTypes.TypeCache _typeCache;
 
-        public ScriptedSceneLoader(SceneSettings settings)
+        public ScriptedSceneLoader(StoredScene settings)
         {
             _sceneSettings = settings;
             _typeCache = new DSLExtension.Modules.SettingTypes.TypeCache();
@@ -35,7 +36,7 @@ namespace Wallop.Engine.Scripting
 
             // Create the scene and layouts.
             EngineLog.For<ScriptedSceneLoader>().Info("Creating scene elements...", baseDir);
-            var scene = new Scene();
+            var scene = new Scene(_sceneSettings.Name);
             CreateLayouts(scene);
             CreateDirectors(scene);
 

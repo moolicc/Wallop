@@ -28,15 +28,13 @@ namespace Wallop.Engine
     // TODO: Ensure we're using SDL and not GLFW
     internal class EngineApp : IDisposable
     {
+        //private GraphicsDevice _graphicsDevice;
+        private GL _gl;
         private IWindow _window;
 
         private Settings.GraphicsSettings _graphicsSettings;
         private Settings.SceneSettings _sceneSettings;
 
-        //private GraphicsDevice _graphicsDevice;
-        private GL _gl;
-
-        private bool _sceneSetup;
 
         private PluginPantry.PluginContext _pluginContext;
 
@@ -44,8 +42,12 @@ namespace Wallop.Engine
         private IEnumerable<IScriptEngineProvider> _scriptEngineProviders;
         private IEnumerable<KeyValuePair<string, Type>> _bindableComponentTypes;
 
-        private Scene _scene;
 
+        private SceneStore _sceneStore;
+        private Scene _activeScene;
+        private bool _sceneSetup;
+
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public EngineApp(Cog.Configuration config, PluginPantry.PluginContext pluginContext)
         {
             EngineLog.For<EngineApp>().Debug("Loading configurations...");
@@ -57,9 +59,12 @@ namespace Wallop.Engine
             _pluginContext = pluginContext;
             _pluginContext.ExecuteEndPoint(new Types.Plugins.EngineStartupEndPoint { GraphicsSettings = _graphicsSettings });
 
+            _sceneStore = new SceneStore();
             _sceneSetup = false;
             _scriptHostFunctions = new ScriptHostFunctions();
         }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+
 
         public void SetupWindow()
         {
@@ -116,21 +121,14 @@ namespace Wallop.Engine
             _gl.Viewport(size);
         }
 
-
-
         public void SetupScene()
         {
             EngineLog.For<EngineApp>().Info("Warming things up...");
-            LoadModules();
             LoadScriptEngineProviders();
             LoadScene();
 
             _sceneSetup = true;
             EngineLog.For<EngineApp>().Info("Setup complete!");
-        }
-
-        private void LoadModules()
-        {
         }
 
         private void LoadScriptEngineProviders()
@@ -154,12 +152,36 @@ namespace Wallop.Engine
 
         private void LoadScene()
         {
-            EngineLog.For<EngineApp>().Info("Loading scene settings...");
-            _sceneSettings = new Settings.SceneSettings()
+            SetupDefaultScene();
+
+            if(_sceneSettings.SelectedScene != _sceneSettings.DefaultSceneName)
             {
-                DirectorModules = new List<Settings.StoredModule>()
+                _sceneStore.Load(_sceneSettings.SelectedScene);
+            }
+
+            EngineLog.For<EngineApp>().Info("Preloading {scenes} scene configurations...", _sceneSettings.ScenePreloadList.Count);
+            foreach (var item in _sceneSettings.ScenePreloadList)
+            {
+                if(item == _sceneSettings.SelectedScene || item == _sceneSettings.DefaultSceneName)
                 {
-                    new Settings.StoredModule()
+                    continue;
+                }
+                _sceneStore.Load(item);
+            }
+
+            SwitchScene(_sceneSettings.SelectedScene);
+        }
+
+        private void SetupDefaultScene()
+        {
+            EngineLog.For<EngineApp>().Info("Setting up default scene...");
+
+            var defaultSettings = new StoredScene()
+            {
+                Name = _sceneSettings.DefaultSceneName,
+                DirectorModules = new List<StoredModule>()
+                {
+                    new StoredModule()
                     {
                         InstanceName = "DirectorTest",
                         ModuleId = "Director.Test1.0",
@@ -170,15 +192,15 @@ namespace Wallop.Engine
                         },
                     },
                 },
-                Layouts = new List<Settings.StoredLayout>()
+                Layouts = new List<StoredLayout>()
                 {
-                    new Settings.StoredLayout()
+                    new StoredLayout()
                     {
                         Active = true,
                         Name = "layout1",
-                        ActorModules = new List<Settings.StoredModule>()
+                        ActorModules = new List<StoredModule>()
                         {
-                            new Settings.StoredModule()
+                            new StoredModule()
                             {
                                 InstanceName = "Square",
                                 ModuleId = "Square.Test1.0",
@@ -188,7 +210,7 @@ namespace Wallop.Engine
                                     { "width", "100" }
                                 }
                             },
-                            new Settings.StoredModule()
+                            new StoredModule()
                             {
                                 InstanceName = "Square1",
                                 ModuleId = "Square.Test1.0",
@@ -198,59 +220,65 @@ namespace Wallop.Engine
                                     { "width", "100" },
                                     { "y", "200" }
                                 },
-                                StoredBindings = new List<Settings.StoredBinding>()
+                                StoredBindings = new List<StoredBinding>()
                                 {
-                                    new Settings.StoredBinding()
-                                    {
-                                        PropertyName = "X",
-                                        TypeName = "PositionComponent",
-                                        SettingName = "x",
-                                    },
-                                    new Settings.StoredBinding()
-                                    {
-                                        PropertyName = "Y",
-                                        TypeName = "PositionComponent",
-                                        SettingName = "y",
-                                    },
+                                    new StoredBinding("PositionComponent", "X", "x"),
+                                    new StoredBinding("PositionComponent", "Y", "y"),
                                 }
                             }
                         }
                     }
                 }
             };
+            _sceneStore.Add(defaultSettings);
+        }
 
+        private void SwitchScene(string newScene)
+        {
+            EngineLog.For<EngineApp>().Info("Switching to new scene {scene}.", newScene);
+            var settings = _sceneStore.Get(newScene);
 
             EngineLog.For<EngineApp>().Info("Constructing scene...");
-            var sceneLoader = new ScriptedSceneLoader(_sceneSettings);
-            _scene = sceneLoader.LoadFromPackages(@"C:\Users\joel\source\repos\moolicc\Wallop\modules\squaretest");
-            _scene.Init(_pluginContext);
+            var sceneLoader = new ScriptedSceneLoader(settings);
+            var scene = sceneLoader.LoadFromPackages(_sceneSettings.PackageSearchDirectory);
 
 
             EngineLog.For<EngineApp>().Debug("Injecting script HostData...");
-            var hostData = new HostData(_gl, _scene, _bindableComponentTypes);
-            //_scriptHostFunctions.AddDependencyProperty(MemberNames.GET_NAME, hostData.GetName, null);
+            var hostData = new HostData(_gl, scene, _bindableComponentTypes);
             _scriptHostFunctions.AddDependencies(hostData);
 
 
 
             EngineLog.For<EngineApp>().Info("Initializing scene and associated modules...");
-            var provider = new TaskHandlerProvider(ThreadingPolicy.Multithread, ThreadingPolicy.SingleThread, () =>
+            var provider = new TaskHandlerProvider(_sceneSettings.UpdateThreadingPolicy, _sceneSettings.DrawThreadingPolicy, () =>
             {
                 //_window.MakeCurrent();
             });
-            var initializer = new ScriptedSceneInitializer(_scriptHostFunctions, _scene, _pluginContext, provider, _scriptEngineProviders, _bindableComponentTypes);
+
+            scene.Init(_pluginContext);
+            var initializer = new ScriptedSceneInitializer(_scriptHostFunctions, scene, _pluginContext, provider, _scriptEngineProviders, _bindableComponentTypes);
             initializer.InitializeActorScripts();
             initializer.InitializeDirectorScripts();
+
+            _activeScene = scene;
         }
 
+        public void SaveCurrentSceneConfig(SettingsSaveOptions savePolicies, string filepath)
+        {
+            var saver = new ScriptedSceneSaver(savePolicies);
+            var settings = saver.Save(_activeScene);
+            _sceneStore.Add(settings);
+            var json = _sceneStore.Save(settings.Name);
+            File.WriteAllText(filepath, json);
+        }
 
         public void Update(double delta)
         {
-            if(!_sceneSetup)
+            if (!_sceneSetup)
             {
                 return;
             }
-            _scene.Update();
+            _activeScene.Update();
         }
 
         public void Draw(double delta)
@@ -260,7 +288,7 @@ namespace Wallop.Engine
                 return;
             }
             _gl.Clear(ClearBufferMask.ColorBufferBit);
-            _scene.Draw();
+            _activeScene.Draw();
         }
 
         public void Dispose()
@@ -271,7 +299,7 @@ namespace Wallop.Engine
         {
             EngineLog.For<EngineApp>().Info("Shutting down Engine...");
             EngineLog.For<EngineApp>().Info("...Scene...");
-            _scene.Shutdown();
+            _activeScene.Shutdown();
             EngineLog.For<EngineApp>().Info("Scene shutdown.");
             if (!_window.IsClosing)
             {

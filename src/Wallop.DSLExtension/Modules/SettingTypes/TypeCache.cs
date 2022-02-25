@@ -33,11 +33,24 @@ namespace Wallop.DSLExtension.Modules.SettingTypes
             return Types[type].Serialize(value, args);
         }
 
+        public bool TrySerialize(string type, object value, out string? result, IEnumerable<KeyValuePair<string, string>>? args)
+        {
+            if (!Types.TryGetValue(type, out var instance))
+            {
+                result = "";
+                return false;
+            }
+
+            bool successful = instance.TrySerialize(value, out var serialized, args);
+            result = serialized;
+            return successful;
+        }
+
         public bool TryDeserialize(string type, string value, out object? result, IEnumerable<KeyValuePair<string, string>>? args)
         {
             if(!Types.TryGetValue(type, out var instance))
             {
-                result = "";
+                result = null;
                 return false;
             }
 

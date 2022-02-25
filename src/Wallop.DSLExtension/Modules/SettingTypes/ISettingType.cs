@@ -8,9 +8,10 @@ namespace Wallop.DSLExtension.Modules.SettingTypes
 {
     public interface ISettingType
     {
-        public string Name { get; }
+        string Name { get; }
 
-        public string Serialize(object value, IEnumerable<KeyValuePair<string, string>>? args);
-        public bool TryDeserialize(string value, out object? result, IEnumerable<KeyValuePair<string, string>>? args);
+        string Serialize(object value, IEnumerable<KeyValuePair<string, string>>? args);
+        bool TrySerialize(object value, out string? result, IEnumerable<KeyValuePair<string, string>>? args);
+        bool TryDeserialize(string value, out object? result, IEnumerable<KeyValuePair<string, string>>? args);
     }
 }

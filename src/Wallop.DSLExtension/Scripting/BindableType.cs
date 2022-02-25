@@ -43,6 +43,11 @@ namespace Wallop.DSLExtension.Scripting
             }
         }
 
+        public IEnumerable<(string Property, string Setting)> GetBindings()
+        {
+            return _settingBindings.Select(kvp => (kvp.Key, kvp.Value));
+        }
+
         public void Cleanup()
         {
             _settingBindings.Clear();

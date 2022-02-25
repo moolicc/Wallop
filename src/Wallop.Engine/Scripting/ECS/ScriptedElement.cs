@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Wallop.DSLExtension.Modules;
 using Wallop.DSLExtension.Scripting;
 using Wallop.Engine.ECS;
-using Wallop.Engine.Settings;
+using Wallop.Engine.SceneManagement;
 
 namespace Wallop.Engine.Scripting.ECS
 {
