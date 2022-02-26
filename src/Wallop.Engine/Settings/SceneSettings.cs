@@ -15,5 +15,18 @@ namespace Wallop.Engine.Settings
         public List<string> ScenePreloadList { get; set; } = new List<string>();
         public ThreadingPolicy UpdateThreadingPolicy { get; set; } = ThreadingPolicy.SingleThread;
         public ThreadingPolicy DrawThreadingPolicy { get; set; } = ThreadingPolicy.SingleThread;
+
+        public SceneSettings Clone()
+        {
+            return new SceneSettings()
+            {
+                PackageSearchDirectory = PackageSearchDirectory,
+                DefaultSceneName = DefaultSceneName,
+                SelectedScene = SelectedScene,
+                ScenePreloadList = ScenePreloadList,
+                UpdateThreadingPolicy = UpdateThreadingPolicy,
+                DrawThreadingPolicy = DrawThreadingPolicy,
+            };
+        }
     }
 }

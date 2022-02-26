@@ -3,12 +3,16 @@ using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 using System;
 using System.Collections.Generic;
+using System.CommandLine;
+using System.CommandLine.NamingConventionBinder;
+using System.CommandLine.Parsing;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using Wallop.DSLExtension.Scripting;
 using Wallop.DSLExtension.Types.Plugin;
+using Wallop.Engine.Messaging;
 using Wallop.Engine.Rendering;
 using Wallop.Engine.SceneManagement;
 using Wallop.Engine.Scripting;
@@ -47,6 +51,8 @@ namespace Wallop.Engine
         private Scene _activeScene;
         private bool _sceneSetup;
 
+        private Messaging.Messenger _messenger;
+
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public EngineApp(Cog.Configuration config, PluginPantry.PluginContext pluginContext)
         {
@@ -54,20 +60,23 @@ namespace Wallop.Engine
             _graphicsSettings = config.Get<Settings.GraphicsSettings>() ?? new Settings.GraphicsSettings();
             _sceneSettings = config.Get<Settings.SceneSettings>() ?? new Settings.SceneSettings();
 
-
-            EngineLog.For<EngineApp>().Debug("Executing plugins on EngineStartup...");
             _pluginContext = pluginContext;
-            _pluginContext.ExecuteEndPoint(new Types.Plugins.EngineStartupEndPoint { GraphicsSettings = _graphicsSettings });
 
             _sceneStore = new SceneStore();
             _sceneSetup = false;
             _scriptHostFunctions = new ScriptHostFunctions();
+
+            _messenger = new Messaging.Messenger();
         }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
 
         public void SetupWindow()
         {
+            EngineLog.For<EngineApp>().Debug("Executing plugins on EngineStartup...");
+            _pluginContext.ExecuteEndPoint(new EngineStartupEndPoint { GraphicsSettings = _graphicsSettings });
+
+
             EngineLog.For<EngineApp>().Info("Creating window with options: {options}", _graphicsSettings);
             var options = WindowOptions.Default;
             options.Size = new Vector2D<int>(_graphicsSettings.WindowWidth, _graphicsSettings.WindowHeight);
@@ -76,6 +85,7 @@ namespace Wallop.Engine
             options.FramesPerSecond = _graphicsSettings.RefreshRate;
             options.UpdatesPerSecond = _graphicsSettings.RefreshRate;
             options.VSync = _graphicsSettings.VSync;
+            options.ShouldSwapAutomatically = true;
 
             Window.PrioritizeSdl();
             _window = Window.Create(options);
@@ -90,6 +100,151 @@ namespace Wallop.Engine
         {
             EngineLog.For<EngineApp>().Info("Beginning Engine Execution!");
             _window.Run();
+        }
+
+        public void ProcessCommandLine(string commands)
+        {
+            var engineConf = new Option<string>(
+                "--conf",
+                () => "engineconf.json",
+                "Specifies the engine configuratiun file");
+
+            var windowWidth = new Option<int>(
+                "--win-width",
+                () => _graphicsSettings.WindowWidth,
+                "Specifies the width of the underlying window.");
+            var windowHeight = new Option<int>(
+                "--win-height",
+                () => _graphicsSettings.WindowHeight,
+                "Specifies the height of the underlying window.");
+            var windowBorder = new Option<WindowBorder>(
+                "--win-border",
+                () => _graphicsSettings.WindowBorder,
+                "Specifies the border style of the underlying window.");
+            var skipOverlayOpt = new Option<bool>(
+                "--overlay",
+                () => _graphicsSettings.SkipOverlay,
+                "Specifies whether or not to overlay the window over the desktop.");
+            var refreshRateOpt = new Option<double>(
+                "--refresh-rate",
+                () => _graphicsSettings.RefreshRate,
+                "Specifies the refresh rate.");
+            var vsyncEnable = new Option<bool>(
+                "--vsync",
+                () => _graphicsSettings.VSync,
+                "Specifies if vsync should be enabled or disabled.");
+
+
+            var defaultSceneName = new Option<string>(
+                "--default-scene",
+                () => _sceneSettings.DefaultSceneName,
+                "Specifies the name of the default, empty scene.");
+            var drawThreadingPolicy = new Option<ThreadingPolicy>(
+                "--thread-policy-draw",
+                () => _sceneSettings.DrawThreadingPolicy,
+                "Specifies the render threading policy.");
+            var pkgSearchDir = new Option<string>(
+                "--pkg-dir",
+                () => _sceneSettings.PackageSearchDirectory,
+                "Specifies the search directory for packages.");
+            var scenePreloads = new Option<IEnumerable<string>>(
+                "--preload",
+                () => _sceneSettings.ScenePreloadList.ToArray(),
+                "Specifies the scene(s), by their json configuration filepath(s), to pre-load or reload.");
+            var selectedScene = new Option<string>(
+                "--active-scene",
+                () => _sceneSettings.SelectedScene,
+                "Specifies the currently active scene by name.");
+            var updateThreadingPolicy = new Option<ThreadingPolicy>(
+                "--thread-policy-update",
+                () => _sceneSettings.UpdateThreadingPolicy,
+                "Specifies the update threading policy.");
+
+
+            var graphicsCommand = new Command("graphics", "Graphics operations")
+            {
+                windowWidth,
+                windowHeight,
+                windowBorder,
+                skipOverlayOpt,
+                refreshRateOpt,
+                vsyncEnable,
+            };
+
+            var sceneCommand = new Command("scene", "Scene operations")
+            {
+                defaultSceneName,
+                drawThreadingPolicy,
+                pkgSearchDir,
+                scenePreloads,
+                selectedScene,
+                updateThreadingPolicy,
+            };
+
+            RootCommand root = new RootCommand
+            {
+                engineConf,
+                graphicsCommand,
+                sceneCommand,
+            };
+
+            var graphicsHandler = CommandHandler.Create<int, int, WindowBorder, bool, double, bool>(
+                (winWidth, winHeight, winBorder, overlay, refreshRate, vsync) =>
+                {
+                    var changes = new Settings.GraphicsSettings();
+                    changes.WindowWidth = winWidth;
+                    changes.WindowHeight = winHeight;
+                    changes.WindowBorder = winBorder;
+                    changes.SkipOverlay = overlay;
+                    changes.RefreshRate = refreshRate;
+                    changes.VSync = vsync;
+
+                    if (_sceneSetup)
+                    {
+                        _messenger.Put(new GraphicsMessage() { ChangeSet = changes });
+                    }
+                    else
+                    {
+                        _graphicsSettings = changes;
+                    }
+                });
+
+            var sceneHandler = CommandHandler.Create<string, ThreadingPolicy, string, IEnumerable<string>, string, ThreadingPolicy>(
+                (defaultScene, drawThreadingPolicy, pkgDir, preload, activeScene, updateThreadingPolicy) =>
+                {
+                    var newSettings = _sceneSettings.Clone();
+                    newSettings.DefaultSceneName = defaultScene;
+                    newSettings.DrawThreadingPolicy = drawThreadingPolicy;
+                    newSettings.PackageSearchDirectory = pkgDir;
+                    newSettings.SelectedScene = activeScene;
+                    newSettings.UpdateThreadingPolicy = updateThreadingPolicy;
+
+                    if ((preload.FirstOrDefault() ?? " ")[0] == '+')
+                    {
+                        string[] additions = preload.ToArray();
+                        additions[0] = additions[0].Substring(1);
+
+                        foreach (var addition in additions)
+                        {
+                            if(!newSettings.ScenePreloadList.Contains(addition))
+                            {
+                                newSettings.ScenePreloadList.Add(addition);
+                            }
+                        }
+                    }
+
+                    if (_sceneSetup)
+                    {
+                        // Send command to queue.
+                    }
+                });
+
+
+            graphicsCommand.Handler = graphicsHandler;
+            sceneCommand.Handler = sceneHandler;
+
+            //commands = commands.Substring(commands.IndexOf(" ") + 1);
+            root.Invoke(commands.Trim());
         }
 
         private void WindowLoad()
@@ -112,13 +267,20 @@ namespace Wallop.Engine
                 EngineLog.For<EngineApp>().Info("Skipping execution of Engine Overlay plugin due to settings specified in configuration.");
             }
 
+            SetupMessageQueues();
             SetupScene();
+            _gl.Viewport(_window.Size);
         }
 
         private void WindowResized(Vector2D<int> size)
         {
             //_graphicsDevice.GetOpenGLInstance().Viewport(size);
             _gl.Viewport(size);
+        }
+
+        private void SetupMessageQueues()
+        {
+            _messenger.RegisterQueue<Messaging.GraphicsMessage>();
         }
 
         public void SetupScene()
@@ -278,6 +440,8 @@ namespace Wallop.Engine
             {
                 return;
             }
+            HandleSceneChanges();
+            HandleGraphicsChanges();
             _activeScene.Update();
         }
 
@@ -289,6 +453,39 @@ namespace Wallop.Engine
             }
             _gl.Clear(ClearBufferMask.ColorBufferBit);
             _activeScene.Draw();
+        }
+
+        public void HandleSceneChanges()
+        {
+        }
+
+        public void HandleGraphicsChanges()
+        {
+            GraphicsMessage msg = new();
+            if(!_messenger.Take(ref msg))
+            {
+                return;
+            }
+
+            _graphicsSettings.WindowWidth = msg.ChangeSet.WindowWidth;
+            _graphicsSettings.WindowHeight = msg.ChangeSet.WindowHeight;
+            _graphicsSettings.WindowBorder = msg.ChangeSet.WindowBorder;
+            _graphicsSettings.RefreshRate = msg.ChangeSet.RefreshRate;
+            _graphicsSettings.VSync = msg.ChangeSet.VSync;
+
+            _window.VSync = _graphicsSettings.VSync;
+            _window.WindowBorder = _graphicsSettings.WindowBorder;
+            _window.Size = new Vector2D<int>(_graphicsSettings.WindowWidth, _graphicsSettings.WindowHeight);
+            _window.UpdatesPerSecond = _graphicsSettings.RefreshRate;
+            _window.FramesPerSecond = _graphicsSettings.RefreshRate;
+
+            if(_graphicsSettings.SkipOverlay != msg.ChangeSet.SkipOverlay)
+            {
+                // Toggle overlay.
+            }
+            _graphicsSettings.SkipOverlay = msg.ChangeSet.SkipOverlay;
+
+            _gl.Viewport(_window.Size);
         }
 
         public void Dispose()

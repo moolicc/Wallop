@@ -56,12 +56,14 @@ namespace Wallop.Engine.SceneManagement
 
         public List<StoredModule> DirectorModules { get; set; }
         public List<StoredLayout> Layouts { get; set; }
+        public string? ConfigFile { get; set; }
 
         public StoredScene()
         {
             Name = "";
             DirectorModules = new List<StoredModule>();
             Layouts = new List<StoredLayout>();
+            ConfigFile = null;
         }
 
     }

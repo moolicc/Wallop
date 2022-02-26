@@ -34,6 +34,7 @@ namespace Wallop.Engine.SceneManagement
                 // TODO: Error
                 return;
             }
+            settings.ConfigFile = filepath;
             Add(settings);
         }
 
@@ -50,6 +51,11 @@ namespace Wallop.Engine.SceneManagement
                 return "";
             }
             return JsonSerializer.Serialize(settings);
+        }
+
+        public void Remove(StoredScene scene)
+        {
+            _loadedScenes.Remove(scene.Name);
         }
     }
 }

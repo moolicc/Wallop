@@ -1,4 +1,5 @@
 ﻿
+using System.CommandLine;
 using System.Reflection;
 using Wallop.Engine;
 
@@ -7,9 +8,55 @@ namespace Wallop
 
     class Program
     {
+        private const string MUTEX_NAME = "WallopSingleInstanceMutex";
         private const string CONF_FILE = "engineconf.json";
 
-        static int Main()
+        private static EngineApp? _app;
+
+        static int Main(string[] args)
+        {
+            using (var mutex = new Mutex(true, MUTEX_NAME, out var isOnlyInstance))
+            {
+                try
+                {
+                    if(isOnlyInstance)
+                    {
+                        var server = PipedCommunication.CreateServer();
+                        server.MessageReceivedCallback = OtherInstanceMessageReceived;
+                    }
+                    else
+                    {
+                        EngineLog.For<Program>().Warn("Another instance of the application has been detected. Forwarding command line and exiting.");
+
+                        using (var client = PipedCommunication.CreateClient())
+                        {
+                            client.SendMessageToServer(Environment.CommandLine);//args.Aggregate((s1, s2) => s1 + ' ' + s2));
+                        }
+                        return 0;
+                    }
+                    RunProgram();
+                }
+                catch (Exception ex)
+                {
+                    EngineLog.For<Program>().Fatal(ex, "Engine has encountered a fatal exception and cannot continue execution. Ex: {exception}", ex);
+                    return 1;
+                }
+            }
+
+            return 0;
+        }
+
+        private static void OtherInstanceMessageReceived(string message)
+        {
+            if(_app == null)
+            {
+                // TODO: Log missed message.
+                return;
+            }
+            _app.ProcessCommandLine(message.Trim());
+        }
+
+        private static void RunProgram()
         {
             EngineLog.For<Program>().Info("Loading configuration...");
             var engineConfig = LoadSettings();
@@ -48,14 +95,14 @@ namespace Wallop
 
             AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(LoadDep);
 
-            EngineLog.For<Program>().Info("Setting up Engine...");
-            var app = new EngineApp(engineConfig, context);
-            app.SetupWindow();
-
-            EngineLog.For<Program>().Info("Running Engine...");
-            app.Run();
-
-            return 0;
+            using(_app = new EngineApp(engineConfig, context))
+            {
+                EngineLog.For<Program>().Info("Setting up Engine...");
+                _app.ProcessCommandLine(Environment.CommandLine);
+                _app.SetupWindow();
+                EngineLog.For<Program>().Info("Running Engine...");
+                _app.Run();
+            }
         }
 
         private static Cog.Configuration LoadSettings()
