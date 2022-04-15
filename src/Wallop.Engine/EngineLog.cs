@@ -32,9 +32,10 @@ namespace Wallop.Engine
 
 
         public static NLog.Logger For<T>()
-        {
-            return _logFactory.GetLogger(typeof(T).Name);
-        }
+            => For(typeof(T).Name);
+
+        public static NLog.Logger For(string typeName)
+            => _logFactory.GetLogger(typeName);
 
     }
 }

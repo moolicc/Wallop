@@ -6,15 +6,17 @@ using System.Threading.Tasks;
 
 namespace Wallop.Engine.Messaging
 {
-    public delegate void MessageListener<T>(T message, ref bool handled) where T : struct;
+    public delegate void MessageListener<T>((T payload, uint messageId) message, ref bool handled) where T : struct;
 
     public class Messenger
     {
         private Dictionary<Type, IMessageQueue> _queues;
+        private ushort _nextMessageId;
 
         public Messenger()
         {
             _queues = new Dictionary<Type, IMessageQueue>();
+            _nextMessageId = 1;
         }
 
         public void RegisterQueue<T>() where T : struct
@@ -23,61 +25,102 @@ namespace Wallop.Engine.Messaging
             _queues.Add(typeof(T), queue);
         }
 
-        public bool Take<T>(ref T result) where T : struct
+        public bool Take<T>(ref T payload, ref uint messageId) where T : struct
         {
-            var queue = _queues[typeof(T)];
+            if(!_queues.TryGetValue(typeof(T), out var queue))
+            {
+                queue = new MessageQueue<T>();
+                _queues.Add(typeof(T), queue);
+            }
 
             if (queue is MessageQueue<T> msgQueue)
             {
-                return msgQueue.TakeNext(out result) == TakeResults.Succeeded;
+                bool succeeded = msgQueue.TakeNext(out var result) == TakeResults.Succeeded;
+                payload = result.payload;
+                messageId = result.messageId;
+                return succeeded;
             }
             return false;
         }
 
-        public T[] Take<T>(int count) where T : struct
+        public (T Payload, uint MessageId)[] Take<T>(int count) where T : struct
+        {
+            return Take<T>(ref count);
+        }
+
+        public (T Payload, uint MessageId)[] Take<T>(ref int count) where T : struct
         {
             const int MAX_FAILURES = 5;
 
-            T[] buffer = new T[count];
-            var queue = _queues[typeof(T)];
+            var buffer = new (T, uint)[count];
+            if (!_queues.TryGetValue(typeof(T), out var queue))
+            {
+                queue = new MessageQueue<T>();
+                _queues.Add(typeof(T), queue);
+            }
 
-            if(queue is MessageQueue<T> msgQueue)
+            if (queue is MessageQueue<T> msgQueue)
             {
                 int failures = 0;
-                for (int i = 0; i < count; i++)
+                int attemptCount = count;
+                count = 0;
+                for (int i = 0; i < attemptCount; i++)
                 {
                     var result = msgQueue.TakeNext(out buffer[i]);
                     if (result == TakeResults.OutOfElements)
                     {
                         break;
                     }
-                    if(result == TakeResults.Failed)
+                    if (result == TakeResults.Failed)
                     {
                         failures++;
                         i--;
                     }
-                    if(failures >= MAX_FAILURES)
+                    if (failures >= MAX_FAILURES)
                     {
                         break;
                     }
+                    count++;
                 }
             }
 
             return buffer;
         }
 
-        public void Put<T>(T message) where T : struct
+        public uint Put<T>(T message) where T : struct
         {
-            var queue = _queues[typeof(T)];
+            if (!_queues.TryGetValue(typeof(T), out var queue))
+            {
+                queue = new MessageQueue<T>();
+                _queues.Add(typeof(T), queue);
+            }
+
+            uint msgId;
+            ushort high;
+            unchecked
+            {
+                high = _nextMessageId++;
+            }
+
             if (queue is MessageQueue<T> msgQueue)
             {
-                msgQueue.Enqueue(message);
+                msgId = msgQueue.Enqueue(message, high);
             }
+            else
+            {
+                return 0;
+            }
+
+            return msgId;
         }
 
         public void Listen<T>(MessageListener<T> listener) where T : struct
         {
-            var queue = _queues[typeof(T)];
+            if (!_queues.TryGetValue(typeof(T), out var queue))
+            {
+                queue = new MessageQueue<T>();
+                _queues.Add(typeof(T), queue);
+            }
             if (queue is MessageQueue<T> msgQueue)
             {
                 msgQueue.MessageListener += listener;

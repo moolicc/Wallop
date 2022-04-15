@@ -33,7 +33,10 @@ namespace Wallop.Engine.SceneManagement
 
         public Layout()
         {
+            Name = string.Empty;
+            Screen = ScreenInfo.GetVirtualScreen();
             EcsRoot = new ECS.Manager();
+            _presentationSize = Vector2.Zero;
         }
     }
 }

@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Wallop.Engine.Scripting
+namespace Wallop.Engine.Messaging
 {
-    public class ThreadProvider
+    public interface IMessageDispatcher
     {
-
+        void Dispatch(Messenger messenger);
     }
 }

@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Wallop.DSLExtension.Modules;
+﻿using Wallop.DSLExtension.Modules;
 using Wallop.DSLExtension.Scripting;
-using Wallop.Engine.SceneManagement;
+using Wallop.Engine.Scripting;
 using Wallop.Engine.Scripting.ECS;
 
-namespace Wallop.Engine.Scripting
+namespace Wallop.Engine.SceneManagement.Serialization
 {
     [Flags]
     public enum SettingsSaveOptions
@@ -21,16 +16,16 @@ namespace Wallop.Engine.Scripting
         Default = RequiredSettings | OptionalSettings,
     }
 
-    public class ScriptedSceneSaver
+    public class SceneSaver
     {
         public SettingsSaveOptions SettingsPolicy { get; init; }
 
-        private DSLExtension.Modules.SettingTypes.TypeCache _typeCache;
+        private PackageCache _packageCache;
 
-        public ScriptedSceneSaver(SettingsSaveOptions savePolicy)
+        public SceneSaver(SettingsSaveOptions savePolicy, PackageCache packageCache)
         {
             SettingsPolicy = savePolicy;
-            _typeCache = new DSLExtension.Modules.SettingTypes.TypeCache();
+            _packageCache = packageCache;
         }
 
         public StoredScene Save(Scene scene)
@@ -158,7 +153,7 @@ namespace Wallop.Engine.Scripting
                 string? serialized = null;
                 if (variable.Value != null)
                 {
-                    if (!_typeCache.TrySerialize(variable.Value.GetType().Name, variable.Value, out serialized, null))
+                    if (!_packageCache.Types.TrySerialize(variable.Value.GetType().Name, variable.Value, out serialized, null))
                     {
                         serialized = variable.Value.ToString();
                     }
@@ -193,7 +188,7 @@ namespace Wallop.Engine.Scripting
                 }
                 else
                 {
-                    if (!_typeCache.TrySerialize(setting.SettingType, stateValue, out value, setting.SettingTypeArgs))
+                    if (!_packageCache.Types.TrySerialize(setting.SettingType, stateValue, out value, setting.SettingTypeArgs))
                     {
                         // TODO: Error
                     }

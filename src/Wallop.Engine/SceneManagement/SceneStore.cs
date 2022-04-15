@@ -8,6 +8,9 @@ using Wallop.Engine.Settings;
 
 namespace Wallop.Engine.SceneManagement
 {
+    /// <summary>
+    /// Manages a container of in-memory scenes represented by <see cref="StoredScene" />, mapped by scene name.
+    /// </summary>
     internal class SceneStore
     {
         private Dictionary<string, StoredScene> _loadedScenes;
@@ -25,22 +28,25 @@ namespace Wallop.Engine.SceneManagement
             }
         }
 
-        public void Load(string filepath)
+        public StoredScene? Load(string filepath)
         {
             var json = File.ReadAllText(filepath);
             var settings = JsonSerializer.Deserialize<StoredScene>(json);
             if(settings == null)
             {
                 // TODO: Error
-                return;
+                return null;
             }
             settings.ConfigFile = filepath;
             Add(settings);
+
+            return settings;
         }
 
-        public StoredScene Get(string name)
+        public StoredScene? Get(string name)
         {
-            return _loadedScenes[name];
+            _loadedScenes.TryGetValue(name, out StoredScene? scene);
+            return scene;
         }
 
         public string Save(string name)

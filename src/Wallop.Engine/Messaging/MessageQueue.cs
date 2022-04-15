@@ -25,17 +25,19 @@ namespace Wallop.Engine.Messaging
 
         public bool IsEmpty => _queue.IsEmpty;
 
-        private ConcurrentQueue<T> _queue;
+        private ConcurrentQueue<(T payload, uint msgId)> _queue;
+        private ushort _nextId;
 
         public MessageQueue()
         {
-            _queue = new ConcurrentQueue<T>();
+            _queue = new ConcurrentQueue<(T, uint)>();
+            _nextId = 1;
         }
 
 
-        public TakeResults TakeNext(out T result)
+        public TakeResults TakeNext(out (T payload, uint messageId) result)
         {
-            result = default(T);
+            result = (default(T), 0);
 
             if (_queue.IsEmpty)
             {
@@ -50,17 +52,28 @@ namespace Wallop.Engine.Messaging
             return TakeResults.Succeeded;
         }
 
-        public void Enqueue(T value)
+        public uint Enqueue(T value, ushort highId)
         {
             bool handled = false;
-            if(MessageListener != null)
+
+            uint messageId = 0;
+            ushort low = 0;
+            unchecked
             {
-                MessageListener(value, ref handled);
+                low = _nextId++;
             }
-            if(!handled)
+            messageId = (uint)highId << 16 | low;
+
+            if (MessageListener != null)
             {
-                _queue.Enqueue(value);
+                MessageListener((value, messageId), ref handled);
             }
+
+            if (!handled)
+            {
+                _queue.Enqueue((value, messageId));
+            }
+            return messageId;
         }
 
         public void ClearState()

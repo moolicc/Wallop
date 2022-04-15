@@ -30,7 +30,6 @@ namespace Wallop.Engine.Scripting.ECS
         private TaskHandlerProvider? _taskProvider;
         private ScriptPanicException? _panic;
 
-
         public ScriptedElement(string name, Module declaringModule, StoredModule storedModule)
         {
             Name = name;

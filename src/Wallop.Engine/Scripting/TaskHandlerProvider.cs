@@ -29,6 +29,8 @@ namespace Wallop.Engine.Scripting
         private Dictionary<ECS.ScriptedElement, TaskHandler> _updateHandlers;
         private Dictionary<ECS.ScriptedElement, TaskHandler> _drawHandlers;
 
+        private bool _policiesChanged;
+
         public TaskHandlerProvider(ThreadingPolicy updatePolicy, ThreadingPolicy drawPolicy, Action drawFirstRunCallback)
         {
             UpdatePolicy = updatePolicy;
@@ -60,8 +62,24 @@ namespace Wallop.Engine.Scripting
             }
         }
 
+        internal void SetUpdatePolicy(ThreadingPolicy updateThreadingPolicy)
+        {
+            UpdatePolicy = updateThreadingPolicy;
+            _policiesChanged = true;
+        }
+
+        internal void SetDrawPolicy(ThreadingPolicy drawThreadingPolicy)
+        {
+            DrawPolicy = drawThreadingPolicy;
+            _policiesChanged = true;
+        }
+
         public TaskHandler GetUpdateHandler(ECS.ScriptedElement element)
         {
+            if (_policiesChanged)
+            {
+                Recreate();
+            }
             if (!_updateHandlers.TryGetValue(element, out var handler))
             {
                 if (UpdatePolicy == ThreadingPolicy.SingleThread && _updateHandlers.Count > 0)
@@ -82,6 +100,10 @@ namespace Wallop.Engine.Scripting
 
         public TaskHandler GetDrawHandler(ECS.ScriptedElement element)
         {
+            if(_policiesChanged)
+            {
+                Recreate();
+            }
             if (!_drawHandlers.TryGetValue(element, out var handler))
             {
                 if (DrawPolicy == ThreadingPolicy.SingleThread && _drawHandlers.Count > 0)
@@ -99,6 +121,23 @@ namespace Wallop.Engine.Scripting
             }
 
             return handler;
+        }
+
+        private void Recreate()
+        {
+            foreach (var item in _updateHandlers)
+            {
+                item.Value.Terminate();
+            }
+            _updateHandlers.Clear();
+
+            foreach (var item in _drawHandlers)
+            {
+                item.Value.Terminate();
+            }
+            _drawHandlers.Clear();
+
+            _policiesChanged = false;
         }
     }
 }
