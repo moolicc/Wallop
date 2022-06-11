@@ -31,9 +31,9 @@ namespace Wallop.Engine.Scripting.ECS.Serialization
         private TaskHandlerProvider _taskProvider;
         private ScriptHostFunctions _scriptHostFunctions;
         private PluginContext _pluginContext;
-        private Dictionary<string, Type> _bindableComponentTypes;
+        private BindableComponentTypeCache _bindableComponentTypes;
 
-        internal ElementInitializer(ScriptEngineProviderCache scriptEngineProviders, TaskHandlerProvider taskProvider, ScriptHostFunctions scriptHostFunctions, PluginContext pluginContext, IEnumerable<KeyValuePair<string, Type>> bindableComponentTypes)
+        internal ElementInitializer(ScriptEngineProviderCache scriptEngineProviders, TaskHandlerProvider taskProvider, ScriptHostFunctions scriptHostFunctions, PluginContext pluginContext, BindableComponentTypeCache bindableComponentTypes)
         {
             _scriptEngineProviders = scriptEngineProviders;
             _taskProvider = taskProvider;
@@ -41,7 +41,7 @@ namespace Wallop.Engine.Scripting.ECS.Serialization
             _pluginContext = pluginContext;
 
             // TODO: Create special "cache" type for this.
-            _bindableComponentTypes = new Dictionary<string, Type>(bindableComponentTypes);
+            _bindableComponentTypes = bindableComponentTypes;
 
             if(_instance != null)
             {

@@ -38,5 +38,7 @@ namespace Wallop.Engine.Handlers
         public virtual void AfterUpdate() { }
         public virtual void BeforeDraw() { }
         public virtual void AfterDraw() { }
+
+        public virtual void Shutdown() { }
     }
 }

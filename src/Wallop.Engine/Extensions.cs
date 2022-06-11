@@ -63,7 +63,7 @@ namespace Wallop.Engine
         {
             if(instance == null)
             {
-                throw new ArgumentNullException(typeof(T).Name);
+                throw new ArgumentNullException(typeof(T).Name, "Failed to unwrap nullable. This means the requested resource, was in fact, null.");
             }
             return instance;
         }

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Wallop.Engine": {
+      "commandName": "Project",
+      "commandLineArgs": "graphics --win-width 600"
+    }
+  }
+}

@@ -60,9 +60,9 @@ namespace Wallop.Engine.Scripting.ECS.Serialization
 
             if(type == ModuleTypes.Director)
             {
-                return (T)(ScriptedElement)new ScriptedActor(associatedModule, storedElement);
+                return (T)(ScriptedElement)new ScriptedDirector(associatedModule, storedElement);
             }
-            return (T)(ScriptedElement)new ScriptedDirector(associatedModule, storedElement);
+            return (T)(ScriptedElement)new ScriptedActor(associatedModule, storedElement);
         }
 
         public IEnumerable<T> LoadAll<T>(params SceneManagement.StoredModule[] storedElements) where T : ScriptedElement

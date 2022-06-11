@@ -99,7 +99,6 @@ namespace Wallop
             {
                 EngineLog.For<Program>().Info("Setting up Engine...");
                 _app.ProcessCommandLine(Environment.CommandLine);
-                _app.SetupWindow();
                 EngineLog.For<Program>().Info("Running Engine...");
                 _app.Run();
             }

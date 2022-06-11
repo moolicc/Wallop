@@ -111,13 +111,13 @@ namespace Wallop.Engine.Scripting
 
         public Scene Scene { get; private set; }
 
-        public Dictionary<string, Type> BindableComponents { get; private set; }
+        public BindableComponentTypeCache BindableComponents { get; private set; }
 
-        public HostData(GL glInstance, Scene scene, IEnumerable<KeyValuePair<string, Type>> bindableTypes)
+        public HostData(GL glInstance, Scene scene, BindableComponentTypeCache bindableTypes)
         {
             GLInstance = glInstance;
             Scene = scene;
-            BindableComponents = new Dictionary<string, Type>(bindableTypes);
+            BindableComponents = bindableTypes;
         }
 
         [ScriptPropertyFactory("basedir", FactoryPropertyMethod.Getter, ExposedName = MemberNames.GET_BASE_DIRECTORY)]

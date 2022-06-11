@@ -18,10 +18,13 @@ namespace Wallop.Engine.Handlers
         // TODO: SaveConfigMessage
         // TODO: LoadConfigMessage
 
+        public PackageCache PackageCache { get; private set; }
         public SceneSettings SceneSettings => _sceneSettings;
         public Scene ActiveScene => _activeScene;
 
         internal SceneStore SceneStore => _sceneStore;
+
+        private TaskHandlerProvider _taskProvider;
 
         private SceneSettings _sceneSettings;
         private SceneStore _sceneStore;
@@ -32,6 +35,10 @@ namespace Wallop.Engine.Handlers
         {
             _sceneSettings = configuredSettings;
             _sceneStore = new SceneStore();
+
+            PackageCache = new PackageCache(SceneSettings.PackageSearchDirectory);
+
+            App.AddService(PackageCache);
 
             SubscribeToEngineMessages<SceneSettingsMessage>(HandleSceneSettings);
             SubscribeToEngineMessages<SceneChangeMessage>(HandleSceneChange);
@@ -135,6 +142,7 @@ namespace Wallop.Engine.Handlers
 
         internal void InitScene()
         {
+            SetupServices();
             SetupDefaultScene();
 
 
@@ -154,6 +162,14 @@ namespace Wallop.Engine.Handlers
             }
 
             SwitchScene(_sceneSettings.SelectedScene);
+        }
+
+        private void SetupServices()
+        {
+            _taskProvider = new TaskHandlerProvider(_sceneSettings.UpdateThreadingPolicy, _sceneSettings.DrawThreadingPolicy, () =>
+            {
+                //_window.MakeCurrent();
+            });
         }
 
         private void SetupDefaultScene()
@@ -234,11 +250,16 @@ namespace Wallop.Engine.Handlers
             }
 
             var packageCache = App.GetService<PackageCache>().OrThrow();
-            var bindableComponentTypes = App.GetService <IEnumerable<KeyValuePair<string, Type>>>().OrThrow();
-            var taskProvider = App.GetService<TaskHandlerProvider>().OrThrow();
+            var bindableComponentTypes = App.GetService<BindableComponentTypeCache>().OrThrow();
+            //var taskProvider = App.GetService<TaskHandlerProvider>().OrThrow();
             var pluginContext = App.GetService<PluginPantry.PluginContext>().OrThrow();
             var hostFunctions = App.GetService<ScriptHostFunctions>().OrThrow();
             var engineProviders = App.GetService<ScriptEngineProviderCache>().OrThrow();
+
+
+            EngineLog.For<SceneHandler>().Info("Initializing ECS Element invokers...");
+            var elementLoader = new Scripting.ECS.Serialization.ElementLoader(packageCache);
+            var elementInitializer = new Scripting.ECS.Serialization.ElementInitializer(engineProviders, _taskProvider, hostFunctions, pluginContext, bindableComponentTypes);
 
             EngineLog.For<SceneHandler>().Info("Constructing scene...");
             var sceneLoader = new SceneLoader(settings, packageCache);
@@ -253,16 +274,7 @@ namespace Wallop.Engine.Handlers
 
             EngineLog.For<SceneHandler>().Info("Initializing scene and associated modules...");
 
-            taskProvider = new TaskHandlerProvider(_sceneSettings.UpdateThreadingPolicy, _sceneSettings.DrawThreadingPolicy, () =>
-            {
-                //_window.MakeCurrent();
-            });
-
             scene.Init(pluginContext);
-
-            var elementLoader = new Scripting.ECS.Serialization.ElementLoader(packageCache);
-            var elementInitializer = new Scripting.ECS.Serialization.ElementInitializer(engineProviders, taskProvider, hostFunctions, pluginContext, bindableComponentTypes);
-
             var initializer = new SceneScriptInitializer(scene);
             initializer.InitializeActorScripts();
             initializer.InitializeDirectorScripts();
@@ -288,19 +300,20 @@ namespace Wallop.Engine.Handlers
 
             if (_sceneSettings.PackageSearchDirectory != message.Settings.PackageSearchDirectory)
             {
+                var packageCache = App.GetService<PackageCache>().OrThrow();
                 _sceneSettings.PackageSearchDirectory = message.Settings.PackageSearchDirectory;
-                App.PackageCache.Reload(message.Settings.PackageSearchDirectory);
+                packageCache.Reload(message.Settings.PackageSearchDirectory);
             }
 
             if (_sceneSettings.DrawThreadingPolicy != message.Settings.DrawThreadingPolicy)
             {
                 _sceneSettings.DrawThreadingPolicy = message.Settings.DrawThreadingPolicy;
-                App.TaskHandlerProvider.SetDrawPolicy(message.Settings.DrawThreadingPolicy);
+                _taskProvider.SetDrawPolicy(message.Settings.DrawThreadingPolicy);
             }
             if (_sceneSettings.UpdateThreadingPolicy != message.Settings.UpdateThreadingPolicy)
             {
                 _sceneSettings.UpdateThreadingPolicy = message.Settings.UpdateThreadingPolicy;
-                App.TaskHandlerProvider.SetUpdatePolicy(message.Settings.UpdateThreadingPolicy);
+                _taskProvider.SetUpdatePolicy(message.Settings.UpdateThreadingPolicy);
             }
 
 
@@ -522,10 +535,10 @@ namespace Wallop.Engine.Handlers
 
         }
 
-        internal void SceneShutdown()
+        public override void Shutdown()
         {
             _activeScene.Shutdown();
-            EngineLog.For<SceneHandler>().Info("Scene shutdown.");
+            EngineLog.For<SceneHandler>().Info("SceneHandler shutdown.");
         }
     }
 }
