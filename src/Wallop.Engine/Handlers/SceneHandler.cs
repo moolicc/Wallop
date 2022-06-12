@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Silk.NET.OpenGL;
+using System;
 using System.Collections.Generic;
 using System.CommandLine;
+using System.CommandLine.NamingConventionBinder;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -29,12 +31,14 @@ namespace Wallop.Engine.Handlers
         private SceneSettings _sceneSettings;
         private SceneStore _sceneStore;
         private Scene _activeScene;
+        private bool _sceneLoaded;
 
         public SceneHandler(EngineApp app, SceneSettings configuredSettings)
             : base(app)
         {
             _sceneSettings = configuredSettings;
             _sceneStore = new SceneStore();
+            _sceneLoaded = false;
 
             PackageCache = new PackageCache(SceneSettings.PackageSearchDirectory);
 
@@ -50,91 +54,197 @@ namespace Wallop.Engine.Handlers
             SubscribeToEngineMessages<AddDirectorMessage>(HandleAddDirector);
         }
 
-        public override Command? GetCommandLineCommand()
+        public override Command? GetCommandLineCommand(bool firstInstance)
         {
 
-            var defaultSceneName = new Option<string>(
+            var defaultSceneNameOpts = new Option<string>(
                 new[] { "--default-scene", "-d" },
                 () => _sceneSettings.DefaultSceneName,
-                "Specifies the name of the default, empty scene.");
-            var drawThreadingPolicy = new Option<ThreadingPolicy>(
+                "Specifies the name of the default, empty scene");
+            var drawThreadingPolicyOpts = new Option<ThreadingPolicy>(
                 new[] { "--thread-policy-draw", "-tpd" },
                 () => _sceneSettings.DrawThreadingPolicy,
-                "Specifies the render threading policy.");
-            var pkgSearchDir = new Option<string>(
+                "Specifies the render threading policy");
+            var pkgSearchDirOpts = new Option<string>(
                 new[] { "--pkg-dir", "-pdir" },
                 () => _sceneSettings.PackageSearchDirectory,
-                "Specifies the search directory for packages.");
-            var scenePreloads = new Option<IEnumerable<string>>(
+                "Specifies the search directory for packages");
+            var scenePreloadsOpts = new Option<IEnumerable<string>>(
                 new[] { "--preload", "-p" },
                 () => _sceneSettings.ScenePreloadList.ToArray(),
-                "Specifies the scene(s), by their json configuration filepath(s), to pre-load or reload.");
-            var selectedScene = new Option<string>(
+                "Specifies the scene(s), by their json configuration filepath(s), to pre-load or reload");
+            var selectedSceneOpts = new Option<string>(
                 new[] { "--active-scene", "-s" },
                 () => _sceneSettings.SelectedScene,
-                "Specifies the currently active scene by name.");
-            var updateThreadingPolicy = new Option<ThreadingPolicy>(
+                "Specifies the currently active scene by name");
+            var updateThreadingPolicyOpts = new Option<ThreadingPolicy>(
                 new[] { "--thread-policy-update", "-tpu" },
                 () => _sceneSettings.UpdateThreadingPolicy,
-                "Specifies the update threading policy.");
+                "Specifies the update threading policy");
 
-            var basedOnScene = new Option<string>(
+
+            var basedOnSceneOpts = new Option<string>(
                 new[] { "--clone", "-c" },
                 () => _sceneSettings.DefaultSceneName,
-                "Bases a scene based on the scene of the specified name or configuration path.");
-            var newSceneName = new Option<string>(
+                "Bases a scene based on the scene of the specified name or configuration path");
+            var newSceneNameOpts = new Option<string>(
                 new[] { "--name", "-n" },
-                "Bases a scene based on the scene of the specified name or configuration path.");
+                "Bases a scene based on the scene of the specified name or configuration path");
 
-            var basedOnLayout = new Option<string>(
+            var basedOnLayoutOpts = new Option<string>(
                 new[] { "--clone", "-c" },
                 () => "",
-                "Bases a new layout on the specified existing layout.");
-            var newLayoutName = new Option<string>(
+                "Bases a new layout on the specified existing layout");
+            var newLayoutNameOpts = new Option<string>(
                 new[] { "--name", "-n" },
                 () => "",
                 "The name of the new layout");
-            var newLayoutTargetScene = new Option<string>(
+            var newLayoutTargetSceneOpts = new Option<string>(
                 new[] { "--target-scene", "-s" },
                 () => _activeScene.Name,
-                "The name of the scene for which this new layout is being created.");
-            var makeActive = new Option<bool>(
+                "The name of the scene for which this new layout is being created");
+            var makeActiveOpts = new Option<bool>(
                 new[] { "--make-active", "-a" },
                 () => false,
-                "Whether or not to make this layout active upon creation."
+                "Whether or not to make this layout active upon creation"
                 );
+
+
+            var importLocationOpts = new Argument<string>("location", "Specifies a scene configuration file to import");
+
+            var importAsNameOpts = new Option<string>(
+                new[] { "--name", "-n" },
+                () => "",
+                "Specifies a name to apply to the imported scene");
+
+
+            var exportLocationOpts = new Argument<string>("location", "The location to export the scene configuration to");
+
+            var exportAsNameOpts = new Option<string>(
+                new[] { "--name", "-n" },
+                "Specifies a name to export the scene with");
+
 
 
             // EngineApp.exe scene create layout ...
             var sceneCreateLayoutCommand = new Command("layout")
             {
-                basedOnLayout,
-                newLayoutName,
-                newLayoutTargetScene,
-                makeActive
+                basedOnLayoutOpts,
+                newLayoutNameOpts,
+                newLayoutTargetSceneOpts,
+                makeActiveOpts
             };
+
+            sceneCreateLayoutCommand.Handler = CommandHandler.Create<string, string, string, bool>(
+                (basedOnLayout, newLayoutName, newLayoutTargetScene, makeActive) =>
+                {
+                    var message = new AddLayoutMessage(newLayoutName, basedOnLayout, newLayoutTargetScene, makeActive);
+                    App.Messenger.Put(message);
+                });
+
+
 
             // EngineApp.exe scene create ...
             var sceneCreateCommand = new Command("create", "Creates a new scene")
             {
                 sceneCreateLayoutCommand,
 
-                basedOnScene,
-                newSceneName
+                basedOnSceneOpts,
+                newSceneNameOpts
             };
+
+            sceneCreateCommand.Handler = CommandHandler.Create<string, string>(
+                (basedOnScene, newSceneNamee) =>
+                {
+                    var message = new CreateSceneMessage(newSceneNamee, basedOnScene);
+                    App.Messenger.Put(message);
+                });
+
+
+            // EngineApp.exe scene import ...
+            var sceneImportCommand = new Command("import", "Imports a scene configuration")
+            {
+                importLocationOpts,
+                importAsNameOpts,
+            };
+
+            sceneImportCommand.SetHandler(
+                (string importLocation, string importName) =>
+                {
+
+                    if(firstInstance)
+                    {
+                        SwitchScene(importLocation);
+                        if (!string.IsNullOrEmpty(importName))
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+                    else
+                    {
+                        App.Messenger.Put(new SceneChangeMessage(importLocation));
+                    }
+                }, importLocationOpts, importAsNameOpts);
+
+
+
+            // EngineApp.exe scene export ...
+            var sceneExportCommand = new Command("export", "Exports a scene configuration")
+            {
+                exportLocationOpts,
+                exportAsNameOpts,
+            };
+
+            sceneExportCommand.SetHandler(
+                (string exportLocationOpts, string exportName) =>
+                {
+                    SaveCurrentSceneConfig(SettingsSaveOptions.Default, exportLocationOpts);
+                    if (!string.IsNullOrEmpty(exportName))
+                    {
+                        throw new NotImplementedException();
+                    }
+                }, exportLocationOpts, exportAsNameOpts);
+
 
             // EngineApp.exe scene ...
             var sceneCommand = new Command("scene", "Scene operations")
             {
                 sceneCreateCommand,
+                sceneImportCommand,
+                sceneExportCommand,
 
-                defaultSceneName,
-                drawThreadingPolicy,
-                pkgSearchDir,
-                scenePreloads,
-                selectedScene,
-                updateThreadingPolicy,
+                defaultSceneNameOpts,
+                drawThreadingPolicyOpts,
+                pkgSearchDirOpts,
+                scenePreloadsOpts,
+                selectedSceneOpts,
+                updateThreadingPolicyOpts,
             };
+
+            sceneCommand.Handler = CommandHandler.Create<string, ThreadingPolicy, string, IEnumerable<string>, string, ThreadingPolicy>(
+                (defaultSceneName, drawThreadingPolicy, pkgSearchDir, scenePreloads, selectedScene, updateThreadingPolicy) =>
+                {
+                    var changes = new SceneSettings()
+                    {
+                        DefaultSceneName = defaultSceneName,
+                        DrawThreadingPolicy = drawThreadingPolicy,
+                        PackageSearchDirectory = pkgSearchDir,
+                        ScenePreloadList = new List<string>(scenePreloads),
+                        SelectedScene = selectedScene,
+                        UpdateThreadingPolicy = updateThreadingPolicy
+                    };
+
+                    if(_sceneLoaded)
+                    {
+                        App.Messenger.Put(new SceneSettingsMessage(changes));
+                    }
+                    else
+                    {
+                        _sceneSettings = changes;
+                    }
+                });
+
+
 
             return sceneCommand;
         }
@@ -142,6 +252,7 @@ namespace Wallop.Engine.Handlers
 
         internal void InitScene()
         {
+            _sceneLoaded = true;
             SetupServices();
             SetupDefaultScene();
 
@@ -181,53 +292,53 @@ namespace Wallop.Engine.Handlers
                 Name = _sceneSettings.DefaultSceneName,
                 DirectorModules = new List<StoredModule>()
                 {
-                    new StoredModule()
-                    {
-                        InstanceName = "DirectorTest",
-                        ModuleId = "Director.Test1.0",
-                        Settings = new Dictionary<string, string>()
-                        {
-                            { "height", "100" },
-                            { "width", "100" }
-                        },
-                    },
+                    //new StoredModule()
+                    //{
+                    //    InstanceName = "DirectorTest",
+                    //    ModuleId = "Director.Test1.0",
+                    //    Settings = new Dictionary<string, string>()
+                    //    {
+                    //        { "height", "100" },
+                    //        { "width", "100" }
+                    //    },
+                    //},
                 },
                 Layouts = new List<StoredLayout>()
                 {
-                    new StoredLayout()
-                    {
-                        Active = true,
-                        Name = "layout1",
-                        ActorModules = new List<StoredModule>()
-                        {
-                            new StoredModule()
-                            {
-                                InstanceName = "Square",
-                                ModuleId = "Square.Test1.0",
-                                Settings = new Dictionary<string, string>()
-                                {
-                                    { "height", "100" },
-                                    { "width", "100" }
-                                }
-                            },
-                            new StoredModule()
-                            {
-                                InstanceName = "Square1",
-                                ModuleId = "Square.Test1.0",
-                                Settings = new Dictionary<string, string>()
-                                {
-                                    { "height", "100" },
-                                    { "width", "100" },
-                                    { "y", "200" }
-                                },
-                                StoredBindings = new List<StoredBinding>()
-                                {
-                                    new StoredBinding("PositionComponent", "X", "x"),
-                                    new StoredBinding("PositionComponent", "Y", "y"),
-                                }
-                            }
-                        }
-                    }
+                    //new StoredLayout()
+                    //{
+                    //    Active = true,
+                    //    Name = "layout1",
+                    //    ActorModules = new List<StoredModule>()
+                    //    {
+                    //        new StoredModule()
+                    //        {
+                    //            InstanceName = "Square",
+                    //            ModuleId = "Square.Test1.0",
+                    //            Settings = new Dictionary<string, string>()
+                    //            {
+                    //                { "height", "100" },
+                    //                { "width", "100" }
+                    //            }
+                    //        },
+                    //        new StoredModule()
+                    //        {
+                    //            InstanceName = "Square1",
+                    //            ModuleId = "Square.Test1.0",
+                    //            Settings = new Dictionary<string, string>()
+                    //            {
+                    //                { "height", "100" },
+                    //                { "width", "100" },
+                    //                { "y", "200" }
+                    //            },
+                    //            StoredBindings = new List<StoredBinding>()
+                    //            {
+                    //                new StoredBinding("PositionComponent", "X", "x"),
+                    //                new StoredBinding("PositionComponent", "Y", "y"),
+                    //            }
+                    //        }
+                    //    }
+                    //}
                 }
             };
             _sceneStore.Add(defaultSettings);
@@ -267,7 +378,8 @@ namespace Wallop.Engine.Handlers
 
 
             EngineLog.For<SceneHandler>().Debug("Injecting script HostData...");
-            var hostData = new HostData(App.GetHandler<GraphicsHandler>()?.GetGlIsntance(), scene, bindableComponentTypes);
+            Func<GL> glGetter = App.GetHandler<GraphicsHandler>().OrThrow().GetGlIsntance;
+            var hostData = new HostData(glGetter, scene, bindableComponentTypes);
             hostFunctions.AddDependencies(hostData);
 
 
@@ -280,10 +392,14 @@ namespace Wallop.Engine.Handlers
             initializer.InitializeDirectorScripts();
 
             _activeScene = scene;
+            _sceneSettings.SelectedScene = scene.Name;
+
+            App.GetHandler<GraphicsHandler>()?.Bump();
         }
 
         public void SaveCurrentSceneConfig(SettingsSaveOptions savePolicies, string filepath)
         {
+            EngineLog.For<SceneHandler>().Info("Saving scene configuration to {location}...", filepath);
             var packageCache = App.GetService<PackageCache>().OrThrow();
             var saver = new SceneSaver(savePolicies, packageCache);
             var settings = saver.Save(_activeScene);
@@ -295,7 +411,8 @@ namespace Wallop.Engine.Handlers
 
         private void HandleSceneSettings(SceneSettingsMessage message, uint messageId)
         {
-            _sceneSettings.SelectedScene = message.Settings.SelectedScene;
+            // Handled within the below call to SwitchScene()
+            //_sceneSettings.SelectedScene = message.Settings.SelectedScene;
             _sceneSettings.DefaultSceneName = message.Settings.DefaultSceneName;
 
             if (_sceneSettings.PackageSearchDirectory != message.Settings.PackageSearchDirectory)
@@ -331,6 +448,10 @@ namespace Wallop.Engine.Handlers
                 _sceneStore.Load(item);
             }
 
+            if(message.Settings.SelectedScene != _sceneSettings.SelectedScene)
+            {
+                SwitchScene(_sceneSettings.SelectedScene);
+            }
         }
 
         private void HandleSceneChange(SceneChangeMessage message, uint messageId)
@@ -532,7 +653,6 @@ namespace Wallop.Engine.Handlers
         public void SceneDraw()
         {
             _activeScene.Draw();
-
         }
 
         public override void Shutdown()

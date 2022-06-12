@@ -53,7 +53,7 @@ namespace Wallop
                 // TODO: Log missed message.
                 return;
             }
-            _app.ProcessCommandLine(message.Trim());
+            _app.ProcessCommandLine(false, message.Trim());
         }
 
         private static void RunProgram()
@@ -98,7 +98,7 @@ namespace Wallop
             using(_app = new EngineApp(engineConfig, context))
             {
                 EngineLog.For<Program>().Info("Setting up Engine...");
-                _app.ProcessCommandLine(Environment.CommandLine);
+                _app.ProcessCommandLine(true, Environment.CommandLine);
                 EngineLog.For<Program>().Info("Running Engine...");
                 _app.Run();
             }

@@ -94,7 +94,7 @@ namespace Wallop.Engine
             _graphicsHandler.RunWindow();
         }
 
-        public void ProcessCommandLine(string commands)
+        public void ProcessCommandLine(bool firstInstance, string commands)
         {
             var engineConf = new Option<string>(
                 new[] { "--conf", "-c" },
@@ -108,7 +108,7 @@ namespace Wallop.Engine
 
             foreach (var handler in _handlers)
             {
-                if (handler.GetCommandLineCommand() is Command cmd)
+                if (handler.GetCommandLineCommand(firstInstance) is Command cmd)
                 {
                     root.AddCommand(cmd);
                 }

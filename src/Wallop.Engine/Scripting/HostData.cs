@@ -106,18 +106,28 @@ namespace Wallop.Engine.Scripting
         }
 
 
-        [ScriptProperty(ExposedName = MemberNames.GET_GL_INSTANCE)]
-        public GL GLInstance { get; private set; }
+        //[ScriptProperty(ExposedName = MemberNames.GET_GL_INSTANCE)]
+        //public GL GLInstance { get; private set; }
 
         public Scene Scene { get; private set; }
 
         public BindableComponentTypeCache BindableComponents { get; private set; }
 
-        public HostData(GL glInstance, Scene scene, BindableComponentTypeCache bindableTypes)
+        private Func<GL> _glGetter;
+
+        public HostData(Func<GL> glGetter, Scene scene, BindableComponentTypeCache bindableTypes)
         {
-            GLInstance = glInstance;
+            //GLInstance = glGetter();
+            _glGetter = glGetter;
             Scene = scene;
             BindableComponents = bindableTypes;
+        }
+
+
+        [ScriptFunction(typeof(Func<GL>), ExposedName = MemberNames.GET_GL_INSTANCE)]
+        public GL GetGl()
+        {
+            return _glGetter();
         }
 
         [ScriptPropertyFactory("basedir", FactoryPropertyMethod.Getter, ExposedName = MemberNames.GET_BASE_DIRECTORY)]

@@ -7,5 +7,5 @@ using System.Threading.Tasks;
 namespace Wallop.Engine.Messaging.Messages
 {
     // TODO: Scene cloning
-    public readonly record struct CreateSceneMessage(string NewSceneName);
+    public readonly record struct CreateSceneMessage(string NewSceneName, string BasedOnScene);
 }

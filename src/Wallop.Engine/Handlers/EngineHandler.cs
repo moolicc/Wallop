@@ -25,7 +25,7 @@ namespace Wallop.Engine.Handlers
             MessageDispatchers.Add(new MessageDelegateDispatcher<T>(handler));
         }
 
-        public virtual Command? GetCommandLineCommand() { return null; }
+        public virtual Command? GetCommandLineCommand(bool firstInstance) { return null; }
 
         public virtual void BeforeUpdate()
         {

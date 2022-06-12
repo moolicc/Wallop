@@ -1,5 +1,6 @@
 ﻿using Silk.NET.Core.Contexts;
 using Silk.NET.Maths;
+using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 using System;
 using System.Collections.Generic;
@@ -24,7 +25,11 @@ namespace HostApis
         {
             if (_device == null)
             {
-                _device = new GraphicsDevice(context.GetGLInstance());
+                var gl = context.GetGLInstance();
+
+                var maj = gl.GetInteger(GLEnum.MajorVersion);
+                var min = gl.GetInteger(GLEnum.MinorVersion);
+                _device = new GraphicsDevice(gl);
                 _device.ClearColor = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
                 _device.DepthState = DepthState.None;
                 _device.BlendState = BlendState.NonPremultiplied;

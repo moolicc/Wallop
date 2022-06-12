@@ -2,7 +2,7 @@
 	"GraphicsSettings": {
 		"Backend": "OpenGL",
 		"WindowWidth": 800,
-		"WindowHeight": 600,
+		"WindowHeight": 800,
 		"SkipOverlay": "true",
 		"WindowBorder": "Resizable"
 	}

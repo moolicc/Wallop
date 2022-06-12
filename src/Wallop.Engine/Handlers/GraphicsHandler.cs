@@ -30,7 +30,7 @@ namespace Wallop.Engine.Handlers
             _graphicsSettings = graphicsSettings;
         }
 
-        public override Command? GetCommandLineCommand()
+        public override Command? GetCommandLineCommand(bool firstInstance)
         {
             var windowWidth = new Option<int>(new[] { "--win-width", "-w" },
                 () => _graphicsSettings.WindowWidth,
@@ -134,10 +134,9 @@ namespace Wallop.Engine.Handlers
             options.VSync = _graphicsSettings.VSync;
             options.ShouldSwapAutomatically = true;
 
-            
 
-            Silk.NET.Windowing.Window.PrioritizeSdl();
-            _window = Silk.NET.Windowing.Window.Create(options);
+            Window.PrioritizeSdl();
+            _window = Window.Create(options);
             _window.Load += WindowLoad;
             _window.FramebufferResize += WindowResized;
             _window.Update += App.Update;
@@ -157,7 +156,15 @@ namespace Wallop.Engine.Handlers
         private void WindowLoad()
         {
             var pluginContext = App.GetService<PluginPantry.PluginContext>().OrThrow();
+            _window.GLContext.MakeCurrent();
             _gl = GL.GetApi(_window);
+            
+
+            var GLMajorVersion = _gl.GetInteger(GLEnum.MajorVersion);
+            var GLMinorVersion = _gl.GetInteger(GLEnum.MinorVersion);
+            EngineLog.For<GraphicsHandler>().Info("OpenGL Initialized. Version {major}.{minor}.", GLMajorVersion, GLMinorVersion);
+
+
 
             if (!_graphicsSettings.SkipOverlay)
             {
@@ -173,6 +180,7 @@ namespace Wallop.Engine.Handlers
                 EngineLog.For<GraphicsHandler>().Info("Skipping execution of Engine Overlay plugin due to settings specified in configuration.");
             }
 
+            
             App.WindowLoaded();
             _gl.Viewport(_window.Size);
         }
@@ -192,6 +200,11 @@ namespace Wallop.Engine.Handlers
             {
                 _gl.Viewport(size.Value);
             }
+        }
+
+        public void Bump()
+        {
+            UpdateGraphics();
         }
 
         internal GL GetGlIsntance()
