@@ -80,7 +80,7 @@ namespace Wallop.Engine.Handlers
                     changes.RefreshRate = refreshRate;
                     changes.VSync = vsync;
 
-                    if (WindowInitialized)
+                    if (WindowInitialized || !firstInstance)
                     {
                         App.Messenger.Put(new GraphicsMessage() { ChangeSet = changes });
                     }

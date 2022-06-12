@@ -50,6 +50,7 @@ namespace Wallop.Engine.Handlers
             SubscribeToEngineMessages<SetActiveLayoutMessage>(HandleSetActiveLayout);
             SubscribeToEngineMessages<AddActorMessage>(HandleAddActor);
             SubscribeToEngineMessages<CreateSceneMessage>(HandleCreateScene);
+            SubscribeToEngineMessages<SceneSaveMessage>(HandleSceneSave);
 
             SubscribeToEngineMessages<AddDirectorMessage>(HandleAddDirector);
         }
@@ -171,19 +172,7 @@ namespace Wallop.Engine.Handlers
             sceneImportCommand.SetHandler(
                 (string importLocation, string importName) =>
                 {
-
-                    if(firstInstance)
-                    {
-                        SwitchScene(importLocation);
-                        if (!string.IsNullOrEmpty(importName))
-                        {
-                            throw new NotImplementedException();
-                        }
-                    }
-                    else
-                    {
-                        App.Messenger.Put(new SceneChangeMessage(importLocation));
-                    }
+                    App.Messenger.Put(new SceneChangeMessage(importLocation));
                 }, importLocationOpts, importAsNameOpts);
 
 
@@ -198,11 +187,7 @@ namespace Wallop.Engine.Handlers
             sceneExportCommand.SetHandler(
                 (string exportLocationOpts, string exportName) =>
                 {
-                    SaveCurrentSceneConfig(SettingsSaveOptions.Default, exportLocationOpts);
-                    if (!string.IsNullOrEmpty(exportName))
-                    {
-                        throw new NotImplementedException();
-                    }
+                    App.Messenger.Put(new SceneSaveMessage(SettingsSaveOptions.Default, exportLocationOpts));
                 }, exportLocationOpts, exportAsNameOpts);
 
 
@@ -234,7 +219,7 @@ namespace Wallop.Engine.Handlers
                         UpdateThreadingPolicy = updateThreadingPolicy
                     };
 
-                    if(_sceneLoaded)
+                    if(_sceneLoaded && firstInstance)
                     {
                         App.Messenger.Put(new SceneSettingsMessage(changes));
                     }
@@ -603,6 +588,11 @@ namespace Wallop.Engine.Handlers
             scene.Name = message.NewSceneName;
 
             _sceneStore.Add(scene);
+        }
+
+        private void HandleSceneSave(SceneSaveMessage message, uint messageId)
+        {
+            SaveCurrentSceneConfig(message.Options, message.Location);
         }
 
         private void HandleAddDirector(AddDirectorMessage message, uint messageId)
