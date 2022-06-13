@@ -103,6 +103,16 @@ namespace Wallop.Engine.Scripting
             /// </summary>
             public const string PANIC = "panic";
 
+            /// <summary>
+            /// The name of the function to add a tracked member.
+            /// </summary>
+            public const string ADD_TRACKED_MEMBER = "track"; 
+
+            /// <summary>
+            /// The name of the function to remove a tracked member.
+            /// </summary>
+            public const string REMOVE_TRACKED_MEMBER = "utrack";
+
         }
 
 
@@ -409,6 +419,27 @@ namespace Wallop.Engine.Scripting
             if (tag is ScriptedElement element)
             {
                 return new Action<string>(reason => element.Panic(reason, true));
+            }
+            return null;
+        }
+
+
+        [ScriptFunctionFactory(ExposedName = MemberNames.ADD_TRACKED_MEMBER)]
+        public Delegate? Track(IScriptContext ctx, Module module, object? tag)
+        {
+            if (tag is ScriptedElement element)
+            {
+                return new Action<string>(member => ctx.SetTrackedMember(member));
+            }
+            return null;
+        }
+
+        [ScriptFunctionFactory(ExposedName = MemberNames.REMOVE_TRACKED_MEMBER)]
+        public Delegate? Untrack(IScriptContext ctx, Module module, object? tag)
+        {
+            if (tag is ScriptedElement element)
+            {
+                return new Action<string>(member => ctx.SetTrackedMember(member, false));
             }
             return null;
         }
