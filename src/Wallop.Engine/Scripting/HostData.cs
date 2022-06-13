@@ -113,6 +113,17 @@ namespace Wallop.Engine.Scripting
             /// </summary>
             public const string REMOVE_TRACKED_MEMBER = "utrack";
 
+
+            /// <summary>
+            /// The name of the function to check if a member is in scope.
+            /// </summary>
+            public const string IS_DEFINED = "IsDefined";
+
+            /// <summary>
+            /// The name of the function to attempt to define a new member in scope.
+            /// </summary>
+            public const string DEFINE_NEW = "Define";
+
         }
 
 
@@ -440,6 +451,34 @@ namespace Wallop.Engine.Scripting
             if (tag is ScriptedElement element)
             {
                 return new Action<string>(member => ctx.SetTrackedMember(member, false));
+            }
+            return null;
+        }
+
+        [ScriptFunctionFactory(ExposedName = MemberNames.IS_DEFINED)]
+        public Delegate? IsDefined(IScriptContext ctx, Module module, object? tag)
+        {
+            if (tag is ScriptedElement element)
+            {
+                return new Func<string, bool>(member => ctx.ContainsValue(member));
+            }
+            return null;
+        }
+
+        [ScriptFunctionFactory(ExposedName = MemberNames.DEFINE_NEW)]
+        public Delegate? DefineNew(IScriptContext ctx, Module module, object? tag)
+        {
+            if (tag is ScriptedElement element)
+            {
+                return new Func<string, object?, bool>((member, value) =>
+                {
+                    if(!ctx.ContainsValue(member))
+                    {
+                        return true;
+                    }
+                    ctx.SetValue(member, value);
+                    return true;
+                });
             }
             return null;
         }
