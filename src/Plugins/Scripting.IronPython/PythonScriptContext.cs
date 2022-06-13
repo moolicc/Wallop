@@ -14,6 +14,8 @@ namespace Scripting.IronPython
         private ScriptScope _scope;
         private ScriptEngine _engine;
 
+        private List<string> _trackedKeys;
+
         internal void SetScope(ScriptScope pyScope)
         {
             _scope = pyScope;
@@ -108,6 +110,23 @@ namespace Scripting.IronPython
                     continue;
                 }
                 yield return new KeyValuePair<string, object?>(name, value);
+            }
+        }
+
+        public IEnumerable<string> GetTrackedMembers()
+        {
+            return _trackedKeys.AsReadOnly();
+        }
+
+        public void SetTrackedMember(string name, bool track = true)
+        {
+            if(track)
+            {
+                _trackedKeys.Add(name);
+            }
+            else
+            {
+                _trackedKeys.Remove(name);
             }
         }
     }

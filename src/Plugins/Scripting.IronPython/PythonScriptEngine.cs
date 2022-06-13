@@ -64,6 +64,19 @@ namespace Scripting.IronPython
             }
         }
 
+        public void SaveState(IScriptContext context, IDictionary<string, string> storage)
+        {
+            if (context is PythonScriptContext pyScriptContext)
+            {
+                var scope = pyScriptContext.GetAddedValues();
+            }
+        }
+
+        public void LoadState(IScriptContext context, IReadOnlyDictionary<string, string> storage)
+        {
+            throw new NotImplementedException();
+        }
+
         public void Execute(string script)
         {
             var source = _pyEngine.CreateScriptSourceFromString(script);

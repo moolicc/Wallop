@@ -23,6 +23,18 @@ namespace Wallop.DSLExtension.Scripting
         public IEnumerable<KeyValuePair<string, object?>> GetValues();
         public IEnumerable<KeyValuePair<string, object?>> GetAddedValues();
 
+        /// <summary>
+        /// Returns the values that should be tracked (saved on StateSave).
+        /// </summary>
+        public IEnumerable<string> GetTrackedMembers();
+
+        /// <summary>
+        /// Specifies whether or not the specified member should be tracked.
+        /// All members should default to not being tracked.
+        /// </summary>
+        public void SetTrackedMember(string name, bool track = true);
+
+
         public T GetDelegateAs<T>(string memberName);
 
         public void AddReference(Assembly assembly);

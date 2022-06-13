@@ -10,6 +10,9 @@ namespace Wallop.DSLExtension.Scripting
     {
         public void AttachContext(IScriptContext context);
 
+        public void SaveState(IScriptContext context, IDictionary<string, string> storage);
+        public void LoadState(IScriptContext context, IReadOnlyDictionary<string, string> storage);
+
         public IScriptContext? GetAttachedScriptContext();
 
         public void Panic();
