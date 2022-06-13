@@ -511,7 +511,7 @@ namespace Wallop.Engine.Handlers
             {
                 InstanceName = message.ActorName,
                 ModuleId = message.BasedOnModule,
-                Settings = new Dictionary<string, string>(message.ModuleSettings ?? Array.Empty<KeyValuePair<string, string>>())
+                Settings = StoredSetting.FromEnumerable(message.ModuleSettings ?? Array.Empty<KeyValuePair<string, string>>()).ToList(),
             };
 
 
@@ -603,7 +603,7 @@ namespace Wallop.Engine.Handlers
             {
                 InstanceName = message.DirectorName,
                 ModuleId = message.BasedOnModule,
-                Settings = new Dictionary<string, string>(message.ModuleSettings ?? Array.Empty<KeyValuePair<string, string>>())
+                Settings = StoredSetting.FromEnumerable(message.ModuleSettings ?? Array.Empty<KeyValuePair<string, string>>()).ToList(),
             };
 
 

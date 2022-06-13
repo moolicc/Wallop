@@ -6,6 +6,21 @@ using System.Threading.Tasks;
 
 namespace Wallop.Engine.SceneManagement
 {
+    static class Extensions
+    {
+        public static StoredSetting Add(this List<StoredSetting> source, string name, string value, Type? trackedType = null)
+        {
+            var item = new StoredSetting(name, value, trackedType);
+            source.Add(item);
+            return item;
+        }
+
+        public static bool ContainsSetting(this List<StoredSetting> source, string name)
+        {
+            return source.Any(i => i.Name == name);
+        }
+    }
+
     public class StoredBinding
     {
         public string TypeName { get; set; }
@@ -23,16 +38,40 @@ namespace Wallop.Engine.SceneManagement
     public class StoredModule
     {
         public string ModuleId { get; set; }
-        public Dictionary<string, string> Settings { get; set; }
+        public List<StoredSetting> Settings { get; set; }
         public List<StoredBinding> StoredBindings { get; set; }
         public string InstanceName { get; set; }
 
         public StoredModule()
         {
             ModuleId = "";
-            Settings = new Dictionary<string, string>();
+            Settings = new List<StoredSetting>();
             StoredBindings = new List<StoredBinding>();
             InstanceName = "";
+        }
+    }
+
+    public class StoredSetting
+    {
+        public string Name { get; set; }
+        public string Value { get; set; }
+        public bool IsTracked { get; set; }
+        public Type? TrackedType { get; set; }
+
+        public StoredSetting(string name, string value, Type? trackedType = null)
+        {
+            Name = name;
+            Value = value;
+            IsTracked = trackedType != null;
+            TrackedType = trackedType;
+        }
+
+        public static IEnumerable<StoredSetting> FromEnumerable(IEnumerable<KeyValuePair<string, string>> enumerable)
+        {
+            foreach (var item in enumerable)
+            {
+                yield return new StoredSetting(item.Key, item.Value);
+            }
         }
     }
 

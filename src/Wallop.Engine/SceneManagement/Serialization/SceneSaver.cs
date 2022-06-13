@@ -8,12 +8,35 @@ namespace Wallop.Engine.SceneManagement.Serialization
     [Flags]
     public enum SettingsSaveOptions
     {
+        /// <summary>
+        /// Save the state of module settings that are required.
+        /// </summary>
         RequiredSettings = 0,
+
+        /// <summary>
+        /// Save the state of module settings that are NOT required.
+        /// </summary>
         OptionalSettings = 1,
+
+        /// <summary>
+        /// For each module setting being saved, save the default value instead of the current value.
+        /// </summary>
         UseDefaultValues = 2,
 
-        EntireState = 4,
-        Default = RequiredSettings | OptionalSettings,
+        /// <summary>
+        /// Save the state of context-values that are marked as tracked.
+        /// </summary>
+        TrackedValues = 4,
+
+        /// <summary>
+        /// Save the state of context-values.
+        /// </summary>
+        EntireState = 8,
+
+        /// <summary>
+        /// Save the state of module settings that are both required, and NOT required, using the module settings' default values.
+        /// </summary>
+        Default = RequiredSettings | OptionalSettings | UseDefaultValues,
     }
 
     public class SceneSaver
@@ -133,19 +156,23 @@ namespace Wallop.Engine.SceneManagement.Serialization
 
         private void SaveElementContext(ScriptedElement element, StoredModule stored, IScriptContext context)
         {
-            if((SettingsPolicy & SettingsSaveOptions.EntireState) != SettingsSaveOptions.EntireState)
-            {
-                return;
-            }
+
+            bool entireState = (SettingsPolicy & SettingsSaveOptions.EntireState) != SettingsSaveOptions.EntireState;
+            bool includeTrackedValues = (SettingsPolicy & SettingsSaveOptions.TrackedValues) != SettingsSaveOptions.TrackedValues;
+
             var values = context.GetAddedValues();
-            foreach (var variable in values)
+            var trackedMembers = context.GetTrackedMembers();
+
+            // Iterate over the entire state, if that option was selected OR only those members marked
+            // as tracked, if includeTrackedValues option was selected.
+            foreach (var variable in values.Where(v => entireState || (includeTrackedValues && trackedMembers.Contains(v.Key))))
             {
                 var type = variable.Value?.GetType();
                 if(variable.Value is Delegate || type == null || type.IsAssignableTo(typeof(Delegate)))
                 {
                     continue;
                 }
-                if(stored.Settings.ContainsKey(variable.Key))
+                if(stored.Settings.ContainsSetting(variable.Key) && !includeTrackedValues)
                 {
                     continue;
                 }
@@ -168,7 +195,9 @@ namespace Wallop.Engine.SceneManagement.Serialization
                     }
                 }
                 serialized ??= "";
-                stored.Settings.Add(variable.Key, serialized);
+
+                Type? trackedType = trackedMembers.Contains(variable.Key) ? (variable.Value?.GetType() ?? typeof(NullType)) : null;
+                stored.Settings.Add(variable.Key, serialized, trackedType);
             }
         }
 

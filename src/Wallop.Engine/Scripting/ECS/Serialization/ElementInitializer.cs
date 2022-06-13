@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Wallop.DSLExtension.Scripting;
 using Wallop.DSLExtension.Types.Plugin;
 using Wallop.Engine.SceneManagement;
+using Wallop.Engine.SceneManagement.Serialization;
 using Wallop.Engine.Types.Plugins.EndPoints;
 
 namespace Wallop.Engine.Scripting.ECS.Serialization
@@ -197,7 +198,7 @@ namespace Wallop.Engine.Scripting.ECS.Serialization
                 // Deserialize the value as appropriate for the type of setting.
                 foreach (var declaredSetting in component.ModuleDeclaration.ModuleSettings)
                 {
-                    if (declaredSetting.SettingName == setting.Key)
+                    if (declaredSetting.SettingName == setting.Name)
                     {
                         if (declaredSetting.CachedType == null)
                         {
@@ -210,7 +211,29 @@ namespace Wallop.Engine.Scripting.ECS.Serialization
                         }
                     }
                 }
-                context.SetValue(setting.Key, value);
+
+                // Check if this is but a tracked-value.
+                if(setting.IsTracked)
+                {
+                    EngineLog.For<ElementInitializer>().Debug("Setting '{setting}' is a tracked value.", setting.Name, component.ModuleDeclaration.ModuleInfo.Id, component.Name);
+                    try
+                    {
+                        if(setting.TrackedType == typeof(NullType))
+                        {
+                            value = null;
+                        }
+                        else if(setting.TrackedType != null)
+                        {
+                            value = Convert.ChangeType(setting.Value, setting.TrackedType);
+                        }
+                    }
+                    catch
+                    {
+                        EngineLog.For<ElementInitializer>().Error("Failed to convert tracked-value to appropriate type.");
+                    }
+                }
+
+                context.SetValue(setting.Name, value);
             }
         }
 
