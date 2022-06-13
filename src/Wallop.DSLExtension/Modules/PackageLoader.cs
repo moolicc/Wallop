@@ -141,6 +141,7 @@ namespace Wallop.DSLExtension.Modules
             var description = settingElement.XPathSelectElement("description")?.Value ?? "";
             var typeElement = settingElement.XPathSelectElement("type");
             var required = settingElement.XPathSelectElement("required")?.Value ?? "false";
+            var tracked = settingElement.XPathSelectElement("tracked")?.Value ?? "false";
             var defaultValue = settingElement.XPathSelectElement("defaultValue")?.Value;
             var bindingElements = settingElement.XPathSelectElements("binding");
             IEnumerable<ModuleSettingBinding> bindings = Array.Empty<ModuleSettingBinding>();
@@ -157,7 +158,11 @@ namespace Wallop.DSLExtension.Modules
             {
                 throw new XmlException("Module setting required value is invalid.");
             }
-            if(defaultValue == null)
+            if (!bool.TryParse(tracked, out var trackedBool))
+            {
+                throw new XmlException("Module setting tracked value is invalid.");
+            }
+            if (defaultValue == null)
             {
                 if(required.Equals("false", StringComparison.OrdinalIgnoreCase))
                 {
@@ -172,7 +177,7 @@ namespace Wallop.DSLExtension.Modules
             var type = typeElement.Value;
             var typeArgs = typeElement.Attributes().Select(a => new KeyValuePair<string, string>(a.Name.ToString(), a.Value));
 
-            return new ModuleSetting(name, description, defaultValue, type, requiredBool, bindings, typeArgs);
+            return new ModuleSetting(name, description, defaultValue, type, requiredBool, trackedBool, bindings, typeArgs);
         }
 
         private static IEnumerable<ModuleSettingBinding> LoadBindings(IEnumerable<XElement> bindingElements)
