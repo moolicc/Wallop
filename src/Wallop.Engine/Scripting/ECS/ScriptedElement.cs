@@ -18,6 +18,7 @@ namespace Wallop.Engine.Scripting.ECS
         public Module ModuleDeclaration { get; init; }
         public StoredModule StoredDefinition { get; init; }
         public IScriptEngine? ScriptEngine { get; private set; }
+        public Dictionary<string, string> Config { get; private set; }
 
         public bool IsPanicState { get; private set; }
 
@@ -35,7 +36,7 @@ namespace Wallop.Engine.Scripting.ECS
             Name = name;
             ModuleDeclaration = declaringModule;
             StoredDefinition = storedModule;
-
+            Config = new Dictionary<string, string>(storedModule.Config.Select(v => new KeyValuePair<string, string>(v.Name, v.Value)));
         }
 
         public void InitializeScript(TaskHandlerProvider handlerProvider, IScriptEngine engine, string source)

@@ -33,7 +33,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HostApis", "Plugins\HostApi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StandardComponents", "Plugins\StandardComponents\StandardComponents.csproj", "{39602A65-45A3-42D0-8E76-0A27EF4642C1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "System.CommandLine.AutoGen", "System.CommandLine.AutoGen\System.CommandLine.AutoGen.csproj", "{267ACF58-EF96-4ABB-9FB3-728512202F77}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "System.CommandLine.AutoGen", "System.CommandLine.AutoGen\System.CommandLine.AutoGen.csproj", "{267ACF58-EF96-4ABB-9FB3-728512202F77}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

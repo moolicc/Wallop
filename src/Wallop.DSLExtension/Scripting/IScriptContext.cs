@@ -34,7 +34,6 @@ namespace Wallop.DSLExtension.Scripting
         /// </summary>
         public void SetTrackedMember(string name, bool track = true);
 
-
         public T GetDelegateAs<T>(string memberName);
 
         public void AddReference(Assembly assembly);

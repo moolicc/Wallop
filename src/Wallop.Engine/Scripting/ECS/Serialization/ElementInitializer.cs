@@ -233,6 +233,27 @@ namespace Wallop.Engine.Scripting.ECS.Serialization
                     }
                 }
 
+                // Check if this is but an explicitely added value.
+                if (setting.IsExplicit)
+                {
+                    EngineLog.For<ElementInitializer>().Debug("Setting '{setting}' is an explicit value.", setting.Name, component.ModuleDeclaration.ModuleInfo.Id, component.Name);
+                    try
+                    {
+                        if (setting.ExplicitType == typeof(NullType))
+                        {
+                            value = null;
+                        }
+                        else if (setting.ExplicitType != null)
+                        {
+                            value = Convert.ChangeType(setting.Value, setting.ExplicitType);
+                        }
+                    }
+                    catch
+                    {
+                        EngineLog.For<ElementInitializer>().Error("Failed to convert explicit value to appropriate type.");
+                    }
+                }
+
                 context.SetValue(setting.Name, value);
             }
         }

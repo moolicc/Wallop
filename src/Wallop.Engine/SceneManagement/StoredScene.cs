@@ -8,14 +8,27 @@ namespace Wallop.Engine.SceneManagement
 {
     static class Extensions
     {
-        public static StoredSetting Add(this List<StoredSetting> source, string name, string value, Type? trackedType = null)
+        public static StoredSetting Add(this List<StoredSetting> source, string name, string value, Type? trackedType = null, Type? explicitType = null)
         {
-            var item = new StoredSetting(name, value, trackedType);
+            var item = new StoredSetting(name, value, trackedType, explicitType);
             source.Add(item);
             return item;
         }
 
         public static bool ContainsSetting(this List<StoredSetting> source, string name)
+        {
+            return source.Any(i => i.Name == name);
+        }
+
+
+        public static StoredConfigValue Add(this List<StoredConfigValue> source, string name, string value)
+        {
+            var item = new StoredConfigValue(name, value);
+            source.Add(item);
+            return item;
+        }
+
+        public static bool ContainsConfig(this List<StoredConfigValue> source, string name)
         {
             return source.Any(i => i.Name == name);
         }
@@ -39,6 +52,7 @@ namespace Wallop.Engine.SceneManagement
     {
         public string ModuleId { get; set; }
         public List<StoredSetting> Settings { get; set; }
+        public List<StoredConfigValue> Config { get; set; }
         public List<StoredBinding> StoredBindings { get; set; }
         public string InstanceName { get; set; }
 
@@ -46,6 +60,7 @@ namespace Wallop.Engine.SceneManagement
         {
             ModuleId = "";
             Settings = new List<StoredSetting>();
+            Config = new List<StoredConfigValue>();
             StoredBindings = new List<StoredBinding>();
             InstanceName = "";
         }
@@ -58,12 +73,17 @@ namespace Wallop.Engine.SceneManagement
         public bool IsTracked { get; set; }
         public Type? TrackedType { get; set; }
 
-        public StoredSetting(string name, string value, Type? trackedType = null)
+        public bool IsExplicit { get; set; }
+        public Type? ExplicitType { get; set; }
+
+        public StoredSetting(string name, string value, Type? trackedType = null, Type? explicitType = null)
         {
             Name = name;
             Value = value;
             IsTracked = trackedType != null;
             TrackedType = trackedType;
+            IsExplicit = explicitType != null;
+            ExplicitType = explicitType;
         }
 
         public static IEnumerable<StoredSetting> FromEnumerable(IEnumerable<KeyValuePair<string, string>> enumerable)
@@ -86,6 +106,18 @@ namespace Wallop.Engine.SceneManagement
             Name = "";
             Active = false;
             ActorModules = new List<StoredModule>();
+        }
+    }
+    
+    public class StoredConfigValue
+    {
+        public string Name { get; set; }
+        public string Value { get; set; }
+
+        public StoredConfigValue(string name, string value)
+        {
+            Name = name;
+            Value = value;
         }
     }
 

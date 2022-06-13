@@ -124,6 +124,17 @@ namespace Wallop.Engine.Scripting
             /// </summary>
             public const string DEFINE_NEW = "Define";
 
+
+            /// <summary>
+            /// Saves the specified member.
+            /// </summary>
+            public const string SAVE = "Save";
+
+            /// <summary>
+            /// Loads the specified member.
+            /// </summary>
+            public const string RESTORE = "Restore";
+
         }
 
 
@@ -479,6 +490,26 @@ namespace Wallop.Engine.Scripting
                     ctx.SetValue(member, value);
                     return true;
                 });
+            }
+            return null;
+        }
+
+        [ScriptFunctionFactory(ExposedName = MemberNames.SAVE)]
+        public Delegate? Save(IScriptContext ctx, Module module, object? tag)
+        {
+            if (tag is ScriptedElement element)
+            {
+                return new Action<string, string>((key, value) => element.Config.Add(key, value));
+            }
+            return null;
+        }
+
+        [ScriptFunctionFactory(ExposedName = MemberNames.RESTORE)]
+        public Delegate? Restore(IScriptContext ctx, Module module, object? tag)
+        {
+            if (tag is ScriptedElement element)
+            {
+                return new Func<string, string>((key) => element.Config[key]);
             }
             return null;
         }

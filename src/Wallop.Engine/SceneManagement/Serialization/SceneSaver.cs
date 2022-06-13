@@ -163,8 +163,9 @@ namespace Wallop.Engine.SceneManagement.Serialization
             var values = context.GetAddedValues();
             var trackedMembers = context.GetTrackedMembers();
 
-            // Iterate over the entire state, if that option was selected OR only those members marked
-            // as tracked, if includeTrackedValues option was selected.
+            // Iterate over the entire state, if that option was selected
+            // OR
+            // only those members marked as tracked, if includeTrackedValues option was selected 
             foreach (var variable in values.Where(v => entireState || (includeTrackedValues && trackedMembers.Contains(v.Key))))
             {
                 var type = variable.Value?.GetType();
@@ -198,6 +199,13 @@ namespace Wallop.Engine.SceneManagement.Serialization
 
                 Type? trackedType = trackedMembers.Contains(variable.Key) ? (variable.Value?.GetType() ?? typeof(NullType)) : null;
                 stored.Settings.Add(variable.Key, serialized, trackedType);
+            }
+        }
+        private void SaveElementConfig(ScriptedElement element, StoredModule stored, IScriptContext context)
+        {
+            foreach (var configItem in element.Config)
+            {
+                stored.Config.Add(configItem.Key, configItem.Value);
             }
         }
 
