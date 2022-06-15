@@ -15,6 +15,17 @@ namespace Wallop
 
         static int Main(string[] args)
         {
+
+            Wallop.Engine.ECS.ActorQuerying.Parsing.QueryParser parser = new Wallop.Engine.ECS.ActorQuerying.Parsing.QueryParser("*->?->??->*");
+            var exp = parser.ParseNextExpression(0);
+
+            var machine = new Wallop.Engine.ECS.ActorQuerying.FilterMachine.Machine();
+
+            exp.Evaluate(machine);
+
+            Console.ReadLine();
+
+
             using (var mutex = new Mutex(true, MUTEX_NAME, out var isOnlyInstance))
             {
                 try

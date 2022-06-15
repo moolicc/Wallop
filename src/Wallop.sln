@@ -22,6 +22,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wallop.Engine", "Wallop.Engine\Wallop.Engine.csproj", "{5147FBAE-BA4A-459A-90D9-108A90F2D240}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9FC2D943-0142-44A3-8E6F-75682DF03256}"
+	ProjectSection(SolutionItems) = preProject
+		incrversion.ps1 = incrversion.ps1
+		Version.txt = Version.txt
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cobalt", "Cobalt\Cobalt.csproj", "{CD1D2112-5AF4-488F-931F-BF2D50057267}"
 EndProject

@@ -8,7 +8,7 @@ namespace Wallop.Engine.ECS.ActorQuerying
 {
     internal static class QueryRunner
     {
-        public static IEnumerable<IActor> RunQuery(Queries.IQuery query, IEnumerable<IActor> workingSet)
+        public static IEnumerable<IActor?> RunQuery(Queries.IQuery query, IEnumerable<IActor> workingSet)
         {
             var original = workingSet.ToArray();
             return query.Evaluate(workingSet, original);
@@ -16,7 +16,8 @@ namespace Wallop.Engine.ECS.ActorQuerying
 
         public static Queries.IQuery Parse(string queryString)
         {
-            return new Queries.AllQuery();
+
+            throw new NotImplementedException();
         }
     }
 }
