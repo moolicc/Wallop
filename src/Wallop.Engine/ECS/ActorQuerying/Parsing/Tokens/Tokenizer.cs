@@ -65,15 +65,19 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Tokens
                 }
                 else if (cur == '(')
                 {
-                    curToken = new GroupingTokens(i, GroupingOperators.LParen);
+                    curToken = new LParenToken(i);
                 }
                 else if (cur == ')')
                 {
-                    curToken = new GroupingTokens(i, GroupingOperators.RParen);
+                    curToken = new RParenToken(i);
                 }
                 else if (cur == '.')
                 {
                     curToken = new DotToken(i, ".");
+                }
+                else if (cur == ',')
+                {
+                    curToken = new CommaToken(i);
                 }
                 else if (cur == ':')
                 {
@@ -189,16 +193,19 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Tokens
         private string AdvanceWord(string input)
         {
             int start = Index;
-            for (int i = Index + 1; i < input.Length; i++)
+            int count = 0;
+            for (int i = start; i < input.Length; i++)
             {
                 Index = i;
-                if (char.IsWhiteSpace(input[i]))
+                count++;
+                if (char.IsWhiteSpace(input[i]) || input[i] == '(' || input[i] == ')' || input[i] == ',')
                 {
+                    count--;
                     break;
                 }
             }
-
-            return input.Substring(start, Index - start);
+            Index--;
+            return input.Substring(start, count);
         }
 
         private string AdvancePast(string input, char target)

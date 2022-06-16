@@ -10,9 +10,9 @@ using Wallop.Engine.ECS.ActorQuerying.Parsing.Tokens.Default;
 
 namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Parslets.Default
 {
-    public class LiteralParslet : PrefixParsletBase
+    public class IdentifierParslet : PrefixParsletBase
     {
-        public LiteralParslet()
+        public IdentifierParslet()
             : base(true)
         {
         }
@@ -24,24 +24,17 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Parslets.Default
 
         protected override IExpression ParseStandalone(QueryParser parser, IToken token)
         {
-            if (token is StringToken sToken)
+            if (token is IdentifierToken iToken)
             {
-                return new StringExpression(sToken.Value);
-            }
-            else if(token is IntToken iToken)
-            {
-                return new IntegerExpression(iToken.ValueI);
-            }
-            else if (token is RealToken rToken)
-            {
-                return new RealExpression(rToken.ValueF);
-            }
-            else if (token is BoolToken bToken)
-            {
-                return new BoolExpression(bToken.ValueB);
+                if(iToken.Value.Contains('.'))
+                {
+                    var split = iToken.Value.Split('.');
+                    return new MemberExpression(split[^1], split[..^1]);
+                }
+                return new MemberExpression(iToken.Value);
             }
 
-            throw new InvalidOperationException("Unexpected token literal reached.");
+            throw new InvalidOperationException("Unexpected token reached.");
         }
     }
 }

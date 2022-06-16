@@ -16,7 +16,7 @@ namespace Wallop
         static int Main(string[] args)
         {
 
-            Wallop.Engine.ECS.ActorQuerying.Parsing.QueryParser parser = new Wallop.Engine.ECS.ActorQuerying.Parsing.QueryParser("*->?->??->*");
+            Wallop.Engine.ECS.ActorQuerying.Parsing.QueryParser parser = new Wallop.Engine.ECS.ActorQuerying.Parsing.QueryParser("a(1)");
             var exp = parser.ParseNextExpression(0);
 
             var machine = new Wallop.Engine.ECS.ActorQuerying.FilterMachine.Machine();

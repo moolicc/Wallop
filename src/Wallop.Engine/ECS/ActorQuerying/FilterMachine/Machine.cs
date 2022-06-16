@@ -34,6 +34,7 @@ namespace Wallop.Engine.ECS.ActorQuerying.FilterMachine
             }
             return state;
         }
+
         public object PopStateValue()
         {
             return _stateStack.Pop().GetValue();
@@ -47,6 +48,11 @@ namespace Wallop.Engine.ECS.ActorQuerying.FilterMachine
                 throw new InvalidOperationException($"Expected {expectedValueType} value on stack.");
             }
             return state.GetValue();
+        }
+
+        public void PushMemberInvocation(string member, string[]? memberQualifiers, int argCount)
+        {
+
         }
     }
 }

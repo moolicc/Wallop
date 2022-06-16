@@ -31,7 +31,11 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing
             BindingPowerLookup.Set<Parslets.Default.SummationParslet>(10);
             BindingPowerLookup.Set<Parslets.Default.ProductParslet>(5);
             BindingPowerLookup.Set<Parslets.Default.PowParslet>(30);
+            BindingPowerLookup.Set<Parslets.Default.CallParslet>(0);
 
+
+            RegisterParslet<Tokens.Default.LParenToken>(new Parslets.Default.CallParslet());
+            RegisterParslet<Tokens.Default.IdentifierToken>(new Parslets.Default.IdentifierParslet());
 
             RegisterParslet<Tokens.Default.AllToken>(new Parslets.Default.BasicCollectionParslet());
             RegisterParslet<Tokens.Default.FirstToken>(new Parslets.Default.BasicCollectionParslet());

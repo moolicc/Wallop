@@ -20,7 +20,7 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Parslets
             BindingPower = BindingPowerLookup.Get(GetType());
         }
 
-        public IExpression Parse(QueryParser parser, IToken token, IExpression lhs)
+        public virtual IExpression Parse(QueryParser parser, IToken token, IExpression lhs)
         {
             var rhs = parser.ParseNextExpression(BindingPower - (RightAssociative ? 1 : 0));
             return Parse(parser, token, lhs, rhs);

@@ -24,7 +24,7 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Parslets
             }
         }
 
-        public IExpression Parse(QueryParser parser, IToken token)
+        public virtual IExpression Parse(QueryParser parser, IToken token)
         {
             if(IsStandalone)
             {
