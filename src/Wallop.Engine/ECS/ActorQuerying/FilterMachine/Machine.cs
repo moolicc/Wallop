@@ -8,10 +8,14 @@ namespace Wallop.Engine.ECS.ActorQuerying.FilterMachine
 {
     public class Machine
     {
+        public List<IMachineMember> Members { get; init; }
+
         private Stack<State> _stateStack;
+
 
         public Machine()
         {
+            Members = new List<IMachineMember>();
             _stateStack = new Stack<State>();
         }
 

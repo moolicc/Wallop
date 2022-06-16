@@ -33,6 +33,27 @@ namespace Wallop.Engine.ECS.ActorQuerying.FilterMachine
         [FieldOffset(16)]
         public readonly string ValueS;
 
+        public static State CreateObject(object value)
+        {
+            if(value is string valueS)
+            {
+                return new State(valueS);
+            }
+            if(value is int valueI)
+            {
+                return new State(valueI);
+            }
+            if(value is bool valueB)
+            {
+                return new State(valueB);
+            }
+            if(value is double valueD)
+            {
+                return new State(valueD);
+            }
+            throw new InvalidOperationException("Unsupported state value specified.");
+        }
+
         public State(string value)
         {
             ValueType = ValueKinds.String;

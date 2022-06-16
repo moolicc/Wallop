@@ -244,7 +244,7 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Tokens
                 count++;
                 Index++;
             }
-
+            Index--;
             return input.Substring(start, count);
         }
     }
