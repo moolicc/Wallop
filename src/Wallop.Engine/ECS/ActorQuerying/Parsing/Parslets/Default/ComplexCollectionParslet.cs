@@ -29,6 +29,10 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Parslets.Default
             {
                 return new FilterQuery(right);
             }
+            else if(token is EditToken)
+            {
+                return new EditQuery(right);
+            }
             throw new InvalidOperationException("Unexpected token for CollectionParslet.");
         }
     }

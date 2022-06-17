@@ -24,17 +24,26 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing
             _infixParsletLookup = new Dictionary<Type, IInfixParslet>();
 
             // TODO: Register these elsewhere so plugins can alter this.
-            BindingPowerLookup.Set<Parslets.Default.BasicCollectionParslet>(9000);
-            BindingPowerLookup.Set<Parslets.Default.ComplexCollectionParslet>(9000);
 
-            BindingPowerLookup.Set<Parslets.Default.LiteralParslet>(100);
-            BindingPowerLookup.Set<Parslets.Default.SummationParslet>(110);
-            BindingPowerLookup.Set<Parslets.Default.ProductParslet>(150);
-            BindingPowerLookup.Set<Parslets.Default.PowParslet>(130);
-            BindingPowerLookup.Set<Parslets.Default.CallParslet>(150);
-            BindingPowerLookup.Set<Parslets.Default.IdentifierParslet>(100);
-            BindingPowerLookup.Set<Parslets.Default.PipeParslet>(10000);
+            //BindingPowerLookup.Set<Parslets.Default.ComparisonParslet>(200);
+            //BindingPowerLookup.Set<Parslets.Default.SummationParslet>(300);
+            //BindingPowerLookup.Set<Parslets.Default.ProductParslet>(400);
+            //BindingPowerLookup.Set<Parslets.Default.PowParslet>(500);
+            //BindingPowerLookup.Set<Parslets.Default.CallParslet>(800);
+            //BindingPowerLookup.Set<Parslets.Default.BasicCollectionParslet>(1000);
+            //BindingPowerLookup.Set<Parslets.Default.ComplexCollectionParslet>(1000);
+            //BindingPowerLookup.Set<Parslets.Default.PipeParslet>(2000);
 
+            BindingPowerLookup.Set<Parslets.Default.ComparisonParslet>(2000);
+            BindingPowerLookup.Set<Parslets.Default.SummationParslet>(1500);
+            BindingPowerLookup.Set<Parslets.Default.ProductParslet>(1000);
+            BindingPowerLookup.Set<Parslets.Default.PowParslet>(800);
+            BindingPowerLookup.Set<Parslets.Default.CallParslet>(800);
+            BindingPowerLookup.Set<Parslets.Default.BasicCollectionParslet>(400);
+            BindingPowerLookup.Set<Parslets.Default.ComplexCollectionParslet>(300);
+            BindingPowerLookup.Set<Parslets.Default.PipeParslet>(200);
+
+            RegisterParslet<Tokens.Default.ComparisonToken>(new Parslets.Default.ComparisonParslet());
 
             RegisterParslet<Tokens.Default.LParenToken>(new Parslets.Default.CallParslet());
             RegisterParslet<Tokens.Default.IdentifierToken>(new Parslets.Default.IdentifierParslet());
@@ -43,6 +52,7 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing
             RegisterParslet<Tokens.Default.FirstToken>(new Parslets.Default.BasicCollectionParslet());
             RegisterParslet<Tokens.Default.LastToken>(new Parslets.Default.BasicCollectionParslet());
             RegisterParslet<Tokens.Default.FilterToken>(new Parslets.Default.ComplexCollectionParslet());
+            RegisterParslet<Tokens.Default.EditToken>(new Parslets.Default.ComplexCollectionParslet());
 
             RegisterParslet<Tokens.Default.IntToken>(new Parslets.Default.LiteralParslet());
             RegisterParslet<Tokens.Default.RealToken>(new Parslets.Default.LiteralParslet());

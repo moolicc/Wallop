@@ -30,13 +30,17 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Tokens
                 Index = i;
 
                 // Single character tokens
-                if (cur == '=')
+                if (cur == '$')
                 {
-                    curToken = new ComparisonToken(i, ComparisonOperators.Equal);
+                    curToken = new EditToken(i, "$");
                 }
-                else if (cur == '!')
+                else if(cur == '%')
                 {
-                    curToken = new LogicalToken(i, LogicalOperators.Not);
+                    curToken = new FilterToken(i, "%");
+                }
+                else if (cur == '=')
+                {
+                    curToken = new ComparisonToken(i, "=", ComparisonModes.Equal);
                 }
                 else if (cur == '+')
                 {
@@ -87,7 +91,7 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Tokens
                 // Single/Double character tokens.
                 else if(cur == '*')
                 {
-                    if(lastToken == null || lastToken == typeof(PipeToken))
+                    if(lastToken == null || lastToken is PipeToken)
                     {
                         curToken = new AllToken(i);
                     }
@@ -125,28 +129,40 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Tokens
                         curToken = new SubtractionToken(i);
                     }
                 }
-                else if(cur == '>')
+                else if (cur == '!')
                 {
                     if (PeekNext(input) == '=')
                     {
-                        curToken = new ComparisonToken(i, ComparisonOperators.GreaterEqual);
+                        curToken = new ComparisonToken(i, "!=", ComparisonModes.NotEqual);
                         Index++;
                     }
                     else
                     {
-                        curToken = new ComparisonToken(i, ComparisonOperators.Greater);
+                        curToken = new LogicalToken(i, LogicalOperators.Not);
+                    }
+                }
+                else if(cur == '>')
+                {
+                    if (PeekNext(input) == '=')
+                    {
+                        curToken = new ComparisonToken(i, ">=", ComparisonModes.GreaterOrEqual);
+                        Index++;
+                    }
+                    else
+                    {
+                        curToken = new ComparisonToken(i, ">", ComparisonModes.Greater);
                     }
                 }
                 else if (cur == '<')
                 {
                     if (PeekNext(input) == '=')
                     {
-                        curToken = new ComparisonToken(i, ComparisonOperators.LessEqual);
+                        curToken = new ComparisonToken(i, "<=", ComparisonModes.LessOrEqual);
                         Index++;
                     }
                     else
                     {
-                        curToken = new ComparisonToken(i, ComparisonOperators.Less);
+                        curToken = new ComparisonToken(i, "<", ComparisonModes.Less);
                     }
                 }
                 else if(char.IsNumber(cur))
@@ -181,6 +197,12 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Tokens
                         curWord.Equals("where", StringComparison.OrdinalIgnoreCase))
                     {
                         curToken = new FilterToken(i, curWord.ToString());
+                    }
+                    else if (curWord.Equals("edit", StringComparison.OrdinalIgnoreCase) ||
+                        curWord.Equals("write", StringComparison.OrdinalIgnoreCase) ||
+                        curWord.Equals("change", StringComparison.OrdinalIgnoreCase))
+                    {
+                        curToken = new EditToken(i, curWord.ToString());
                     }
                     else if (curWord.Equals("contains", StringComparison.OrdinalIgnoreCase) ||
                         curWord.Equals("has", StringComparison.OrdinalIgnoreCase))

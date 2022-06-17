@@ -17,12 +17,13 @@ namespace Wallop
         static int Main(string[] args)
         {
 
-            Wallop.Engine.ECS.ActorQuerying.Parsing.QueryParser parser = new Wallop.Engine.ECS.ActorQuerying.Parsing.QueryParser("* -> filter actor.Name");
+            Wallop.Engine.ECS.ActorQuerying.Parsing.QueryParser parser = new Wallop.Engine.ECS.ActorQuerying.Parsing.QueryParser("* -> filter actor.Name = 'bob' -> $ actor.Name('alice')");
             var exp = parser.ParseNextExpression(0);
 
             var actors = new List<IActor>
             {
-                new Actor("bob")
+                new Actor("alice"),
+                new Actor("bob"),
             };
 
             var machine = new Wallop.Engine.ECS.ActorQuerying.FilterMachine.Machine(actors);

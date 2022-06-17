@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Tokens.Default
 {
-    public enum ComparisonOperators
+    public enum ComparisonModes
     {
         Equal,
         NotEqual,
         Greater,
+        GreaterOrEqual,
         Less,
-        GreaterEqual,
-        LessEqual,
+        LessOrEqual,
     }
 
     public class ComparisonToken : IToken
@@ -21,11 +21,12 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Tokens.Default
         public string Value { get; init; }
         public int Index { get; init; }
 
-        public ComparisonOperators Operator { get; init; }
+        public ComparisonModes Operator { get; init; }
 
-        public ComparisonToken(int index, ComparisonOperators op)
+        public ComparisonToken(int index, string value, ComparisonModes op)
         {
             Index = index;
+            Value = value;
             Operator = op;
         }
     }

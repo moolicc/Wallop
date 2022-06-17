@@ -16,10 +16,31 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Expressions.Default
 
         public override void Evaluate(Machine machine)
         {
-            var left = Left as Queries.IQuery;
-            var right = Right as Queries.IQuery;
-            left?.Evaluate(machine);
-            right?.Evaluate(machine);
+            if(Left is Queries.IQuery lhsQ)
+            {
+                lhsQ?.Evaluate(machine);
+            }
+            else if(Left is Expressions.Default.QueryPipeExpression lhsP)
+            {
+                lhsP?.Evaluate(machine);
+            }
+            else
+            {
+                throw new InvalidOperationException("Expected left-hand operand to be a pipe or query.");
+            }
+
+            if (Right is Queries.IQuery rhsQ)
+            {
+                rhsQ?.Evaluate(machine);
+            }
+            else if (Right is Expressions.Default.QueryPipeExpression rhsP)
+            {
+                rhsP?.Evaluate(machine);
+            }
+            else
+            {
+                throw new InvalidOperationException("Expected right-hand operand to be a pipe or query.");
+            }
         }
     }
 }

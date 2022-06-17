@@ -17,11 +17,11 @@ namespace Wallop.Engine.ECS.ActorQuerying.FilterMachine
 
         protected override bool CheckArgs(object[] args)
         {
-            if(args.Length > 0)
+            if(args.Length == 1 && !Property.CanWrite)
             {
                 return false;
             }
-            if(args.Length == 1 && !Property.CanWrite)
+            else if (args.Length > 1)
             {
                 return false;
             }
