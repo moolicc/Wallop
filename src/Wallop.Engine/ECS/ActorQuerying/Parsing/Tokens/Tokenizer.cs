@@ -7,6 +7,7 @@ using Wallop.Engine.ECS.ActorQuerying.Parsing.Tokens.Default;
 
 namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Tokens
 {
+    // TODO: Add ~= operator for comparing ints to floats.
     public class Tokenizer
     {
         public int Index { get; private set; }
@@ -74,21 +75,41 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Tokens
                 {
                     curToken = new DotToken(i, ":");
                 }
-                else if (cur == '|')
-                {
-                    curToken = new PipeToken(i, "|");
-                }
                 else if (cur == '"')
                 {
                     Index++;
                     curToken = new StringToken(i, AdvancePast(input, '"'));
+                    i = Index;
                 }
                 else if (cur == '\'')
                 {
                     Index++;
                     curToken = new StringToken(i, AdvancePast(input, '\''));
+                    i = Index;
                 }
                 // Single/Double character tokens.
+                else if (cur == '|')
+                {
+                    if(PeekNext(input) == '|')
+                    {
+                        curToken = new OrToken(i, "||");
+                        Index++;
+                        i++;
+                    }
+                    else
+                    {
+                        curToken = new PipeToken(i, "|");
+                    }
+                }
+                else if (cur == '&')
+                {
+                    if(PeekNext(input) == '&')
+                    {
+                        curToken = new AndToken(i, "&&");
+                        Index++;
+                        i++;
+                    }
+                }
                 else if(cur == '*')
                 {
                     if(lastToken == null || lastToken is PipeToken)
@@ -99,6 +120,7 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Tokens
                     {
                         curToken = new PowToken(i);
                         Index++;
+                        i++;
                     }
                     else
                     {
@@ -111,6 +133,7 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Tokens
                     {
                         curToken = new LastToken(i);
                         Index++;
+                        i++;
                     }
                     else
                     {
@@ -123,6 +146,7 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Tokens
                     {
                         curToken = new PipeToken(i, "->");
                         Index++;
+                        i++;
                     }
                     else
                     {
@@ -135,10 +159,11 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Tokens
                     {
                         curToken = new ComparisonToken(i, "!=", ComparisonModes.NotEqual);
                         Index++;
+                        i++;
                     }
                     else
                     {
-                        curToken = new LogicalToken(i, LogicalOperators.Not);
+                        curToken = new NotToken(i, "!");
                     }
                 }
                 else if(cur == '>')
@@ -147,6 +172,7 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Tokens
                     {
                         curToken = new ComparisonToken(i, ">=", ComparisonModes.GreaterOrEqual);
                         Index++;
+                        i++;
                     }
                     else
                     {
@@ -159,6 +185,7 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Tokens
                     {
                         curToken = new ComparisonToken(i, "<=", ComparisonModes.LessOrEqual);
                         Index++;
+                        i++;
                     }
                     else
                     {
@@ -219,23 +246,24 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Tokens
                     }
                     else if (curWord.Equals("or", StringComparison.OrdinalIgnoreCase))
                     {
-                        curToken = new LogicalToken(i, LogicalOperators.Or);
+                        curToken = new OrToken(i);
                     }
                     else if (curWord.Equals("and", StringComparison.OrdinalIgnoreCase))
                     {
-                        curToken = new LogicalToken(i, LogicalOperators.And);
+                        curToken = new AndToken(i);
                     }
                     else if (curWord.Equals("not", StringComparison.OrdinalIgnoreCase))
                     {
-                        curToken = new LogicalToken(i, LogicalOperators.Not);
+                        curToken = new NotToken(i);
                     }
                     else
                     {
                         curToken = new IdentifierToken(curWord, i);
                     }
+                    i = Index;
                 }
 
-                i = Index;
+                 
                 lastToken = curToken;
                 yield return curToken;
             }
@@ -254,19 +282,15 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Tokens
             int count = 0;
             for (int i = start; i < input.Length; i++)
             {
-                Index = i;
-                count++;
-                if (char.IsWhiteSpace(input[i]) || input[i] == '(' || input[i] == ')' || input[i] == ',' || input[i] == '-')
+                char cur = input[i];
+                if (char.IsWhiteSpace(cur) || cur == '(' || cur == ')' || cur == ',' || cur == '-')
                 {
-                    count--;
                     break;
                 }
+                count++;
+                Index = i;
             }
 
-            if(Index < input.Length - 1)
-            {
-                Index--;
-            }
             return input.Substring(start, count);
         }
 

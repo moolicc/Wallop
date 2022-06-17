@@ -17,7 +17,7 @@ namespace Wallop
         static int Main(string[] args)
         {
 
-            Wallop.Engine.ECS.ActorQuerying.Parsing.QueryParser parser = new Wallop.Engine.ECS.ActorQuerying.Parsing.QueryParser("* -> filter actor.Name = 'bob' -> $ actor.Name('alice')");
+            Wallop.Engine.ECS.ActorQuerying.Parsing.QueryParser parser = new Wallop.Engine.ECS.ActorQuerying.Parsing.QueryParser("* -> filter 2 + 2 = 4 and 1 + 1 > -1" );
             var exp = parser.ParseNextExpression(0);
 
             var actors = new List<IActor>

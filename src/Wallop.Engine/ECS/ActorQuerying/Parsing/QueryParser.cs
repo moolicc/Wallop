@@ -34,15 +34,26 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing
             //BindingPowerLookup.Set<Parslets.Default.ComplexCollectionParslet>(1000);
             //BindingPowerLookup.Set<Parslets.Default.PipeParslet>(2000);
 
-            BindingPowerLookup.Set<Parslets.Default.ComparisonParslet>(2000);
             BindingPowerLookup.Set<Parslets.Default.SummationParslet>(1500);
-            BindingPowerLookup.Set<Parslets.Default.ProductParslet>(1000);
-            BindingPowerLookup.Set<Parslets.Default.PowParslet>(800);
-            BindingPowerLookup.Set<Parslets.Default.CallParslet>(800);
+            BindingPowerLookup.Set<Parslets.Default.ProductParslet>(1400);
+            BindingPowerLookup.Set<Parslets.Default.PowParslet>(1300);
+            BindingPowerLookup.Set<Parslets.Default.CallParslet>(1200);
+            BindingPowerLookup.Set<Parslets.Default.ComparisonParslet>(1000);
+            BindingPowerLookup.Set<Parslets.Default.SummationPrefixParslet>(700);
+            BindingPowerLookup.Set<Parslets.Default.LogicalPrefixParslet>(600);
+            BindingPowerLookup.Set<Parslets.Default.LogicalInfixParslet>(500);
             BindingPowerLookup.Set<Parslets.Default.BasicCollectionParslet>(400);
             BindingPowerLookup.Set<Parslets.Default.ComplexCollectionParslet>(300);
             BindingPowerLookup.Set<Parslets.Default.PipeParslet>(200);
 
+
+            RegisterParslet<Tokens.Default.AndToken>(new Parslets.Default.LogicalInfixParslet());
+            RegisterParslet<Tokens.Default.OrToken>(new Parslets.Default.LogicalInfixParslet());
+            RegisterParslet<Tokens.Default.NotToken>(new Parslets.Default.LogicalPrefixParslet());
+            
+            RegisterParslet<Tokens.Default.AdditionToken>(new Parslets.Default.SummationPrefixParslet());
+            RegisterParslet<Tokens.Default.SubtractionToken>(new Parslets.Default.SummationPrefixParslet());
+            
             RegisterParslet<Tokens.Default.ComparisonToken>(new Parslets.Default.ComparisonParslet());
 
             RegisterParslet<Tokens.Default.LParenToken>(new Parslets.Default.CallParslet());

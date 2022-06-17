@@ -60,6 +60,16 @@ namespace Wallop.Engine.ECS.ActorQuerying.FilterMachine
             return state.GetValue();
         }
 
+        public T PopStateValue<T>(ValueKinds expectedValueType)
+        {
+            var state = _stateStack.Pop();
+            if (state.ValueType != expectedValueType)
+            {
+                throw new InvalidOperationException($"Expected {expectedValueType} value on stack.");
+            }
+            return (T)state.GetValue();
+        }
+
         public void InvokeMember(string member, string[]? memberQualifiers, int argCount)
         {
             bool memberFound = false;
