@@ -2,6 +2,7 @@
 using System.CommandLine;
 using System.Reflection;
 using Wallop.Engine;
+using Wallop.Engine.ECS;
 
 namespace Wallop
 {
@@ -16,10 +17,15 @@ namespace Wallop
         static int Main(string[] args)
         {
 
-            Wallop.Engine.ECS.ActorQuerying.Parsing.QueryParser parser = new Wallop.Engine.ECS.ActorQuerying.Parsing.QueryParser("a.b(1)");
+            Wallop.Engine.ECS.ActorQuerying.Parsing.QueryParser parser = new Wallop.Engine.ECS.ActorQuerying.Parsing.QueryParser("* -> filter actor.Name");
             var exp = parser.ParseNextExpression(0);
 
-            var machine = new Wallop.Engine.ECS.ActorQuerying.FilterMachine.Machine();
+            var actors = new List<IActor>
+            {
+                new Actor("bob")
+            };
+
+            var machine = new Wallop.Engine.ECS.ActorQuerying.FilterMachine.Machine(actors);
 
             exp.Evaluate(machine);
 

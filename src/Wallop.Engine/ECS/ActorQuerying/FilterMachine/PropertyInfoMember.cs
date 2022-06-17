@@ -7,9 +7,10 @@ namespace Wallop.Engine.ECS.ActorQuerying.FilterMachine
         public object? TargetObject { get; set; }
         public PropertyInfo Property { get; set; }
 
-        public PropertyInfoMember(string name, string qualifier, PropertyInfo property, object? TargetObject)
+        public PropertyInfoMember(string name, string qualifier, PropertyInfo property, object? targetObject)
             : base(name, qualifier)
         {
+            TargetObject = targetObject;
             Property = property;
         }
 

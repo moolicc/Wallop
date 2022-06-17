@@ -23,7 +23,7 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Expressions.Default
 
         public void Evaluate(Machine machine)
         {
-            machine.PushMemberInvocation(Name, Qualifiers.ToArray(), 0);
+            machine.InvokeMember(Name, Qualifiers.ToArray(), 0);
         }
     }
 }

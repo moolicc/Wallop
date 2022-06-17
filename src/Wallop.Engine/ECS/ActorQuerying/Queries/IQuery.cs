@@ -20,6 +20,5 @@ namespace Wallop.Engine.ECS.ActorQuerying.Queries
 
     public interface IQuery : IExpression
     {
-        public IEnumerable<IActor?> Evaluate(IEnumerable<IActor> workingSet, IEnumerable<IActor> originalSet);
     }
 }

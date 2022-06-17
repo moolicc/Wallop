@@ -21,13 +21,17 @@ namespace Wallop.Engine.ECS.ActorQuerying.FilterMachine
             var args = new object[argCount];
             if(argCount > 0)
             {
-                for(int i = argCount - 1; i >= 0; i++)
+                for(int i = argCount - 1; i >= 0; i--)
                 {
                     args[i] = machine.PopStateValue();
                 }
                 
                 if(!CheckArgs(args))
                 {
+                    for (int i = 0; i < argCount; i++)
+                    {
+                        machine.PushState(State.CreateObject(args[i]));
+                    }
                     return false;
                 }
             }

@@ -27,7 +27,7 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Expressions.Default
                 {
                     arg.Evaluate(machine);
                 }
-                machine.PushMemberInvocation(mExp.Name, mExp.Qualifiers.ToArray(), Arguments.Count);
+                machine.InvokeMember(mExp.Name, mExp.Qualifiers.ToArray(), Arguments.Count);
             }
             else
             {

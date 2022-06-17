@@ -30,30 +30,17 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Tokens
                 Index = i;
 
                 // Single character tokens
-                if((cur == '*' && lastToken is null) ||
-                    cur == '*' && lastToken is PipeToken)
-                {
-                    curToken = new AllToken(i);
-                }
-                else if (cur == '?')
-                {
-                    curToken = new FirstToken(i);
-                }
-                else if (cur == '=')
+                if (cur == '=')
                 {
                     curToken = new ComparisonToken(i, ComparisonOperators.Equal);
+                }
+                else if (cur == '!')
+                {
+                    curToken = new LogicalToken(i, LogicalOperators.Not);
                 }
                 else if (cur == '+')
                 {
                     curToken = new AdditionToken(i);
-                }
-                else if (cur == '-')
-                {
-                    curToken = new SubtractionToken(i);
-                }
-                else if (cur == '*')
-                {
-                    curToken = new ProductToken(i);
                 }
                 else if (cur == '/')
                 {
@@ -97,6 +84,71 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Tokens
                     Index++;
                     curToken = new StringToken(i, AdvancePast(input, '\''));
                 }
+                // Single/Double character tokens.
+                else if(cur == '*')
+                {
+                    if(lastToken == null || lastToken == typeof(PipeToken))
+                    {
+                        curToken = new AllToken(i);
+                    }
+                    else if(PeekNext(input) == '*')
+                    {
+                        curToken = new PowToken(i);
+                        Index++;
+                    }
+                    else
+                    {
+                        curToken = new ProductToken(i);
+                    }
+                }
+                else if (cur == '?')
+                {
+                    if (PeekNext(input) == '?')
+                    {
+                        curToken = new LastToken(i);
+                        Index++;
+                    }
+                    else
+                    {
+                        curToken = new FirstToken(i);
+                    }
+                }
+                else if (cur == '-')
+                {
+                    if(PeekNext(input) == '>')
+                    {
+                        curToken = new PipeToken(i, "->");
+                        Index++;
+                    }
+                    else
+                    {
+                        curToken = new SubtractionToken(i);
+                    }
+                }
+                else if(cur == '>')
+                {
+                    if (PeekNext(input) == '=')
+                    {
+                        curToken = new ComparisonToken(i, ComparisonOperators.GreaterEqual);
+                        Index++;
+                    }
+                    else
+                    {
+                        curToken = new ComparisonToken(i, ComparisonOperators.Greater);
+                    }
+                }
+                else if (cur == '<')
+                {
+                    if (PeekNext(input) == '=')
+                    {
+                        curToken = new ComparisonToken(i, ComparisonOperators.LessEqual);
+                        Index++;
+                    }
+                    else
+                    {
+                        curToken = new ComparisonToken(i, ComparisonOperators.Less);
+                    }
+                }
                 else if(char.IsNumber(cur))
                 {
                     var word = ReadFloat(input);
@@ -113,11 +165,7 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Tokens
                 {
                     // Word-length tokens
                     var curWord = AdvanceWord(input);
-                    if (curWord.Equals("->", StringComparison.OrdinalIgnoreCase))
-                    {
-                        curToken = new PipeToken(i, "->");
-                    }
-                    else if (curWord.Equals("all", StringComparison.OrdinalIgnoreCase))
+                    if (curWord.Equals("all", StringComparison.OrdinalIgnoreCase))
                     {
                         curToken = new AllToken(i, "all");
                     }
@@ -125,8 +173,7 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Tokens
                     {
                         curToken = new FirstToken(i, "first");
                     }
-                    else if (curWord.Equals("??", StringComparison.OrdinalIgnoreCase) ||
-                        curWord.Equals("last", StringComparison.OrdinalIgnoreCase))
+                    else if (curWord.Equals("last", StringComparison.OrdinalIgnoreCase))
                     {
                         curToken = new LastToken(i, curWord.ToString());
                     }
@@ -160,22 +207,6 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Tokens
                     {
                         curToken = new LogicalToken(i, LogicalOperators.Not);
                     }
-                    else if (curWord.Equals(">", StringComparison.OrdinalIgnoreCase))
-                    {
-                        curToken = new ComparisonToken(i, ComparisonOperators.Greater);
-                    }
-                    else if (curWord.Equals(">=", StringComparison.OrdinalIgnoreCase))
-                    {
-                        curToken = new ComparisonToken(i, ComparisonOperators.GreaterEqual);
-                    }
-                    else if (curWord.Equals("<", StringComparison.OrdinalIgnoreCase))
-                    {
-                        curToken = new ComparisonToken(i, ComparisonOperators.Less);
-                    }
-                    else if (curWord.Equals("<=", StringComparison.OrdinalIgnoreCase))
-                    {
-                        curToken = new ComparisonToken(i, ComparisonOperators.LessEqual);
-                    }
                     else
                     {
                         curToken = new IdentifierToken(curWord, i);
@@ -190,6 +221,11 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Tokens
             yield return new EndOfStreamToken(Index);
         }
 
+        private char PeekNext(string input)
+        {
+            return Index < input.Length - 1 ? input[Index + 1] : '\0';
+        }
+
         private string AdvanceWord(string input)
         {
             int start = Index;
@@ -198,13 +234,17 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Tokens
             {
                 Index = i;
                 count++;
-                if (char.IsWhiteSpace(input[i]) || input[i] == '(' || input[i] == ')' || input[i] == ',')
+                if (char.IsWhiteSpace(input[i]) || input[i] == '(' || input[i] == ')' || input[i] == ',' || input[i] == '-')
                 {
                     count--;
                     break;
                 }
             }
-            Index--;
+
+            if(Index < input.Length - 1)
+            {
+                Index--;
+            }
             return input.Substring(start, count);
         }
 

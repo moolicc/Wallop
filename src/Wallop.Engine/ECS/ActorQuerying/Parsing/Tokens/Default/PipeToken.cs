@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Tokens.Default
 {
-    internal class PipeToken : IToken
+    public class PipeToken : IToken
     {
 
         public string Value { get; init; }

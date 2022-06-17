@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Wallop.Engine.ECS.ActorQuerying.FilterMachine;
 using Wallop.Engine.ECS.ActorQuerying.Parsing.Expressions;
 
 namespace Wallop.Engine.ECS.ActorQuerying.Queries.Default
 {
-    public class FilterQuery : QueryBase
+    public class FilterQuery : IQuery
     {
         public IExpression FilterExpression { get; init; }
 
@@ -16,9 +17,27 @@ namespace Wallop.Engine.ECS.ActorQuerying.Queries.Default
             FilterExpression = filterExpression;
         }
 
-        public override IEnumerable<IActor?> Evaluate(IEnumerable<IActor> workingSet, IEnumerable<IActor> originalSet)
+        public void Evaluate(Machine machine)
         {
-            return workingSet;
+            for (int i = 0; i < machine.ActorSet.Count; i++)
+            {
+                // TODO: Expanding object support. This way we can do: actor.PositionComponent.X = 100.
+                // TODO: Implicit object name. This way we can do: PositionComponent.X = 100.
+
+                IActor? actor = machine.ActorSet[i];
+
+                machine.AddObjectMembers(actor, "actor");
+                FilterExpression.Evaluate(machine);
+                machine.RemoveObjectMembers("actor");
+
+                var filterResult = machine.PopState(ValueKinds.Boolean);
+                if(!filterResult.ValueB)
+                {
+                    machine.ActorSet.RemoveAt(i);
+                    i--;
+                }
+            }
+
         }
     }
 }

@@ -2,16 +2,34 @@ namespace Wallop.Engine.ECS.ActorQuerying.FilterMachine
 {
     public static class Extensions
     {
-        public static Machine AddObjectMembers<T>(this Machine machine, Task obj, string rootName)
+        public static Machine AddObjectMembers(this Machine machine, object obj, string rootName)
         {
             AddObjectMethods(machine, obj, rootName);
-            AddObjectMembers(machine, obj, rootName);
+            AddObjectVariables(machine, obj, rootName);
             return machine;
         }
-        
-        public static Machine AddObjectMethods<T>(this Machine machine, T obj, string rootName)
+
+
+        public static Machine RemoveObjectMembers(this Machine machine, string rootName)
         {
-            var type = typeof(T);
+            for (int i = 0; i < machine.Members.Count; i++)
+            {
+                var member = machine.Members[i];
+                if (member is MemberBase memBase)
+                {
+                    if(memBase.Qualifier == rootName)
+                    {
+                        machine.Members.RemoveAt(i);
+                        i--;
+                    }
+                }
+            }
+            return machine;
+        }
+
+        public static Machine AddObjectMethods(this Machine machine, object obj, string rootName)
+        {
+            var type = obj.GetType();
             foreach(var func in type.GetMethods())
             {
                 // Ensure parameters are valid
@@ -45,10 +63,10 @@ namespace Wallop.Engine.ECS.ActorQuerying.FilterMachine
             return machine;
         }
 
-        public static Machine AddObjectVariables<T>(this Machine machine, T obj, string rootName)
+        public static Machine AddObjectVariables(this Machine machine, object obj, string rootName)
         {
-            var type = typeof(T);
-            foreach(var prop in type.GetProperties())
+            var type = obj.GetType();
+            foreach (var prop in type.GetProperties())
             {
                 if(prop.PropertyType != typeof(void) &&
                     prop.PropertyType != typeof(string) &&

@@ -31,8 +31,6 @@ namespace Wallop.Engine.ECS.ActorQuerying.FilterMachine
             }
 
             return true;
-
-
         }
 
         protected override bool TryExecute(Machine machine, object[] args)

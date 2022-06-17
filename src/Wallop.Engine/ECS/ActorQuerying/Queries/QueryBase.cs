@@ -12,7 +12,7 @@ namespace Wallop.Engine.ECS.ActorQuerying.Queries
 
         public void Evaluate(FilterMachine.Machine machine)
         {
-            throw new NotImplementedException();
+            Evaluate(machine.ActorSet, machine.OriginalActorSet);
         }
     }
 }

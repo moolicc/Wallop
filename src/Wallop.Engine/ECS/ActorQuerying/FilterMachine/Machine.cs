@@ -8,13 +8,19 @@ namespace Wallop.Engine.ECS.ActorQuerying.FilterMachine
 {
     public class Machine
     {
+        public IReadOnlyList<IActor> OriginalActorSet { get; private set; }
+        public List<IActor> ActorSet { get; private set; }
+
         public List<IMachineMember> Members { get; init; }
 
         private Stack<State> _stateStack;
 
 
-        public Machine()
+        public Machine(IEnumerable<IActor> set)
         {
+            OriginalActorSet = set.ToList().AsReadOnly();
+            ActorSet = set.ToList();
+
             Members = new List<IMachineMember>();
             _stateStack = new Stack<State>();
         }
@@ -54,9 +60,27 @@ namespace Wallop.Engine.ECS.ActorQuerying.FilterMachine
             return state.GetValue();
         }
 
-        public void PushMemberInvocation(string member, string[]? memberQualifiers, int argCount)
+        public void InvokeMember(string member, string[]? memberQualifiers, int argCount)
         {
+            bool memberFound = false;
+            foreach (var item in Members)
+            {
+                if(!item.Name.Equals(member, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
 
+                if(item.TryExecute(this, memberQualifiers ?? Array.Empty<string>(), argCount))
+                {
+                    memberFound = true;
+                    break;
+                }
+            }
+
+            if(!memberFound)
+            {
+                // TODO: Warning or error.
+            }
         }
     }
 }

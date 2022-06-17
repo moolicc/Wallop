@@ -27,12 +27,13 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing
             BindingPowerLookup.Set<Parslets.Default.BasicCollectionParslet>(9000);
             BindingPowerLookup.Set<Parslets.Default.ComplexCollectionParslet>(9000);
 
-            BindingPowerLookup.Set<Parslets.Default.LiteralParslet>(0);
-            BindingPowerLookup.Set<Parslets.Default.SummationParslet>(10);
-            BindingPowerLookup.Set<Parslets.Default.ProductParslet>(5);
-            BindingPowerLookup.Set<Parslets.Default.PowParslet>(30);
-            BindingPowerLookup.Set<Parslets.Default.CallParslet>(5);
-            BindingPowerLookup.Set<Parslets.Default.IdentifierParslet>(0);
+            BindingPowerLookup.Set<Parslets.Default.LiteralParslet>(100);
+            BindingPowerLookup.Set<Parslets.Default.SummationParslet>(110);
+            BindingPowerLookup.Set<Parslets.Default.ProductParslet>(150);
+            BindingPowerLookup.Set<Parslets.Default.PowParslet>(130);
+            BindingPowerLookup.Set<Parslets.Default.CallParslet>(150);
+            BindingPowerLookup.Set<Parslets.Default.IdentifierParslet>(100);
+            BindingPowerLookup.Set<Parslets.Default.PipeParslet>(10000);
 
 
             RegisterParslet<Tokens.Default.LParenToken>(new Parslets.Default.CallParslet());
@@ -53,6 +54,8 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing
             RegisterParslet<Tokens.Default.ProductToken>(new Parslets.Default.ProductParslet());
             RegisterParslet<Tokens.Default.DivideToken>(new Parslets.Default.ProductParslet());
             RegisterParslet<Tokens.Default.PowToken>(new Parslets.Default.ProductParslet());
+
+            RegisterParslet<Tokens.Default.PipeToken>(new Parslets.Default.PipeParslet());
         }
 
         public static void RegisterParslet<T>(IPrefixParslet parslet) where T : IToken

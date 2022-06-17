@@ -27,7 +27,6 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Parslets.Default
         {
             if (token is FilterToken)
             {
-                parser.Consume<PipeToken>();
                 return new FilterQuery(right);
             }
             throw new InvalidOperationException("Unexpected token for CollectionParslet.");

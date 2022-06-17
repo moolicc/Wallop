@@ -11,7 +11,9 @@ namespace Wallop.Engine.ECS.ActorQuerying
         public static IEnumerable<IActor?> RunQuery(Queries.IQuery query, IEnumerable<IActor> workingSet)
         {
             var original = workingSet.ToArray();
-            return query.Evaluate(workingSet, original);
+            // TODO
+            //return query.Evaluate(workingSet, original);
+            return null;
         }
 
         public static Queries.IQuery Parse(string queryString)
