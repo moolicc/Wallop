@@ -17,6 +17,6 @@ foreach($_ in Get-ChildItem -Path "*.csproj" -Recurse) {
     if($count -ge 1)
     {
         write-host "Calling version increment script on" $_
-        & $scriptFile $_ -minor
+        & $scriptFile $_ -patch
     }
 }
