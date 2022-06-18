@@ -45,7 +45,7 @@ jobs:
     - name: List all changed files
       shell: pwsh
       run: |
-        ./src/incr_proj_minors.ps1
+        ./src/incr_proj_minors.ps1 ${{ steps.changed-files.outputs.all_changed_files }}
 
 
 
