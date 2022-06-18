@@ -13,6 +13,8 @@ param(
 )
 
 
+
+
 # Get the current product version information from the text file.
 $friendly = Get-Content Version.txt -First 1
 $major = Get-Content Version.txt | Select-Object -Skip 1 -First 1
@@ -65,4 +67,13 @@ $xdoc.Project.PropertyGroup.InformationalVersion = [string]$projFriendly
 
 # Save the csproj.
 $scriptFolder = $MyInvocation.MyCommand.Path | Split-Path -Parent
-$xdoc.Save($scriptFolder + "/" + $projectFile)
+
+if(Test-Path -Path $projectFile)
+{
+    $xdoc.Save($projectFile)
+}
+else
+{
+    $path = Join-Path -Path $scriptFolder -ChildPath $projectFile
+    $xdoc.Save($path)
+}
