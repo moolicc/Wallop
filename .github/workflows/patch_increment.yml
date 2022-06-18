@@ -33,6 +33,7 @@ jobs:
   update-versions:
     name: update versions
     runs-on: ubuntu-latest
+    needs: build
     steps:
     - uses: actions/checkout@v3
       with:
@@ -45,7 +46,7 @@ jobs:
     - name: Update all projects (with changed files) version minors
       shell: pwsh
       run: |
-        ./src/incr_proj_minors.ps1 ${{ steps.changed-files.outputs.all_changed_files }}
+        ./src/incr_proj_patches.ps1 ${{ steps.changed-files.outputs.all_changed_files }}
         
     - name: Commit files
       run: |
