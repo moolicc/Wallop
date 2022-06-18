@@ -18,6 +18,7 @@ namespace Wallop.Engine
         }
     }
 
+
     static class ModuleLog
     {
         private static NLog.LogFactory _logFactory;
