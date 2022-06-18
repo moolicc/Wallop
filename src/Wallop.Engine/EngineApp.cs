@@ -1,19 +1,12 @@
-﻿using Silk.NET.Maths;
-using Silk.NET.OpenGL;
-using Silk.NET.Windowing;
+﻿using Silk.NET.Windowing;
 using System.CommandLine;
-using System.CommandLine.NamingConventionBinder;
 using System.CommandLine.Parsing;
 using Wallop.DSLExtension.Scripting;
 using Wallop.DSLExtension.Types.Plugin;
 using Wallop.Engine.Handlers;
 using Wallop.Engine.Messaging;
-using Wallop.Engine.Messaging.Messages;
-using Wallop.Engine.SceneManagement;
-using Wallop.Engine.SceneManagement.Serialization;
 using Wallop.Engine.Scripting;
 using Wallop.Engine.Settings;
-using Wallop.Engine.Types.Plugins;
 using Wallop.Engine.Types.Plugins.EndPoints;
 
 
