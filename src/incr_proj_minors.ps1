@@ -3,7 +3,14 @@
 # eg: src/Wallop.Engine/ModuleLog.cs src/Wallop.Engine/Program.cs
 
 
+if($PSScriptRoot.EndsWith("src"))
+{
+    for($i = 0; $i -lt $args.Length; $i++) {
+        $args[$i] = $args[$i].Replace("src/", "")
+    }
+}
 
+$scriptFile = Join-Path -Path $PSScriptRoot -ChildPath "incrversion.ps1"
 foreach($_ in Get-ChildItem -Path "*.csproj" -Recurse) {
     # Get directory: Split-Path -Path ($_)
     $dir = Split-Path -Path $_
@@ -11,7 +18,7 @@ foreach($_ in Get-ChildItem -Path "*.csproj" -Recurse) {
     $count = ($args | where { (Get-Item $_ | Resolve-Path).ProviderPath.StartsWith($dir) }).Count
     if($count -ge 1)
     {
-        write-host "Calling version increment script on " $_
-        & "./incrversion.ps1" $_ -minor
+        write-host "Calling version increment script on" $_
+        & $scriptFile $_ -minor
     }
 }
