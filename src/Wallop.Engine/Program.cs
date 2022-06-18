@@ -88,7 +88,6 @@ namespace Wallop
             }
             EngineLog.For<Program>().Info("Resolved.");
 
-
             EngineLog.For<Program>().Info("Loading plugin assemblies...");
             var pluginLoader = new PluginPantry.PluginLoader();
             //var plugins = pluginLoader.LoadPluginAssembly(@"C:\Users\joel\source\repos\moolicc\Wallop\Plugins\TestPlugin\bin\Debug\net6.0\TestPlugin.dll");
@@ -174,3 +173,4 @@ namespace Wallop
         }
     }
 }
+
