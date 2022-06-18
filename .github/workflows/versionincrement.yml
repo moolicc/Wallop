@@ -9,25 +9,25 @@ env:
   DOTNET_VERSION: 'v6.0.301' # The .NET SDK version to use
 
 jobs:      
-#  build:
-#    name: build-${{ matrix.os }}
-#    runs-on: ${{ matrix.os }}
-#    strategy:
-#      matrix:
-#        os: [ubuntu-latest, windows-latest]
-#    steps:
-#    
-#    - uses: actions/checkout@v3
-#    - name: Setup .NET Core
-#      uses: actions/setup-dotnet@v2.1.0
-#      with:
-#        dotnet-version: ${{ env.DOTNET_VERSION }}
-#        
-#    - name: Install dependencies
-#      run: dotnet restore
-#      
-#    - name: Build
-#      run: dotnet build ./src/ --no-restore
+  build:
+    name: build-${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+    
+    - uses: actions/checkout@v3
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v2.1.0
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        
+    - name: Install dependencies
+      run: dotnet restore
+      
+    - name: Build
+      run: dotnet build ./src/ --no-restore
 
 
   update-versions:
