@@ -27,7 +27,7 @@ jobs:
         dotnet-version: ${{ env.DOTNET_VERSION }}
         
     - name: Install dependencies
-      run: dotnet restore
+      run: dotnet restore ./src/
       
     - name: Build
       run: dotnet build ./src/ --no-restore
