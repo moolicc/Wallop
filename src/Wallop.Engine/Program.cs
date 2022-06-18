@@ -6,7 +6,6 @@ using Wallop.Engine.ECS;
 
 namespace Wallop
 {
-
     class Program
     {
         private const string MUTEX_NAME = "WallopSingleInstanceMutex";
