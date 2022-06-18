@@ -43,7 +43,7 @@ To understand, here's a rough timeline. (It's very rough, though the years shoul
 
 
 ## Roadmap
-* Get the Engine component complete (that's what gets stuff on the screen)
+* Get the Engine component complete (that's what gets stuff on the screen) (IN PROGRESS)
 * Get the Composition component complete (that's what talks to the engine)
 * Write an array of useful plugins and modules
 * Get the builder component complete (that's the UI that talks to the compositor)

@@ -1,7 +1,7 @@
 
 Basic speciication or a wallop file. This file represents a scene.
 
-> May or may not use this moving forward.. Who knows?
+> May or may not use this moving forward.. Who knows? Probably not though.
 
 HEADER:
   First 6 bytes are a string identifier "WALLOP".
