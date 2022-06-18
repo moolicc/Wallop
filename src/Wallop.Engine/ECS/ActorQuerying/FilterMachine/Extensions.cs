@@ -2,10 +2,10 @@ namespace Wallop.Engine.ECS.ActorQuerying.FilterMachine
 {
     public static class Extensions
     {
-        public static Machine AddObjectMembers(this Machine machine, object obj, string rootName)
+        public static Machine AddObjectMembers(this Machine machine, object obj, bool expand, string rootName)
         {
-            AddObjectMethods(machine, obj, rootName);
-            AddObjectVariables(machine, obj, rootName);
+            AddObjectMethods(machine, obj, expand, rootName);
+            AddObjectVariables(machine, obj, expand, rootName);
             return machine;
         }
 
@@ -27,7 +27,7 @@ namespace Wallop.Engine.ECS.ActorQuerying.FilterMachine
             return machine;
         }
 
-        public static Machine AddObjectMethods(this Machine machine, object obj, string rootName)
+        public static Machine AddObjectMethods(this Machine machine, object obj, bool expand, string rootName)
         {
             var type = obj.GetType();
             foreach(var func in type.GetMethods())
@@ -57,13 +57,15 @@ namespace Wallop.Engine.ECS.ActorQuerying.FilterMachine
                 {
                     continue;
                 }
-                machine.Members.Add(new MethodInfoMember(func.Name, rootName, func, obj));
+                var member = new MethodInfoMember(func.Name, rootName, func, obj);
+                member.RequireQualifier = !expand;
+                machine.Members.Add(member);
             }
 
             return machine;
         }
 
-        public static Machine AddObjectVariables(this Machine machine, object obj, string rootName)
+        public static Machine AddObjectVariables(this Machine machine, object obj, bool expand, string rootName)
         {
             var type = obj.GetType();
             foreach (var prop in type.GetProperties())
@@ -76,7 +78,15 @@ namespace Wallop.Engine.ECS.ActorQuerying.FilterMachine
                 {
                     continue;
                 }
-                machine.Members.Add(new PropertyInfoMember(prop.Name, rootName, prop, obj));
+
+                if (expand)
+                {
+                    machine.Members.Add(new PropertyInfoMember(prop.Name, "", prop, obj));
+                }
+                if (!expand || !string.IsNullOrEmpty(rootName))
+                {
+                    machine.Members.Add(new PropertyInfoMember(prop.Name, rootName, prop, obj));
+                }
             }
 
             return machine;

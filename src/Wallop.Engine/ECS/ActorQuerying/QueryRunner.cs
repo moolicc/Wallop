@@ -3,23 +3,58 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Wallop.Engine.ECS.ActorQuerying.Queries;
 
 namespace Wallop.Engine.ECS.ActorQuerying
 {
     internal static class QueryRunner
     {
-        public static IEnumerable<IActor?> RunQuery(Queries.IQuery query, IEnumerable<IActor> workingSet)
+        public static readonly IQuery AllQuery;
+
+        public static bool UseCache { get; set; }
+
+
+        private static Dictionary<string, IQuery> _queryCache;
+
+        static QueryRunner()
         {
-            var original = workingSet.ToArray();
-            // TODO
-            //return query.Evaluate(workingSet, original);
-            return null;
+            _queryCache = new Dictionary<string, IQuery>();
+            AllQuery = new Queries.Default.AllQuery();
         }
 
-        public static Queries.IQuery Parse(string queryString)
-        {
+        public static void ClearCache()
+            => _queryCache.Clear();
 
-            throw new NotImplementedException();
+        public static int CacheSize()
+            => _queryCache.Count;
+
+        public static IEnumerable<IActor> RunQuery(string queryString, IEnumerable<IActor> workingSet, bool allowCache = true)
+            => RunQuery(CreateQuery(queryString, allowCache), workingSet);
+
+        public static IEnumerable<IActor> RunQuery(IQuery query, IEnumerable<IActor> workingSet)
+        {
+            var filterMachine = new FilterMachine.Machine(workingSet.ToList());
+            query.Evaluate(filterMachine);
+            return filterMachine.ActorSet;
+        }
+
+        public static IQuery CreateQuery(string queryString, bool allowCache = true)
+        {
+            IQuery result;
+            if(allowCache && UseCache)
+            {
+                if(!_queryCache.TryGetValue(queryString, out result))
+                {
+                    result = new Parsing.QueryParser(queryString).Parse();
+                    _queryCache.Add(queryString, result);
+                }
+            }
+            else
+            {
+                result = new Parsing.QueryParser(queryString).Parse();
+            }
+
+            return result;            
         }
     }
 }

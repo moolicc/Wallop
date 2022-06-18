@@ -2,18 +2,22 @@ namespace Wallop.Engine.ECS.ActorQuerying.FilterMachine
 {
     public abstract class MemberBase : IMachineMember
     {
+        public string Tag { get; set; }
+        public bool RequireQualifier { get; set; }
         public string Name { get; init; }
         public string Qualifier { get; init; }
 
         protected MemberBase(string name, string qualifier)
         {
+            Tag = string.Empty;
             Name = name;
             Qualifier = qualifier;
+            RequireQualifier = !string.IsNullOrEmpty(qualifier);
         }
 
         public bool TryExecute(Machine machine, string[] qualifiers, int argCount)
         {
-            if(string.Join('.', qualifiers) != Qualifier)
+            if(RequireQualifier && string.Join('.', qualifiers) != Qualifier)
             {
                 return false;
             }

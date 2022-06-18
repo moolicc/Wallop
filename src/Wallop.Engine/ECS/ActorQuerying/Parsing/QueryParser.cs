@@ -25,15 +25,6 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing
 
             // TODO: Register these elsewhere so plugins can alter this.
 
-            //BindingPowerLookup.Set<Parslets.Default.ComparisonParslet>(200);
-            //BindingPowerLookup.Set<Parslets.Default.SummationParslet>(300);
-            //BindingPowerLookup.Set<Parslets.Default.ProductParslet>(400);
-            //BindingPowerLookup.Set<Parslets.Default.PowParslet>(500);
-            //BindingPowerLookup.Set<Parslets.Default.CallParslet>(800);
-            //BindingPowerLookup.Set<Parslets.Default.BasicCollectionParslet>(1000);
-            //BindingPowerLookup.Set<Parslets.Default.ComplexCollectionParslet>(1000);
-            //BindingPowerLookup.Set<Parslets.Default.PipeParslet>(2000);
-
             BindingPowerLookup.Set<Parslets.Default.SummationParslet>(1500);
             BindingPowerLookup.Set<Parslets.Default.ProductParslet>(1400);
             BindingPowerLookup.Set<Parslets.Default.PowParslet>(1300);

@@ -7,7 +7,7 @@ using Wallop.Engine.ECS.ActorQuerying.Parsing.Tokens.Default;
 
 namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Tokens
 {
-    // TODO: Add ~= operator for comparing ints to floats.
+    // TODO: Add ~= operator for comparing ints to floats with epsilon.
     public class Tokenizer
     {
         public int Index { get; private set; }

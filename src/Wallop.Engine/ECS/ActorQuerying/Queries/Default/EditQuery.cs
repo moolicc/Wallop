@@ -8,7 +8,7 @@ using Wallop.Engine.ECS.ActorQuerying.Parsing.Expressions;
 
 namespace Wallop.Engine.ECS.ActorQuerying.Queries.Default
 {
-    public class EditQuery : IQuery
+    public class EditQuery : ExecutableQuery
     {
         public IExpression EditExpression { get; init; }
 
@@ -17,15 +17,13 @@ namespace Wallop.Engine.ECS.ActorQuerying.Queries.Default
             EditExpression = editExpression;
         }
 
-        public void Evaluate(Machine machine)
+        public override void Evaluate(Machine machine)
         {
             foreach (var actor in machine.ActorSet)
             {
-                // TODO: Expanding object support. This way we can do: actor.PositionComponent.X = 100.
-                // TODO: Implicit object name. This way we can do: PositionComponent.X = 100.
-                machine.AddObjectMembers(actor, "actor");
+                AddActorContextToMachine(machine, actor, true);
                 EditExpression.Evaluate(machine);
-                machine.RemoveObjectMembers("actor");
+                RemoveActorContextFromMachine(machine, actor, true);
             }
         }
     }

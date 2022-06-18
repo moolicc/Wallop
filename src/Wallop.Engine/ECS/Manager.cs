@@ -3,20 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Wallop.Engine.ECS.ActorQuerying;
 using Wallop.Engine.Scripting.ECS;
 
 namespace Wallop.Engine.ECS
 {
     public class Manager
     {
-        private static readonly ActorQuerying.Queries.IQuery _allQuery;
-
-        static Manager()
-        {
-            _allQuery = ActorQuerying.QueryRunner.Parse("*");
-        }
-
-
         private List<IActor> _actors;
 
         public Manager()
@@ -25,14 +18,13 @@ namespace Wallop.Engine.ECS
         }
 
         public IEnumerable<IActor> GetActors(string query)
-        {
-            return _actors;
-        }
+            => QueryRunner.RunQuery(query, _actors);
 
         public IEnumerable<IActor> GetActors()
-        {
-            return GetActors(_allQuery);
-        }
+            => GetActors(QueryRunner.AllQuery);
+
+        public IEnumerable<IActor> GetActors(ActorQuerying.Queries.IQuery query)
+            => QueryRunner.RunQuery(query, _actors);
 
         public IEnumerable<TActor> GetActors<TActor>() where TActor : IActor
         {
@@ -60,12 +52,6 @@ namespace Wallop.Engine.ECS
         {
             _actors.Remove(actor);
         }
-
-        public IEnumerable<IActor> GetActors(ActorQuerying.Queries.IQuery query)
-        {
-            return ActorQuerying.QueryRunner.RunQuery(query, _actors);
-        }
-
 
         public void AddActor(IActor actor)
         {
