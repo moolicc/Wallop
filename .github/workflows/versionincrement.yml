@@ -50,8 +50,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: changed-files
 
-    if: ${{ needs.changedfiles.outputs.cs }}
+    if: ${{ needs.changed-files.outputs.cs }}
     steps:
       - name: echo changed files
-        run: echo ${{ needs.changedfiles.outputs.cs }}
+        run: echo ${{ needs.changed-files.outputs.cs }}
 
