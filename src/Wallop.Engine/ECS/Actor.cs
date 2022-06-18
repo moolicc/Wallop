@@ -22,7 +22,6 @@ namespace Wallop.Engine.ECS
             Name = name;
         }
 
-
         public virtual void Update() { }
         public virtual void Draw() { }
     }
