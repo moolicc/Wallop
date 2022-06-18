@@ -23,8 +23,6 @@ namespace Wallop.Engine.ECS.ActorQuerying.Parsing
             _prefixParsletLookup = new Dictionary<Type, IPrefixParslet>();
             _infixParsletLookup = new Dictionary<Type, IInfixParslet>();
 
-            // TODO: Register these elsewhere so plugins can alter this.
-
             BindingPowerLookup.Set<Parslets.Default.SummationParslet>(1500);
             BindingPowerLookup.Set<Parslets.Default.ProductParslet>(1400);
             BindingPowerLookup.Set<Parslets.Default.PowParslet>(1300);

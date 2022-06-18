@@ -7,6 +7,10 @@ using Wallop.Engine.ECS.ActorQuerying.Queries;
 
 namespace Wallop.Engine.ECS.ActorQuerying
 {
+    // TODO: Make queries and their associated parsing mechanisms extensible.
+    // TODO: Create collection to operate on groups of components/actors.
+    // TODO: Unify exception messages.
+
     internal static class QueryRunner
     {
         public static readonly IQuery AllQuery;

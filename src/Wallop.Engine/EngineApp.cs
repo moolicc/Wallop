@@ -20,7 +20,7 @@ using Wallop.Engine.Types.Plugins.EndPoints;
 // TODO:
 // Write a thread-safe rendering mechanism that can be shared by all resources contained in a Layout.
 // Write a feature-rich set of HostApis in the plugin of the same name
-//
+
 // Create an additional handler for extension points.
 //   A SceneHandler shouldn't control a taskprovider for example (it currently does).
 // Unify what is a service versus just a Handler's class variable.
