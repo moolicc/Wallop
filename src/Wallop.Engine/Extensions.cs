@@ -6,6 +6,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
+
 namespace Wallop.Engine
 {
     internal static class Extensions
