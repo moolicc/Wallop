@@ -3,12 +3,10 @@
 # eg: src/Wallop.Engine/ModuleLog.cs src/Wallop.Engine/Program.cs
 
 
-if($PSScriptRoot.EndsWith("src"))
-{
-    for($i = 0; $i -lt $args.Length; $i++) {
-        $args[$i] = $args[$i].Replace("src/", "")
-    }
-}
+# Uncomment if running locally from the src directory!
+#for($i = 0; $i -lt $args.Length; $i++) {
+#    $args[$i] = $args[$i].Replace("src/", "")
+#}
 
 $scriptFile = Join-Path -Path $PSScriptRoot -ChildPath "incrversion.ps1"
 foreach($_ in Get-ChildItem -Path "*.csproj" -Recurse) {
