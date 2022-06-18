@@ -8,6 +8,7 @@ using Wallop.Engine.Messaging;
 
 namespace Wallop.Engine.Handlers
 {
+
     public abstract class EngineHandler
     {
         public EngineApp App { get; private set; }
