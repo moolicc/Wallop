@@ -9,25 +9,25 @@ env:
   DOTNET_VERSION: 'v6.0.301' # The .NET SDK version to use
 
 jobs:      
-  build:
-    name: build-${{matrix.os}}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macOS-latest]
-    steps:
-    
-    - uses: actions/checkout@v3
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v2.1.0
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
-        
-    - name: Install dependencies
-      run: dotnet restore
-      
-    - name: Build
-      run: dotnet build ./src/ --no-restore
+#  build:
+#    name: build-${{ matrix.os }}
+#    runs-on: ${{ matrix.os }}
+#    strategy:
+#      matrix:
+#        os: [ubuntu-latest, windows-latest]
+#    steps:
+#    
+#    - uses: actions/checkout@v3
+#    - name: Setup .NET Core
+#      uses: actions/setup-dotnet@v2.1.0
+#      with:
+#        dotnet-version: ${{ env.DOTNET_VERSION }}
+#        
+#    - name: Install dependencies
+#      run: dotnet restore
+#      
+#    - name: Build
+#      run: dotnet build ./src/ --no-restore
 
   changed-files:
     runs-on: ubuntu-latest
@@ -44,7 +44,7 @@ jobs:
         id: changes
         run: |
           echo "::set-output name=all::$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | xargs)"
-          echo "::set-output name=ts::$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep .cs$ | xargs)"
+          echo "::set-output name=cs::$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep .cs$ | xargs)"
   
   update-versions:
     runs-on: ubuntu-latest
