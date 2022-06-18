@@ -6,7 +6,6 @@ using Wallop.Engine.ECS;
 
 namespace Wallop
 {
-
     class Program
     {
         private const string MUTEX_NAME = "WallopSingleInstanceMutex";
@@ -88,7 +87,6 @@ namespace Wallop
                 EngineLog.For<Program>().Debug("{key}: {value}", item.Key, item.Value);
             }
             EngineLog.For<Program>().Info("Resolved.");
-
 
             EngineLog.For<Program>().Info("Loading plugin assemblies...");
             var pluginLoader = new PluginPantry.PluginLoader();

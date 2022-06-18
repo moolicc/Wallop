@@ -1,11 +1,7 @@
 ﻿using NLog;
 using NLog.Config;
 using NLog.LayoutRenderers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using Wallop.DSLExtension.Modules;
 
 namespace Wallop.Engine
@@ -21,6 +17,7 @@ namespace Wallop.Engine
             }
         }
     }
+
 
     static class ModuleLog
     {

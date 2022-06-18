@@ -30,31 +30,32 @@ jobs:
 #      run: dotnet build ./src/ --no-restore
 
 
-  changedfiles:
+  update-versions:
+    name: update versions
     runs-on: ubuntu-latest
-    # Map a step output to a job output
-    outputs:
-      all: ${{ steps.changes.outputs.all}}
-      ts: ${{ steps.changes.outputs.ts }}
     steps:
-        # Make sure we have some code to diff.
-      - name: Checkout repository
-        uses: actions/checkout@v2
-      - name: Get changed files
-        id: changes
-        # Set outputs using the command.
-        run: |
-          echo "::set-output name=all::$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | xargs)"
-          echo "::set-output name=ts::$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep .ts$ | xargs)"
-  lint:
-    runs-on: ubuntu-latest
-    # require the first job to have ran
-    needs: changedfiles
-    # only run there are changed files
-    if: ${{needs.changedfiles.outputs.all}}
-    steps:
-      - name: echo changed files
-        run: echo ${{needs.changedfiles.outputs.all}}
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  # OR "2" -> To retrieve the preceding commit.
 
+    - name: Get changed files
+      id: changed-files
+      uses: tj-actions/changed-files@v23
 
+    - name: Update all projects (with changed files) version minors
+      shell: pwsh
+      run: |
+        ./src/incr_proj_minors.ps1 ${{ steps.changed-files.outputs.all_changed_files }}
+        
+    - name: Commit files
+      run: |
+        git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git commit -m "Increment version number(s)" -a
+          
+    - name: Push new versions
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.TOKEN }}
+        branch: ${{ github.ref }}
 
