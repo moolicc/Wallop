@@ -12,7 +12,7 @@ param(
     $incrPatch
 )
 
-
+Set-Location -Path $PSScriptRoot
 
 
 # Get the current product version information from the text file.
