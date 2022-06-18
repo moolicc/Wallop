@@ -43,11 +43,9 @@ jobs:
       uses: tj-actions/changed-files@v23
 
     - name: List all changed files
+      shell: pwsh
       run: |
-        echo ${{ steps.changed-files.outputs.all_changed_files }}
-        for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
-          echo "$file was changed"
-        done
+        ./src/incr_proj_minors.ps1
 
 
 
