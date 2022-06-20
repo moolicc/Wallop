@@ -19,11 +19,11 @@ namespace Wallop.Engine.Scripting
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public PackageCache(string packageDirectory)
         {
-            Reload(packageDirectory);
+            ReloadAll(packageDirectory);
         }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
-        public void Reload(string packageDirectory)
+        public void ReloadAll(string packageDirectory)
         {
             EngineLog.For<PackageCache>().Info("Recreating package cache with package directory '{packageDir}'...", packageDirectory);
 
@@ -35,6 +35,16 @@ namespace Wallop.Engine.Scripting
 
             EngineLog.For<PackageCache>().Debug("Resolving modules...");
             Modules = ResolveModules();
+        }
+
+        public void ReloadPackage(string moduleId)
+        {
+            // Find and remove the package from the packages list.
+            var package = Packages.First(p => p.DeclaredModules.Any(m => m.ModuleInfo.Id == moduleId));
+            Packages = Packages.Where(p => p != package);
+
+            // Find and remove the modules that live within that package.
+            Modules = Modules.Where(m => !package.DeclaredModules.Any(pm => m.ModuleInfo.Id != pm.ModuleInfo.Id));
         }
 
         private IEnumerable<Module> ResolveModules()

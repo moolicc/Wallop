@@ -60,7 +60,7 @@ namespace Wallop.Engine.SceneManagement.Serialization
             }
         }
 
-        private void LoadLayoutActors(Layout layoutInstance, StoredLayout layoutDefinition)
+        public void LoadLayoutActors(Layout layoutInstance, StoredLayout layoutDefinition)
         {
             EngineLog.For<SceneLoader>().Info("Found {actorModules} actor definitions in layout.", layoutDefinition.ActorModules.Count);
 
@@ -77,7 +77,7 @@ namespace Wallop.Engine.SceneManagement.Serialization
             EngineLog.For<SceneLoader>().Info("Loaded {loaded} actors for the current layout.", loaded);
         }
 
-        private void CreateDirectors(Scene sceneInstance)
+        public void CreateDirectors(Scene sceneInstance)
         {
             EngineLog.For<SceneLoader>().Info("Creating {numDirectors} director elements...", _sceneSettings.DirectorModules.Count);
 

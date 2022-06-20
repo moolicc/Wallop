@@ -61,21 +61,20 @@ namespace Wallop.Engine.SceneManagement.Serialization
 
             return storedScene;
         }
-
-        private IEnumerable<StoredModule> SaveDirectors(Scene scene)
+        public IEnumerable<StoredModule> SaveDirectors(IEnumerable<ScriptedDirector> directors)
         {
-            foreach (var director in scene.Directors)
+            foreach (var director in directors)
             {
-                if(director is ScriptedDirector scripted)
-                {
-                    var stored = new StoredModule();
+                var stored = new StoredModule();
 
-                    SaveCommonElementalState(scripted, stored);
+                SaveCommonElementalState(director, stored);
 
-                    yield return stored;
-                }
+                yield return stored;
             }
         }
+
+        private IEnumerable<StoredModule> SaveDirectors(Scene scene)
+            => SaveDirectors(scene.Directors.Where(d => d is ScriptedDirector).Select(d => (ScriptedDirector)d));
 
         private IEnumerable<StoredLayout> SaveLayouts(Scene scene)
         {
@@ -85,13 +84,13 @@ namespace Wallop.Engine.SceneManagement.Serialization
 
                 stored.Name = layout.Name;
                 stored.Active = scene.ActiveLayout == layout;
-                stored.ActorModules = new List<StoredModule>(SaveActors(scene, layout.EcsRoot.GetActors<ScriptedActor>()));
+                stored.ActorModules = new List<StoredModule>(SaveActors(layout.EcsRoot.GetActors<ScriptedActor>()));
 
                 yield return stored;
             }
         }
 
-        private IEnumerable<StoredModule> SaveActors(Scene scene, IEnumerable<ScriptedActor> actors)
+        public IEnumerable<StoredModule> SaveActors(IEnumerable<ScriptedActor> actors)
         {
             foreach (var actor in actors)
             {

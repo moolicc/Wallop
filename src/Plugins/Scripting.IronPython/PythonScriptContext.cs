@@ -16,6 +16,11 @@ namespace Scripting.IronPython
 
         private List<string> _trackedKeys;
 
+        public PythonScriptContext()
+        {
+            _trackedKeys = new List<string>();
+        }
+
         internal void SetScope(ScriptScope pyScope)
         {
             _scope = pyScope;

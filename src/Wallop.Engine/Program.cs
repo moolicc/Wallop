@@ -15,23 +15,6 @@ namespace Wallop
 
         static int Main(string[] args)
         {
-
-            Wallop.Engine.ECS.ActorQuerying.Parsing.QueryParser parser = new Wallop.Engine.ECS.ActorQuerying.Parsing.QueryParser("* -> filter 2 + 2 = 4 and 1 + 1 > -1" );
-            var exp = parser.ParseNextExpression(0);
-
-            var actors = new List<IActor>
-            {
-                new Actor("alice"),
-                new Actor("bob"),
-            };
-
-            var machine = new Wallop.Engine.ECS.ActorQuerying.FilterMachine.Machine(actors);
-
-            exp.Evaluate(machine);
-
-            Console.ReadLine();
-
-
             using (var mutex = new Mutex(true, MUTEX_NAME, out var isOnlyInstance))
             {
                 try

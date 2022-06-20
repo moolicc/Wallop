@@ -11,6 +11,7 @@ using Wallop.Engine.Messaging.Messages;
 using Wallop.Engine.SceneManagement;
 using Wallop.Engine.SceneManagement.Serialization;
 using Wallop.Engine.Scripting;
+using Wallop.Engine.Scripting.ECS;
 using Wallop.Engine.Settings;
 
 namespace Wallop.Engine.Handlers
@@ -55,6 +56,7 @@ namespace Wallop.Engine.Handlers
             SubscribeToEngineMessages<SceneSaveMessage>(HandleSceneSave);
 
             SubscribeToEngineMessages<AddDirectorMessage>(HandleAddDirector);
+            SubscribeToEngineMessages<ReloadModuleMessage>(HandleReloadModule);
         }
 
         public override Command? GetCommandLineCommand(bool firstInstance)
@@ -128,6 +130,10 @@ namespace Wallop.Engine.Handlers
                 "Specifies a name to export the scene with");
 
 
+            var reloadModuleIdOpts = new Argument<string>("moduleid", "The ID of the module to reload");
+
+
+
 
             // EngineApp.exe scene create layout ...
             var sceneCreateLayoutCommand = new Command("layout")
@@ -193,12 +199,34 @@ namespace Wallop.Engine.Handlers
                 }, exportLocationOpts, exportAsNameOpts);
 
 
+            // EngineApp.exe scene reload module ...
+            var sceneReloadModuleCommand = new Command("module", "Reloads a module")
+            {
+                reloadModuleIdOpts
+            };
+
+            sceneReloadModuleCommand.SetHandler(
+                (string reloadModuleId) =>
+                {
+                    App.Messenger.Put(new ReloadModuleMessage(reloadModuleId));
+                }, reloadModuleIdOpts);
+
+
+            // EngineApp.exe scene reload ...
+            var sceneReloadCommand = new Command("reload", "Reloads an element in a scene")
+            {
+                sceneReloadModuleCommand
+            };
+
+
+
             // EngineApp.exe scene ...
             var sceneCommand = new Command("scene", "Scene operations")
             {
                 sceneCreateCommand,
                 sceneImportCommand,
                 sceneExportCommand,
+                sceneReloadCommand,
 
                 defaultSceneNameOpts,
                 drawThreadingPolicyOpts,
@@ -279,53 +307,58 @@ namespace Wallop.Engine.Handlers
                 Name = _sceneSettings.DefaultSceneName,
                 DirectorModules = new List<StoredModule>()
                 {
-                    //new StoredModule()
-                    //{
-                    //    InstanceName = "DirectorTest",
-                    //    ModuleId = "Director.Test1.0",
-                    //    Settings = new Dictionary<string, string>()
-                    //    {
-                    //        { "height", "100" },
-                    //        { "width", "100" }
-                    //    },
-                    //},
+                    new StoredModule()
+                    {
+                        InstanceName = "DirectorTest",
+                        ModuleId = "Director.Test1.0",
+                        Settings = new List<StoredSetting>()
+                        {
+                            new StoredSetting("height", "100"),
+                            new StoredSetting("width", "100"),
+                        },
+                        //Settings = new Dictionary<string, string>()
+                        //{
+                        //    { "height", "100" },
+                        //    { "width", "100" }
+                        //},
+                    },
                 },
                 Layouts = new List<StoredLayout>()
                 {
-                    //new StoredLayout()
-                    //{
-                    //    Active = true,
-                    //    Name = "layout1",
-                    //    ActorModules = new List<StoredModule>()
-                    //    {
-                    //        new StoredModule()
-                    //        {
-                    //            InstanceName = "Square",
-                    //            ModuleId = "Square.Test1.0",
-                    //            Settings = new Dictionary<string, string>()
-                    //            {
-                    //                { "height", "100" },
-                    //                { "width", "100" }
-                    //            }
-                    //        },
-                    //        new StoredModule()
-                    //        {
-                    //            InstanceName = "Square1",
-                    //            ModuleId = "Square.Test1.0",
-                    //            Settings = new Dictionary<string, string>()
-                    //            {
-                    //                { "height", "100" },
-                    //                { "width", "100" },
-                    //                { "y", "200" }
-                    //            },
-                    //            StoredBindings = new List<StoredBinding>()
-                    //            {
-                    //                new StoredBinding("PositionComponent", "X", "x"),
-                    //                new StoredBinding("PositionComponent", "Y", "y"),
-                    //            }
-                    //        }
-                    //    }
-                    //}
+                    new StoredLayout()
+                    {
+                        Active = true,
+                        Name = "layout1",
+                        ActorModules = new List<StoredModule>()
+                        {
+                            new StoredModule()
+                            {
+                                InstanceName = "Square",
+                                ModuleId = "Square.Test1.0",
+                                Settings = new List<StoredSetting>()
+                                {
+                                    new StoredSetting("height", "100"),
+                                    new StoredSetting("width", "100"),
+                                },
+                            },
+                            new StoredModule()
+                            {
+                                InstanceName = "Square1",
+                                ModuleId = "Square.Test1.0",
+                                Settings = new List<StoredSetting>()
+                                {
+                                    new StoredSetting("height", "100"),
+                                    new StoredSetting("width", "100"),
+                                    new StoredSetting("y", "200"),
+                                },
+                                StoredBindings = new List<StoredBinding>()
+                                {
+                                    new StoredBinding("PositionComponent", "X", "x"),
+                                    new StoredBinding("PositionComponent", "Y", "y"),
+                                }
+                            }
+                        }
+                    }
                 }
             };
             _sceneStore.Add(defaultSettings);
@@ -387,12 +420,80 @@ namespace Wallop.Engine.Handlers
         public void SaveCurrentSceneConfig(SettingsSaveOptions savePolicies, string filepath)
         {
             EngineLog.For<SceneHandler>().Info("Saving scene configuration to {location}...", filepath);
-            var packageCache = App.GetService<PackageCache>().OrThrow();
-            var saver = new SceneSaver(savePolicies, packageCache);
+            var saver = new SceneSaver(savePolicies, PackageCache);
             var settings = saver.Save(_activeScene);
             _sceneStore.Add(settings);
             var json = _sceneStore.Save(settings.Name);
             File.WriteAllText(filepath, json);
+        }
+
+        public void ReloadModule(string moduleId)
+        {
+            EngineLog.For<SceneHandler>().Info("Reloading module '{module}'...", moduleId);
+            var sceneSaver = new SceneSaver(SettingsSaveOptions.EntireState, PackageCache);
+
+            // First, find all elements using this module and save their state.
+            EngineLog.For<SceneHandler>().Info("Saving directors with module '{module}'...", moduleId);
+
+            var applicableDirectors = ActiveScene.Directors
+                .Where(d => d is ScriptedDirector xD && xD.ModuleDeclaration.ModuleInfo.Id == moduleId);
+            var savedDirectors = sceneSaver.SaveDirectors(applicableDirectors.Select(d => (ScriptedDirector)d));
+
+            // Remove the directors from the scene.
+            foreach (var item in applicableDirectors)
+            {
+                _activeScene.Directors.Remove(item);
+            }
+
+            EngineLog.For<SceneHandler>().Info("Saving actors with module '{module}'...", moduleId);
+            var savedLayouts = new List<(Layout SceneLayout, StoredLayout SavedInfo)>();
+
+            int actorCount = 0;
+            foreach (var layout in ActiveScene.Layouts)
+            {
+                var applicableActors = layout.EcsRoot.GetActors()
+                    .Where(a => a is ScriptedActor xA && xA.ModuleDeclaration.ModuleInfo.Id == moduleId);
+
+                var savedActors = sceneSaver.SaveActors(applicableActors.Select(a => (ScriptedActor)a));
+
+                var storedLayout = new StoredLayout();
+                storedLayout.ActorModules = savedActors.ToList();
+
+                // Remove the actors from the layout.
+                foreach (var item in applicableActors)
+                {
+                    layout.EcsRoot.Remove(item);
+                }
+
+                actorCount += storedLayout.ActorModules.Count;
+
+                savedLayouts.Add((layout, storedLayout));
+            }
+
+
+            EngineLog.For<SceneHandler>().Info("Reloading {count} directors with module '{module}'...", savedDirectors.Count(), moduleId);
+            // Finally, re-init the elements using the new module.
+            var storedScene = new StoredScene();
+            storedScene.DirectorModules = savedDirectors.ToList();
+            storedScene.Layouts = savedLayouts.Select(l => l.SavedInfo).ToList();
+
+            var sceneLoader = new SceneLoader(storedScene, PackageCache);
+            sceneLoader.CreateDirectors(ActiveScene);
+
+            EngineLog.For<SceneHandler>().Info("Reloading {actorCount} actors within {layoutCount} layouts with module '{module}'...", actorCount, savedLayouts.Count, moduleId);
+            foreach (var item in savedLayouts)
+            {
+                foreach (var savedActor in item.SavedInfo.ActorModules)
+                {
+                    var actor = Scripting.ECS.Serialization.ElementLoader.Instance.Load<ScriptedActor>(savedActor);
+
+                    item.SceneLayout.EcsRoot.AddActor(actor);
+                    actor.AddedToLayout(item.SceneLayout);
+
+                    Scripting.ECS.Serialization.ElementInitializer.Instance.InitializeElement(actor, _activeScene);
+
+                }
+            }
         }
 
 
@@ -406,7 +507,7 @@ namespace Wallop.Engine.Handlers
             {
                 var packageCache = App.GetService<PackageCache>().OrThrow();
                 _sceneSettings.PackageSearchDirectory = message.Settings.PackageSearchDirectory;
-                packageCache.Reload(message.Settings.PackageSearchDirectory);
+                packageCache.ReloadAll(message.Settings.PackageSearchDirectory);
             }
 
             if (_sceneSettings.DrawThreadingPolicy != message.Settings.DrawThreadingPolicy)
@@ -636,6 +737,12 @@ namespace Wallop.Engine.Handlers
                 scene.DirectorModules.Add(directorDefinition);
             }
         }
+
+        public void HandleReloadModule(ReloadModuleMessage message, uint messageId)
+        {
+            ReloadModule(message.ModuleId);
+        }
+
 
         public void SceneUpdate()
         {

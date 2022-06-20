@@ -59,7 +59,7 @@ namespace Wallop.Engine.Scripting
         }
 
 
-        private void InitializeActors(Layout rootLayout, IEnumerable<ScriptedActor> actors)
+        public void InitializeActors(Layout rootLayout, IEnumerable<ScriptedActor> actors)
         {
             foreach (var actor in actors)
             {
