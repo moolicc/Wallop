@@ -48,7 +48,7 @@ jobs:
     - name: Update version
       shell: pwsh
       run: |
-        ./util/pr_label_checker.ps1 ${{ GITHUB_BASE_REF }} ${{ steps.pr-labels.outputs.labels }}
+        ./util/pr_label_checker.ps1 $GITHUB_BASE_REF ${{ steps.pr-labels.outputs.labels }}
         
     - name: Commit files
       run: |
