@@ -6,5 +6,5 @@ using System.Threading.Tasks;
 
 namespace Wallop.Engine.Messaging.Messages
 {
-    public readonly record struct ReloadModuleMessage(string ModuleId);
+    public readonly record struct ReloadModuleMessage(string ModuleId, bool keepState);
 }

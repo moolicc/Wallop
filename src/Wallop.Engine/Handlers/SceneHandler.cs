@@ -131,6 +131,10 @@ namespace Wallop.Engine.Handlers
 
 
             var reloadModuleIdOpts = new Argument<string>("moduleid", "The ID of the module to reload");
+            var reloadModuleKeepStateOpts = new Option<bool>(
+                new[] { "-s", "--keep-state" },
+                () => false,
+                "Specifies whether or not to retain the state of any actors using the module");
 
 
 
@@ -202,14 +206,15 @@ namespace Wallop.Engine.Handlers
             // EngineApp.exe scene reload module ...
             var sceneReloadModuleCommand = new Command("module", "Reloads a module")
             {
-                reloadModuleIdOpts
+                reloadModuleIdOpts,
+                reloadModuleKeepStateOpts
             };
 
             sceneReloadModuleCommand.SetHandler(
-                (string reloadModuleId) =>
+                (string reloadModuleId, bool keepState) =>
                 {
-                    App.Messenger.Put(new ReloadModuleMessage(reloadModuleId));
-                }, reloadModuleIdOpts);
+                    App.Messenger.Put(new ReloadModuleMessage(reloadModuleId, keepState));
+                }, reloadModuleIdOpts, reloadModuleKeepStateOpts);
 
 
             // EngineApp.exe scene reload ...
@@ -307,21 +312,21 @@ namespace Wallop.Engine.Handlers
                 Name = _sceneSettings.DefaultSceneName,
                 DirectorModules = new List<StoredModule>()
                 {
-                    new StoredModule()
-                    {
-                        InstanceName = "DirectorTest",
-                        ModuleId = "Director.Test1.0",
-                        Settings = new List<StoredSetting>()
-                        {
-                            new StoredSetting("height", "100"),
-                            new StoredSetting("width", "100"),
-                        },
-                        //Settings = new Dictionary<string, string>()
-                        //{
-                        //    { "height", "100" },
-                        //    { "width", "100" }
-                        //},
-                    },
+                    //new StoredModule()
+                    //{
+                    //    InstanceName = "DirectorTest",
+                    //    ModuleId = "Director.Test1.0",
+                    //    Settings = new List<StoredSetting>()
+                    //    {
+                    //        new StoredSetting("height", "100"),
+                    //        new StoredSetting("width", "100"),
+                    //    },
+                    //    //Settings = new Dictionary<string, string>()
+                    //    //{
+                    //    //    { "height", "100" },
+                    //    //    { "width", "100" }
+                    //    //},
+                    //},
                 },
                 Layouts = new List<StoredLayout>()
                 {
@@ -427,10 +432,10 @@ namespace Wallop.Engine.Handlers
             File.WriteAllText(filepath, json);
         }
 
-        public void ReloadModule(string moduleId)
+        public void ReloadModule(string moduleId, bool keepState)
         {
             EngineLog.For<SceneHandler>().Info("Reloading module '{module}'...", moduleId);
-            var sceneSaver = new SceneSaver(SettingsSaveOptions.EntireState, PackageCache);
+            var sceneSaver = new SceneSaver(keepState ? SettingsSaveOptions.EntireState : SettingsSaveOptions.Default, PackageCache);
 
             // First, find all elements using this module and save their state.
             EngineLog.For<SceneHandler>().Info("Saving directors with module '{module}'...", moduleId);
@@ -717,7 +722,7 @@ namespace Wallop.Engine.Handlers
             if (message.Scene == null || message.Scene.Equals(_activeScene.Name))
             {
                 // Create and initialize the director.
-                var director = Scripting.ECS.Serialization.ElementLoader.Instance.Load<Scripting.ECS.ScriptedDirector>(directorDefinition);
+                var director = Scripting.ECS.Serialization.ElementLoader.Instance.Load<ScriptedDirector>(directorDefinition);
                 Scripting.ECS.Serialization.ElementInitializer.Instance.InitializeElement(director, _activeScene);
 
                 // Add the director to the scene.
@@ -740,7 +745,7 @@ namespace Wallop.Engine.Handlers
 
         public void HandleReloadModule(ReloadModuleMessage message, uint messageId)
         {
-            ReloadModule(message.ModuleId);
+            ReloadModule(message.ModuleId, message.keepState);
         }
 
 
