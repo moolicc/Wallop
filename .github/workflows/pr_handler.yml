@@ -44,14 +44,11 @@ jobs:
       with:
         fetch-depth: 0  # OR "2" -> To retrieve the preceding commit.
 
-    #- name: Get changed files
-      #id: changed-files
-      #uses: tj-actions/changed-files@v23
-
-    - name: Update all projects (with changed files) version minors
+    # Set version
+    - name: Update version
       shell: pwsh
       run: |
-        ./util/pr_label_checker.ps1 ${{ steps.pr-labels.outputs.labels }}
+        ./util/pr_label_checker.ps1 ${{ GITHUB_BASE_REF }} ${{ steps.pr-labels.outputs.labels }}
         
     - name: Commit files
       run: |

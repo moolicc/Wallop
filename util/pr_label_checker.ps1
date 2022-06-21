@@ -16,6 +16,10 @@ $major = ($args | Where { $_ -eq "breaking-change"-or $_ -eq "major" }) -gt 0
 $minor = ($args | Where { $_ -eq "feature" -or $_ -eq "minor" }) -gt 0
 $patch = ($args | Where { $_ -eq "bug" -or $_ -eq "patch" }) -gt 0
 
+$dev = ($args | Where { $_ -eq "develop" }) -gt 0
+$beta = ($args | Where { $_ -eq "beta" }) -gt 0
+$release = ($args | Where { $_ -eq "main" }) -gt 0
+
 $majorArg = "-major:`$false"
 if($major)
 {
@@ -35,9 +39,23 @@ if($patch)
     $patchArg = "-patch"
 }
 
+$suffix = ""
+if($dev)
+{
+    $suffix = "dev"
+}
+elseif($beta)
+{
+    $suffix = "beta"
+}
+elseif($release)
+{
+    $suffix = ""
+}
+
 
 # Finally, call the incrementation script.
 $scriptFile = Join-Path -Path $PSScriptRoot -ChildPath "incrversion.ps1"
-$command = "{0} {1} {2} {3} {4}" -f $scriptFile, $projectArg, $majorArg, $minorArg, $patchArg
+$command = "{0} {1} {2} {3} {4} {5}" -f $scriptFile, $projectArg, $suffix, $majorArg, $minorArg, $patchArg
 Write-Output ("Running {0}" -f $command)
 Invoke-Expression $command
