@@ -6,9 +6,7 @@
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <VersionPrefix>0.8.0</VersionPrefix>
-    <VersionSuffix>
-    </VersionSuffix>
-    <InformationalVersion>Alef</InformationalVersion>
+    <VersionSuffix>Alef</VersionSuffix>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Cog\Cog.csproj" />

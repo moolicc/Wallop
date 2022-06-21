@@ -3,6 +3,9 @@ param(
     [Alias("project")]
     [string]$projectName,
 
+    [AllowEmptyString()]
+    $suffix,
+
     [switch]
     [Alias("major")]
     $incrMajor,
@@ -49,8 +52,8 @@ $xdoc.load($file)
 
 # Get the current version of the csproj.
 $projVer = [version]$xdoc.Project.PropertyGroup.VersionPrefix
-$projFriendly = $xdoc.Project.PropertyGroup.InformationalVersion
-Write-Output ("Current version: {0} {1}" -f $projFriendly, $projVer.ToString(3))
+$projFriendly = $xdoc.Project.PropertyGroup.VersionSuffix
+Write-Output ("Current version: {0} {1}" -f $projVer.ToString(3), $projFriendly)
 
 
 $projMajor = $projVer.Major
@@ -67,7 +70,7 @@ if ($incrPatch) {
 }
 
 # If the major version is changing, reset minor and patch numbers to zero.
-if($projMajor -ne $major -or $friendly -ne $projFriendly) {
+if($projMajor -ne $major) {
     $projMinor = 0
     $projPatch = 0
 }
@@ -80,10 +83,18 @@ $projFriendly = $friendly
 $projVer = New-Object System.Version($projMajor, $projMinor, $projPatch, 0)
 
 # Write the new version.
-Write-Output ("New version: {0} {1}" -f $projFriendly, $projVer.ToString(3))
+Write-Output ("New version: {0} {1}-{2}" -f $projVer.ToString(3), $projFriendly, $suffix)
 
 $xdoc.Project.PropertyGroup.VersionPrefix = $projVer.ToString(3)
-$xdoc.Project.PropertyGroup.InformationalVersion = [string]$projFriendly
+
+if($suffix)
+{
+    $xdoc.Project.PropertyGroup.VersionSuffix = "{0}-{1}" -f [string]$projFriendly, $suffix
+}
+else
+{
+    $xdoc.Project.PropertyGroup.VersionSuffix = [string]$projFriendly
+}
 
 # Save the csproj.
 $scriptFolder = $MyInvocation.MyCommand.Path | Split-Path -Parent

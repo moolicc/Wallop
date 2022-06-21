@@ -44,29 +44,11 @@ jobs:
       with:
         fetch-depth: 0  # OR "2" -> To retrieve the preceding commit.
 
-    # Set version suffix
-    - name: Set dev version suffix
-      if: $GITHUB_BASE_REF == "develop"
+    # Set version
+    - name: Update version
       shell: pwsh
       run: |
-        ./util/set_version_suffix.ps1 engine develop
-
-    - name: Set prerelease version suffix
-      if: $GITHUB_BASE_REF == "beta"
-      shell: pwsh
-      run: |
-        ./util/set_version_suffix.ps1 engine beta
-
-    - name: Set release version suffix
-      if: $GITHUB_BASE_REF == "main"
-      shell: pwsh
-      run: |
-        ./util/set_version_suffix.ps1 engine ""
-
-    - name: Update version numbers
-      shell: pwsh
-      run: |
-        ./util/pr_label_checker.ps1 ${{ steps.pr-labels.outputs.labels }}
+        ./util/pr_label_checker.ps1 ${{ GITHUB_BASE_REF }} ${{ steps.pr-labels.outputs.labels }}
         
     - name: Commit files
       run: |
