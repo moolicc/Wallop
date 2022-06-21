@@ -44,11 +44,26 @@ jobs:
       with:
         fetch-depth: 0  # OR "2" -> To retrieve the preceding commit.
 
-    #- name: Get changed files
-      #id: changed-files
-      #uses: tj-actions/changed-files@v23
+    # Set version suffix
+    - name: Set dev version suffix
+      if: $GITHUB_BASE_REF == "develop"
+      shell: pwsh
+      run: |
+        ./util/set_version_suffix.ps1 engine develop
 
-    - name: Update all projects (with changed files) version minors
+    - name: Set prerelease version suffix
+      if: $GITHUB_BASE_REF == "beta"
+      shell: pwsh
+      run: |
+        ./util/set_version_suffix.ps1 engine beta
+
+    - name: Set release version suffix
+      if: $GITHUB_BASE_REF == "main"
+      shell: pwsh
+      run: |
+        ./util/set_version_suffix.ps1 engine ""
+
+    - name: Update version numbers
       shell: pwsh
       run: |
         ./util/pr_label_checker.ps1 ${{ steps.pr-labels.outputs.labels }}

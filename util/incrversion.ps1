@@ -48,7 +48,7 @@ $file = resolve-path($projectFile)
 $xdoc.load($file)
 
 # Get the current version of the csproj.
-$projVer = [version]$xdoc.Project.PropertyGroup.Version
+$projVer = [version]$xdoc.Project.PropertyGroup.VersionPrefix
 $projFriendly = $xdoc.Project.PropertyGroup.InformationalVersion
 Write-Output ("Current version: {0} {1}" -f $projFriendly, $projVer.ToString(3))
 
@@ -82,7 +82,7 @@ $projVer = New-Object System.Version($projMajor, $projMinor, $projPatch, 0)
 # Write the new version.
 Write-Output ("New version: {0} {1}" -f $projFriendly, $projVer.ToString(3))
 
-$xdoc.Project.PropertyGroup.Version = $projVer.ToString(3)
+$xdoc.Project.PropertyGroup.VersionPrefix = $projVer.ToString(3)
 $xdoc.Project.PropertyGroup.InformationalVersion = [string]$projFriendly
 
 # Save the csproj.
