@@ -97,3 +97,5 @@ else
     $path = Join-Path -Path $scriptFolder -ChildPath $projectFile
     $xdoc.Save($path)
 }
+
+Write-Output "NEW_VERSION=${projVer.ToString(3)}" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
