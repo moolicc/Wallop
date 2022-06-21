@@ -1,7 +1,11 @@
 param(
     [parameter(Mandatory=$true)]
-    [Alias("file")]
-    $projectFile,
+    [Alias("project")]
+    [string]$projectName,
+
+    [switch]
+    [Alias("major")]
+    $incrMajor,
 
     [switch]
     [Alias("minor")]
@@ -12,6 +16,9 @@ param(
     $incrPatch
 )
 
+$allFriendlies = @("Alef", "Bet", "Gimel", "Dalet", "He", "Vav", "Zayin", "Chet", "Tet", "Yod", "Kaf", "Lamed", "Mem", "Nun", "Samech", "Ayin", "Pe", "Tsadi", "Qof", "Resh", "Shin", "tav")
+$allProjects = @{ "engine"="../src/Wallop.Engine/Wallop.Engine.csproj" }
+
 Set-Location -Path $PSScriptRoot
 
 
@@ -19,8 +26,21 @@ Set-Location -Path $PSScriptRoot
 $friendly = Get-Content Version.txt -First 1
 $major = Get-Content Version.txt | Select-Object -Skip 1 -First 1
 
+# If we're changing the major (and friendly), re-write the new information.
+if($incrMajor)
+{
+    $major = [int]$major + 1
+    $friendly = $allFriendlies[$major]
+    Write-Output ("Changing major in version.txt: {0} {1}.*.*" -f $friendly, $major);
+    Set-Content -Path Version.txt -Value "${friendly}`n${major}"
+}
+
 # Write version product information.
 Write-Output "Product version: ${friendly} ${major}.*.*"
+
+Write-Output "Finding project file..."
+$projectFile = $allProjects[$projectName]
+Write-Output "Working on project ${projectFile}"
 
 # Load the csproj.
 $xdoc = new-object System.Xml.XmlDocument

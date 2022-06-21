@@ -1,5 +1,0 @@
-Alef
-0
-
-Versioning information:
-Major and friendly string specified here, minor incremented by release of individual component, patch incremented every commit (with a passing build).
