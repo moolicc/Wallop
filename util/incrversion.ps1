@@ -88,14 +88,13 @@ $xdoc.Project.PropertyGroup.InformationalVersion = [string]$projFriendly
 # Save the csproj.
 $scriptFolder = $MyInvocation.MyCommand.Path | Split-Path -Parent
 
-if(Test-Path -Path $projectFile)
+if(Test-Path -Path $file)
 {
-    $xdoc.Save($projectFile)
+    $xdoc.Save($file)
 }
 else
 {
-    $path = Join-Path -Path $scriptFolder -ChildPath $projectFile
-    $xdoc.Save($path)
+    Write-Error "Failed to save project xml."
 }
 
 Write-Output "NEW_VERSION=${projVer.ToString(3)}" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
