@@ -50,4 +50,3 @@ To understand, here's a rough timeline. (It's very rough, though the years shoul
 
 ## Building
 Just build it from within visual studio - no fancy cake scripts anymore (the cake was thus indeed a lie).
-
