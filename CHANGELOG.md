@@ -1,5 +1,9 @@
 # Changelog
 
+## [v10.10.10-Oranges.pre](https://github.com/moolicc/Wallop/tree/v10.10.10-Oranges.pre) (2022-06-22)
+
+[Full Changelog](https://github.com/moolicc/Wallop/compare/v8.8.8-Alef.pre...v10.10.10-Oranges.pre)
+
 ## [v8.8.8-Alef.pre](https://github.com/moolicc/Wallop/tree/v8.8.8-Alef.pre) (2022-06-22)
 
 [Full Changelog](https://github.com/moolicc/Wallop/compare/v0.2.0-alef.pre...v8.8.8-Alef.pre)
