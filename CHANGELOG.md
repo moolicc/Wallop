@@ -1,8 +1,12 @@
 # Changelog
 
-## [Unreleased](https://github.com/moolicc/Wallop/tree/HEAD)
+## [v8.8.8-Alef.pre](https://github.com/moolicc/Wallop/tree/v8.8.8-Alef.pre) (2022-06-22)
 
-[Full Changelog](https://github.com/moolicc/Wallop/compare/v0.1.0-alef.pre...HEAD)
+[Full Changelog](https://github.com/moolicc/Wallop/compare/v0.2.0-alef.pre...v8.8.8-Alef.pre)
+
+## [v0.2.0-alef.pre](https://github.com/moolicc/Wallop/tree/v0.2.0-alef.pre) (2022-06-22)
+
+[Full Changelog](https://github.com/moolicc/Wallop/compare/v0.1.0-alef.pre...v0.2.0-alef.pre)
 
 **Implemented enhancements:**
 
