@@ -8,8 +8,34 @@ on:
       versionSuffix:
         description: 'Version suffix (ie alef)'
         required: true
-jobs:
-  create-release:
+        
+env:
+  DOTNET_VERSION: 'v6.0.301' # The .NET SDK version to use
+
+jobs:      
+  build:
+    name: build-${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest]
+    steps:
+    
+    - uses: actions/checkout@v3
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v2.1.0
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        
+    - name: Install dependencies
+      run: dotnet restore ./src/
+      
+    - name: Build
+      run: dotnet build ./src/ --no-restore
+      
+      
+  create-release-branch:
+    needs: build
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -30,11 +56,10 @@ jobs:
     
     # TODO: Update changelog
 
-    - name: Commit changelog and manifest files
-      id: make-commit
+    - name: Commit version change
       run: |
         git add .
-        git commit --message "Prepare release ${{ github.event.inputs.versionPrefix }}-${{ github.event.inputs.versionSuffix }}"
+        git commit -m "Prepare release ${{ github.event.inputs.versionPrefix }}-${{ github.event.inputs.versionSuffix }}"
         echo "::set-output name=commit::$(git rev-parse HEAD)"
         
     - name: Push changes
@@ -47,3 +72,41 @@ jobs:
         title: New release pending
         body: PR created by the creation of a new release branch. Merge in once the release branch is ready for prime-time!
         branch: main
+        
+  create-release:
+    needs: create-release-branch
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: release/v${{ github.event.inputs.versionPrefix }}
+      
+      - name: Build changelog
+        id: build-changelog
+        uses: heinrichreimer/github-changelog-generator-action@v2.3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }} 
+          
+      - name: Commit changelog
+        run: |
+          echo ${{ steps.build-changelog.outputs.changelog }} >> ./CHANGELOG.md
+          git add .
+          git commit --message "Added changelog for release"
+          echo "::set-output name=commit::$(git rev-parse HEAD)"
+          
+      - name: Push changelog
+        run: git push
+      
+      - name: Create release tag
+        uses: rickstaa/action-create-tag@v1
+        with:
+          tag: "v${{ github.event.inputs.versionPrefix }}-${{ github.event.inputs.versionSuffix }}"
+          message: "Latest beta release"
+          
+      - name: Create release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: "v${{ github.event.inputs.versionPrefix }}-${{ github.event.inputs.versionSuffix }}"
+          bodyFile: "./CHANGELOG.md"
+          token: ${{ secrets.GITHUB_TOKEN }}
