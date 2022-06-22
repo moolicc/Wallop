@@ -1,0 +1,49 @@
+name: Create Release Branch
+on:
+  workflow_dispatch:
+    inputs:
+      versionPrefix:
+        description: 'Version number (ie 1.0.0)'
+        required: true
+      versionSuffix:
+        description: 'Version suffix (ie alef)'
+        required: true
+jobs:
+  create_release:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      
+    - name: Create release branch
+      run: git checkout -b release/v${{ github.event.inputs.versionPrefix }}
+      
+    - name: Setup git config
+      run: |
+       git config user.name "GitHub Actions"
+       git config user.email noreply@github.com
+       
+    - name: Change version number and name of project
+      shell: pwsh
+      run: |
+        ./util/set_version.ps1 engine "${{ github.event.inputs.versionPrefix }}" "${{ github.event.inputs.versionSuffix }}"
+    
+    # TODO: Update changelog
+
+    - name: Commit changelog and manifest files
+      id: make-commit
+      run: |
+        git add .
+        git commit --message "Prepare release ${{ github.event.inputs.versionPrefix }}-${{ github.event.inputs.versionSuffix }}"
+        echo "::set-output name=commit::$(git rev-parse HEAD)"
+        
+    - name: Push changes
+      run: git push origin release/v${{ github.event.inputs.versionPrefix }}
+      
+    - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v4
+        with:
+          commit-message: New release
+          title: New release pending
+          body: PR created by the creation of a new release branch. Merge in once the release branch is ready for prime-time!
+          branch: main
