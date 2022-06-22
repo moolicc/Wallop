@@ -13,29 +13,29 @@ env:
   DOTNET_VERSION: 'v6.0.301' # The .NET SDK version to use
 
 jobs:      
-  build:
-    name: build-${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [windows-latest]
-    steps:
+  #build:
+    #name: build-${{ matrix.os }}
+    #runs-on: ${{ matrix.os }}
+    #strategy:
+      #matrix:
+        #os: [windows-latest]
+    #steps:
     
-    - uses: actions/checkout@v3
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v2.1.0
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
+    #- uses: actions/checkout@v3
+    #- name: Setup .NET Core
+    #  uses: actions/setup-dotnet@v2.1.0
+    #  with:
+    #    dotnet-version: ${{ env.DOTNET_VERSION }}
         
-    - name: Install dependencies
-      run: dotnet restore ./src/
+   # - name: Install dependencies
+   #   run: dotnet restore ./src/
       
-    - name: Build
-      run: dotnet build ./src/ --no-restore
+   # - name: Build
+    #  run: dotnet build ./src/ --no-restore
       
       
   create-release-branch:
-    needs: build
+    #needs: build
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -109,7 +109,8 @@ jobs:
           commit-message: A new release has been made.
           title: 🤖 New release pending
           body: PR created by the creation of a new release branch. Merge in once the release branch is ready for prime-time!
-          branch: develop
+          base: develop
+          branch: release/v${{ github.event.inputs.versionPrefix }}
           labels: changelog-ignore
           
       - name: Create release
