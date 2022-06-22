@@ -81,18 +81,17 @@ jobs:
         with:
           ref: release/v${{ github.event.inputs.versionPrefix }}
       
+      - run: cd
+      
       - name: Build changelog
         id: build-changelog
         uses: heinrichreimer/github-changelog-generator-action@v2.3
         with:
           token: ${{ secrets.GITHUB_TOKEN }} 
+          output: "./CHANGELOG.md"
           
       - name: Commit changelog
-        run: |
-          cat >> ./CHANGELOG.md << EOL
-          ${{ steps.build-changelog.outputs.changelog }}
-          EOL
-          
+        run: |          
           git add .
           git commit --message "Added changelog for release"
           echo "::set-output name=commit::$(git rev-parse HEAD)"
