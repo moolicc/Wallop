@@ -54,7 +54,6 @@ jobs:
       run: |
         ./util/set_version.ps1 engine "${{ github.event.inputs.versionPrefix }}" "${{ github.event.inputs.versionSuffix }}"
     
-    # TODO: Update changelog
 
     - name: Commit version change
       run: |
@@ -90,7 +89,10 @@ jobs:
           
       - name: Commit changelog
         run: |
-          echo ${{ steps.build-changelog.outputs.changelog }} >> ./CHANGELOG.md
+          cat >> ./CHANGELOG.md << EOL
+          ${{ steps.build-changelog.outputs.changelog }}
+          EOL
+          
           git add .
           git commit --message "Added changelog for release"
           echo "::set-output name=commit::$(git rev-parse HEAD)"
