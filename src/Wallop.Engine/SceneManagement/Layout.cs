@@ -31,9 +31,9 @@ namespace Wallop.Engine.SceneManagement
 
         private Vector2 _presentationSize;
 
-        public Layout()
+        public Layout(string name)
         {
-            Name = string.Empty;
+            Name = name;
             Screen = ScreenInfo.GetVirtualScreen();
             EcsRoot = new ECS.Manager();
             _presentationSize = Vector2.Zero;

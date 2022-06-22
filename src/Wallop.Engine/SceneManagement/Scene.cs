@@ -188,5 +188,35 @@ namespace Wallop.Engine.SceneManagement
                 }
             }
         }
+
+        internal string GetFriendlyString()
+        {
+            var builder = new StringBuilder();
+            builder.AppendFormat("Scene : {0}\n", Name);
+            builder.AppendLine();
+
+            foreach (var layout in Layouts)
+            {
+                builder.AppendFormat("  {0}Layout : {1}\n", layout == ActiveLayout ? "*" : "", layout.Name);
+                foreach (var actor in layout.EcsRoot.GetActors())
+                {
+                    builder.AppendFormat("    Actor : {0}\n", actor.Name);
+                    if(actor is ScriptedActor sActor)
+                    {
+                        builder.AppendFormat("      ModuleID : {0}\n", sActor.ModuleDeclaration.ModuleInfo.Id);
+                        builder.AppendFormat("      ModulePkg : {0}\n", sActor.ModuleDeclaration.ModuleInfo.PackageFile);
+
+                        foreach (var comp in actor.Components)
+                        {
+                            builder.AppendFormat("      Component : {0}\n", comp.GetType().Name);
+                        }
+                    }
+                }
+            }
+
+            return builder.ToString();
+        }
+
+        
     }
 }

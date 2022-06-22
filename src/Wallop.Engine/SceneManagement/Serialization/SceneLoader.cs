@@ -38,7 +38,7 @@ namespace Wallop.Engine.SceneManagement.Serialization
             foreach (var layoutSpecified in _sceneSettings.Layouts)
             {
                 // Create the layout which will go in our Scene Tree.
-                var layout = new Layout();
+                var layout = new Layout(layoutSpecified.Name);
                 layout.PresentationSize = new System.Numerics.Vector2(800, 600);
                 layout.RenderSize = new System.Numerics.Vector2(800, 600);
 

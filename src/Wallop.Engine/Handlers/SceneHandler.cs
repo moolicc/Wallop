@@ -92,9 +92,8 @@ namespace Wallop.Engine.Handlers
                 new[] { "--clone", "-c" },
                 () => _sceneSettings.DefaultSceneName,
                 "Bases a scene based on the scene of the specified name or configuration path");
-            var newSceneNameOpts = new Option<string>(
-                new[] { "--name", "-n" },
-                "Bases a scene based on the scene of the specified name or configuration path");
+            var newSceneNameOpts = new Argument<string>("name", 
+                "The scene's name");
 
             var basedOnLayoutOpts = new Option<string>(
                 new[] { "--clone", "-c" },
@@ -113,6 +112,28 @@ namespace Wallop.Engine.Handlers
                 () => false,
                 "Whether or not to make this layout active upon creation"
                 );
+
+
+
+            var newActorNameOpts = new Option<string>(
+                new[] { "--actor-name", "-n" },
+                "The new actor's name");
+            var newActorModuleOpts = new Option<string>(
+                new[] { "--module", "-m" },
+                "The new actor's module");
+            var basedOnActorOpts = new Option<string>(
+                new[] { "--clone-actor" },
+                () => "",
+                "The name of an actor to clone");
+            var owningLayoutOpts = new Option<string>(
+                new[] { "--layout", "-l" },
+                () => _activeScene.ActiveLayout?.Name ?? "",
+                "The layout upon-which to place this Actor");
+            var elementSettingsOpts = new Option<Dictionary<string, string>>(
+                new[] { "--settings", "-s" },
+                () => new Dictionary<string, string>(),
+                "A list of key/value pairs representing the actor's settings.");
+
 
 
             var importLocationOpts = new Argument<string>("location", "Specifies a scene configuration file to import");
@@ -155,23 +176,47 @@ namespace Wallop.Engine.Handlers
                     App.Messenger.Put(message);
                 });
 
+            // EngineApp.exe scene create actor ...
+            var sceneCreateActor = new Command("actor")
+            {
+                newActorNameOpts,
+                newActorModuleOpts,
+                basedOnActorOpts,
+                owningLayoutOpts,
+
+                elementSettingsOpts,
+            };
+
+            sceneCreateActor.SetHandler(new Action<string, string, string, string, Dictionary<string, string>> (
+                (name, module, clone, layout, settings) =>
+                {
+                    if(_activeScene is null)
+                    {
+                        // TODO: Error
+                        return;
+                    }
+                    var newActorMessage = new AddActorMessage(name, _activeScene.Name, layout, module, settings);
+                    App.Messenger.Put(newActorMessage);
+                }), newActorNameOpts, newActorModuleOpts, basedOnActorOpts, owningLayoutOpts, elementSettingsOpts);
 
 
             // EngineApp.exe scene create ...
             var sceneCreateCommand = new Command("create", "Creates a new scene")
             {
                 sceneCreateLayoutCommand,
+                sceneCreateActor,
 
                 basedOnSceneOpts,
                 newSceneNameOpts
             };
 
-            sceneCreateCommand.Handler = CommandHandler.Create<string, string>(
-                (basedOnScene, newSceneNamee) =>
+
+            sceneCreateCommand.SetHandler(new Action<string, string>(
+                (string newSceneName, string basedOnScene) =>
                 {
-                    var message = new CreateSceneMessage(newSceneNamee, basedOnScene);
+                    var message = new CreateSceneMessage(newSceneName, basedOnScene);
                     App.Messenger.Put(message);
-                });
+                }), newSceneNameOpts, basedOnSceneOpts);
 
 
             // EngineApp.exe scene import ...
@@ -223,7 +268,13 @@ namespace Wallop.Engine.Handlers
                 sceneReloadModuleCommand
             };
 
+            // EngineApp.exe scene info
+            var sceneInfoCommand = new Command("info", "Retrieves scene information");
 
+            sceneInfoCommand.SetHandler(() =>
+            {
+                Console.WriteLine(_activeScene.GetFriendlyString());
+            });
 
             // EngineApp.exe scene ...
             var sceneCommand = new Command("scene", "Scene operations")
@@ -232,6 +283,7 @@ namespace Wallop.Engine.Handlers
                 sceneImportCommand,
                 sceneExportCommand,
                 sceneReloadCommand,
+                sceneInfoCommand,
 
                 defaultSceneNameOpts,
                 drawThreadingPolicyOpts,
@@ -558,8 +610,7 @@ namespace Wallop.Engine.Handlers
 
             if (message.TargetScene == null)
             {
-                var newLayout = new SceneManagement.Layout();
-                newLayout.Name = message.Name;
+                var newLayout = new Layout(message.Name);
 
                 var scene = _activeScene;
                 scene.Layouts.Add(newLayout);
@@ -630,7 +681,6 @@ namespace Wallop.Engine.Handlers
             if (message.Scene == null || message.Scene.Equals(_activeScene.Name))
             {
                 var actor = Scripting.ECS.Serialization.ElementLoader.Instance.Load<Scripting.ECS.ScriptedActor>(actorDefinition);
-                Scripting.ECS.Serialization.ElementInitializer.Instance.InitializeElement(actor, _activeScene);
 
                 Layout? layout = null;
                 if (message.Layout == null)
@@ -650,12 +700,12 @@ namespace Wallop.Engine.Handlers
                 }
                 if (layout == null)
                 {
-                    // TODO: Error
-                    return;
+                    throw new InvalidOperationException($"Failed to add actor. Specified layout ({message.Layout}) does not exist.");
                 }
 
                 layout.EcsRoot.AddActor(actor);
                 actor.AddedToLayout(layout);
+                Scripting.ECS.Serialization.ElementInitializer.Instance.InitializeElement(actor, _activeScene);
             }
             else
             {
@@ -694,8 +744,9 @@ namespace Wallop.Engine.Handlers
         {
             var scene = new StoredScene();
             scene.Name = message.NewSceneName;
-
             _sceneStore.Add(scene);
+
+            SwitchScene(message.NewSceneName);
         }
 
         private void HandleSceneSave(SceneSaveMessage message, uint messageId)
