@@ -68,7 +68,7 @@ jobs:
       uses: peter-evans/create-pull-request@v4
       with:
         commit-message: New release
-        title: New release pending
+        title: 🤖 New release pending
         body: PR created by the creation of a new release branch. Merge in once the release branch is ready for prime-time!
         branch: main
         
@@ -92,6 +92,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }} 
           output: "./CHANGELOG.md"
+          excludeLabels: changelog-ignore
           
       - name: Commit changelog
         run: |          
@@ -101,7 +102,15 @@ jobs:
           
       - name: Push changelog
         run: git push
-      
+        
+      - name: Create Pull Request back into develop
+        uses: peter-evans/create-pull-request@v4
+        with:
+          commit-message: A new release has been made.
+          title: 🤖 New release pending
+          body: PR created by the creation of a new release branch. Merge in once the release branch is ready for prime-time!
+          branch: develop
+          labels: changelog-ignore
           
       - name: Create release
         uses: ncipollo/release-action@v1
