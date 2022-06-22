@@ -101,12 +101,12 @@ jobs:
       - name: Create release tag
         uses: rickstaa/action-create-tag@v1
         with:
-          tag: "v${{ github.event.inputs.versionPrefix }}-${{ github.event.inputs.versionSuffix }}"
+          tag: "v${{ github.event.inputs.versionPrefix }}-${{ github.event.inputs.versionSuffix }}.pre"
           message: "Latest beta release"
           
       - name: Create release
         uses: ncipollo/release-action@v1
         with:
-          tag: "v${{ github.event.inputs.versionPrefix }}-${{ github.event.inputs.versionSuffix }}"
+          tag: "v${{ github.event.inputs.versionPrefix }}-${{ github.event.inputs.versionSuffix }}.pre"
           bodyFile: "./CHANGELOG.md"
           token: ${{ secrets.GITHUB_TOKEN }}
