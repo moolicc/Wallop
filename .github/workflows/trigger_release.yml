@@ -81,7 +81,10 @@ jobs:
         with:
           ref: release/v${{ github.event.inputs.versionPrefix }}
       
-      - run: cd
+      - name: Setup git config
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email noreply@github.com
       
       - name: Build changelog
         id: build-changelog
