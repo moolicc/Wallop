@@ -1,5 +1,21 @@
 # Changelog
 
+## [v3.5.6-bet.pre](https://github.com/moolicc/Wallop/tree/v3.5.6-bet.pre) (2022-06-23)
+
+[Full Changelog](https://github.com/moolicc/Wallop/compare/v5.0.5-test.pre...v3.5.6-bet.pre)
+
+## [v5.0.5-test.pre](https://github.com/moolicc/Wallop/tree/v5.0.5-test.pre) (2022-06-23)
+
+[Full Changelog](https://github.com/moolicc/Wallop/compare/v12.0.0-Pears.pre...v5.0.5-test.pre)
+
+## [v12.0.0-Pears.pre](https://github.com/moolicc/Wallop/tree/v12.0.0-Pears.pre) (2022-06-22)
+
+[Full Changelog](https://github.com/moolicc/Wallop/compare/v10.10.10-Oranges.pre...v12.0.0-Pears.pre)
+
+## [v10.10.10-Oranges.pre](https://github.com/moolicc/Wallop/tree/v10.10.10-Oranges.pre) (2022-06-22)
+
+[Full Changelog](https://github.com/moolicc/Wallop/compare/v8.8.8-Alef.pre...v10.10.10-Oranges.pre)
+
 ## [v8.8.8-Alef.pre](https://github.com/moolicc/Wallop/tree/v8.8.8-Alef.pre) (2022-06-22)
 
 [Full Changelog](https://github.com/moolicc/Wallop/compare/v0.2.0-alef.pre...v8.8.8-Alef.pre)
