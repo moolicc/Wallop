@@ -111,7 +111,7 @@ jobs:
           with:
             commit-message: A new release has been made to main
             title: "New release to main pending 🤖 ${{ github.event.inputs.versionPrefix }} ${{ github.event.inputs.versionSuffix }}"
-            body: "PR created by the creation of a new release branch. Merge in when you can get around to it. Changes contained here-in should mostly just be the changelog."
+            body: "PR created by the creation of a new release branch. Merge in when this release is considered stable enough for main."
             branch: release/v${{ github.event.inputs.versionPrefix }}
             base: main
             labels: changelog-ignore
