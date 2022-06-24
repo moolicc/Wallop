@@ -135,7 +135,7 @@ jobs:
           labels: changelog-ignore
           
   create-release:
-    needs: create-pull-requests
+    needs: create-release-branch
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
