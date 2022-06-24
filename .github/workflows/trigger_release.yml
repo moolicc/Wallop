@@ -115,15 +115,6 @@ jobs:
             branch: release/v${{ github.event.inputs.versionPrefix }}
             base: main
             labels: changelog-ignore
-            
-            
-        - name: Checkout release branch
-          run: git checkout release/v${{ github.event.inputs.versionPrefix }}
-          
-        - name: Push back to develop
-          run: |
-            git merge develop
-            git pull
         
           
   create-release:
