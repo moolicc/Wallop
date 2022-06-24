@@ -125,17 +125,14 @@ jobs:
         with:
           ref: develop
             
-      - name: Merge with develop
-        run: |
-          git fetch
-          git pull
-          git checkout release/v${{ github.event.inputs.versionPrefix }}
-          git fetch
-          git pull
-          git checkout develop
-          git merge release/v${{ github.event.inputs.versionPrefix }}
-          git commit -m "Merge new release branch"
-          git push
+      - name: Create Pull Request into develop
+        uses: peter-evans/create-pull-request@v4
+        with:
+          title: "New release to develop pending 🤖 ${{ github.event.inputs.versionPrefix }} ${{ github.event.inputs.versionSuffix }}"
+          body: "PR created by the creation of a new release branch. Merge in when you can get around to it. Changes contained here-in should mostly just be the changelog."
+          branch: release/v${{ github.event.inputs.versionPrefix }}
+          base: develop
+          labels: changelog-ignore
           
   create-release:
     needs: create-pull-requests
