@@ -115,11 +115,16 @@ jobs:
             branch: release/v${{ github.event.inputs.versionPrefix }}
             base: main
             labels: changelog-ignore
-        
+            
+        - name: Checkout develop
+          uses: actions/checkout@v3
+          with:
+            ref: develop
+            
         - name: Merge with develop
           run: |
-            git checkout develop
             git merge release/v${{ github.event.inputs.versionPrefix }}
+            git commit -m "Merge new release branch"
             git push
           
   create-release:
