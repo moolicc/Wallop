@@ -53,8 +53,7 @@ jobs:
       shell: pwsh
       run: |
         ./util/set_version.ps1 engine "${{ github.event.inputs.versionPrefix }}" "${{ github.event.inputs.versionSuffix }}"
-    
-
+  
     - name: Commit version change
       run: |
         git add .
@@ -64,13 +63,6 @@ jobs:
     - name: Push changes
       run: git push origin release/v${{ github.event.inputs.versionPrefix }}
       
-    - name: Create Pull Request
-      uses: peter-evans/create-pull-request@v4
-      with:
-        commit-message: New release
-        title: "New release pending 🤖 ${{ github.event.inputs.versionPrefix }} ${{ github.event.inputs.versionSuffix }}"
-        body: "PR created by the creation of a new release branch. Merge in once the release branch is ready for prime-time! Only merge when the pre-release is ready to be put in the stable `main` branch!"
-        base: main
   
   create-pull-requests:
       needs: create-release-branch
@@ -119,6 +111,7 @@ jobs:
             commit-message: New release
             title: "New release pending 🤖 ${{ github.event.inputs.versionPrefix }} ${{ github.event.inputs.versionSuffix }}"
             body: "PR created by the creation of a new release branch. Merge in once the release branch is ready for prime-time! Only merge when the pre-release is ready to be put in the stable `main` branch!"
+            branch: release/v${{ github.event.inputs.versionPrefix }}
             base: main
             labels: changelog-ignore
         
