@@ -1,12 +1,8 @@
 # Changelog
 
-## [v8.8.8-Alef.pre](https://github.com/moolicc/Wallop/tree/v8.8.8-Alef.pre) (2022-06-22)
+## [Unreleased](https://github.com/moolicc/Wallop/tree/HEAD)
 
-[Full Changelog](https://github.com/moolicc/Wallop/compare/v0.2.0-alef.pre...v8.8.8-Alef.pre)
-
-## [v0.2.0-alef.pre](https://github.com/moolicc/Wallop/tree/v0.2.0-alef.pre) (2022-06-22)
-
-[Full Changelog](https://github.com/moolicc/Wallop/compare/v0.1.0-alef.pre...v0.2.0-alef.pre)
+[Full Changelog](https://github.com/moolicc/Wallop/compare/v1.0.0-alef.pre...HEAD)
 
 **Implemented enhancements:**
 
@@ -19,6 +15,7 @@
 
 **Merged pull requests:**
 
+- Update trigger\_release.yml [\#110](https://github.com/moolicc/Wallop/pull/110) ([moolicc](https://github.com/moolicc))
 - Testbranch [\#90](https://github.com/moolicc/Wallop/pull/90) ([moolicc](https://github.com/moolicc))
 - title [\#88](https://github.com/moolicc/Wallop/pull/88) ([moolicc](https://github.com/moolicc))
 - Testbranch [\#87](https://github.com/moolicc/Wallop/pull/87) ([moolicc](https://github.com/moolicc))
@@ -28,7 +25,11 @@
 - Test [\#79](https://github.com/moolicc/Wallop/pull/79) ([moolicc](https://github.com/moolicc))
 - Dev [\#23](https://github.com/moolicc/Wallop/pull/23) ([moolicc](https://github.com/moolicc))
 
-## [v0.1.0-alef.pre](https://github.com/moolicc/Wallop/tree/v0.1.0-alef.pre) (2022-06-22)
+## [v1.0.0-alef.pre](https://github.com/moolicc/Wallop/tree/v1.0.0-alef.pre) (2022-06-24)
+
+[Full Changelog](https://github.com/moolicc/Wallop/compare/v0.1.0-alef.pre...v1.0.0-alef.pre)
+
+## [v0.1.0-alef.pre](https://github.com/moolicc/Wallop/tree/v0.1.0-alef.pre) (2022-06-24)
 
 [Full Changelog](https://github.com/moolicc/Wallop/compare/f408a7d864ff4dd198165c22c93428c743b97876...v0.1.0-alef.pre)
 
