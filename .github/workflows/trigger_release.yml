@@ -105,6 +105,9 @@ jobs:
             base: develop
             labels: changelog-ignore
             
+        - name: Delete changelog to create change
+          run: rm CHANGELOG.md
+            
         - name: Create Pull Request into main
           uses: peter-evans/create-pull-request@v4
           with:
