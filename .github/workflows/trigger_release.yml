@@ -116,9 +116,14 @@ jobs:
             base: main
             labels: changelog-ignore
         
+        - name: Merge with develop
+          run: |
+            git checkout develop
+            git merge release/v${{ github.event.inputs.versionPrefix }}
+            git push
           
   create-release:
-    needs: create-release-branch
+    needs: create-pull-requests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
