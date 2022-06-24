@@ -115,7 +115,9 @@ jobs:
             branch: release/v${{ github.event.inputs.versionPrefix }}
             base: main
             labels: changelog-ignore
-            
+          
+        - run: cd ..
+        
         - name: Checkout develop
           uses: actions/checkout@v3
           with:
@@ -125,7 +127,7 @@ jobs:
           run: |
             git fetch
             git pull
-            git branch release/v${{ github.event.inputs.versionPrefix }}
+            git checkout release/v${{ github.event.inputs.versionPrefix }}
             git fetch
             git pull
             git develop
