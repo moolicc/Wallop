@@ -100,6 +100,7 @@ jobs:
         - name: Create pull request into develop
           uses: repo-sync/pull-request@v2
           with:
+            source_branch: "release/v${{ github.event.inputs.versionPrefix }}" 
             destination_branch: "develop"
             github_token: ${{ secrets.GITHUB_TOKEN }}
             pr_title: "New release to develop pending 🤖 ${{ github.event.inputs.versionPrefix }} ${{ github.event.inputs.versionSuffix }}"
@@ -109,6 +110,7 @@ jobs:
         - name: Create pull request into main
           uses: repo-sync/pull-request@v2
           with:
+            source_branch: "release/v${{ github.event.inputs.versionPrefix }}" 
             destination_branch: "main"
             github_token: ${{ secrets.GITHUB_TOKEN }}
             pr_title: "New release to main pending 🤖 ${{ github.event.inputs.versionPrefix }} ${{ github.event.inputs.versionSuffix }}"
