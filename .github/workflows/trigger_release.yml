@@ -105,15 +105,15 @@ jobs:
             base: develop
             labels: changelog-ignore
             
-        - name: Create Pull Request into main
-          uses: peter-evans/create-pull-request@v4
-          with:
-            commit-message: A new release has been made to main
-            title: "New release to main pending 🤖 ${{ github.event.inputs.versionPrefix }} ${{ github.event.inputs.versionSuffix }}"
-            body: "PR created by the creation of a new release branch. Merge in when you can get around to it. Changes contained here-in should mostly just be the changelog."
-            branch: release/v${{ github.event.inputs.versionPrefix }}
-            base: main
-            labels: changelog-ignore
+        #- name: Create Pull Request into main
+          #uses: peter-evans/create-pull-request@v4
+          #with:
+            #commit-message: A new release has been made to main
+            #title: "New release to main pending 🤖 ${{ github.event.inputs.versionPrefix }} ${{ github.event.inputs.versionSuffix }}"
+            #body: "PR created by the creation of a new release branch. Merge in when you can get around to it. Changes contained here-in should mostly just be the changelog."
+            #branch: release/v${{ github.event.inputs.versionPrefix }}
+            #base: main
+            #labels: changelog-ignore
         
   create-release:
     needs: create-release-branch
