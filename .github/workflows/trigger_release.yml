@@ -116,24 +116,26 @@ jobs:
             base: main
             labels: changelog-ignore
           
-        - run: cd ..
-        
-        - name: Checkout develop
-          uses: actions/checkout@v3
-          with:
-            ref: develop
+  merge-develop:
+    needs: create-pull-requests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout develop
+        uses: actions/checkout@v3
+        with:
+          ref: develop
             
-        - name: Merge with develop
-          run: |
-            git fetch
-            git pull
-            git checkout release/v${{ github.event.inputs.versionPrefix }}
-            git fetch
-            git pull
-            git checkout develop
-            git merge release/v${{ github.event.inputs.versionPrefix }}
-            git commit -m "Merge new release branch"
-            git push
+      - name: Merge with develop
+        run: |
+          git fetch
+          git pull
+          git checkout release/v${{ github.event.inputs.versionPrefix }}
+          git fetch
+          git pull
+          git checkout develop
+          git merge release/v${{ github.event.inputs.versionPrefix }}
+          git commit -m "Merge new release branch"
+          git push
           
   create-release:
     needs: create-pull-requests
