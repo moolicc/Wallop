@@ -130,7 +130,7 @@ jobs:
             git checkout release/v${{ github.event.inputs.versionPrefix }}
             git fetch
             git pull
-            git develop
+            git checkout develop
             git merge release/v${{ github.event.inputs.versionPrefix }}
             git commit -m "Merge new release branch"
             git push
