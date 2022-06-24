@@ -61,8 +61,8 @@ jobs:
         #git commit -m "Prepare release ${{ github.event.inputs.versionPrefix }}-${{ github.event.inputs.versionSuffix }}"
         #echo "::set-output name=commit::$(git rev-parse HEAD)"
         
-    - name: Push changes
-      run: git push origin release/v${{ github.event.inputs.versionPrefix }}
+    #- name: Push changes
+      #run: git push origin release/v${{ github.event.inputs.versionPrefix }}
       
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v4
