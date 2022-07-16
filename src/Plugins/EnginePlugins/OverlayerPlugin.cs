@@ -28,13 +28,23 @@ namespace EnginePlugins
         {
 
             var bounds = Wallop.Engine.Types.ScreenInfo.GetVirtualScreen().Bounds;
-            Console.WriteLine("Setting SDL window bounds: {{ {0}, {1}, {2}, {3} }}", 0, 0, bounds.Size.X, bounds.Size.Y);
+            Console.WriteLine("Setting SDL window bounds: {{ {0}, {1}, {2}, {3} }}", bounds.Origin.X, bounds.Origin.Y, bounds.Size.X, bounds.Size.Y);
             window.Position = new Silk.NET.Maths.Vector2D<int>(0, 0);
-            window.Size = new Silk.NET.Maths.Vector2D<int>(bounds.Size.X, bounds.Size.Y);
+            window.Size = bounds.Size;
             window.WindowBorder = Silk.NET.Windowing.WindowBorder.Hidden;
 
             Console.WriteLine("Setting parent for handler: 0x{0:X}", window.Handle);
-            WindowHandler.SetParet(window.Handle);
+
+            var nativeInfo = window.Native?.Win32;
+
+            if(nativeInfo != null)
+            {
+                WindowHandler.SetParet(nativeInfo.Value.Hwnd);
+            }
+            else
+            {
+                throw new PlatformNotSupportedException("Failed to find native window handle.");
+            }
         }
 
         public void OverlayWindowEndPoint_Linux(IntPtr hWnd)
