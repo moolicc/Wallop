@@ -293,7 +293,7 @@ namespace Wallop.Engine.Handlers
                 updateThreadingPolicyOpts,
             };
 
-            sceneCommand.Handler = CommandHandler.Create<string, ThreadingPolicy, string, IEnumerable<string>, string, ThreadingPolicy>(
+            sceneCommand.SetHandler(new Action<string, ThreadingPolicy, string, IEnumerable<string>, string, ThreadingPolicy>(
                 (defaultSceneName, drawThreadingPolicy, pkgSearchDir, scenePreloads, selectedScene, updateThreadingPolicy) =>
                 {
                     var changes = new SceneSettings()
@@ -306,7 +306,7 @@ namespace Wallop.Engine.Handlers
                         UpdateThreadingPolicy = updateThreadingPolicy
                     };
 
-                    if(_sceneLoaded && firstInstance)
+                    if(_sceneLoaded || !firstInstance)
                     {
                         App.Messenger.Put(new SceneSettingsMessage(changes));
                     }
@@ -314,7 +314,7 @@ namespace Wallop.Engine.Handlers
                     {
                         _sceneSettings = changes;
                     }
-                });
+                }), defaultSceneNameOpts, drawThreadingPolicyOpts, pkgSearchDirOpts, scenePreloadsOpts, selectedSceneOpts, updateThreadingPolicyOpts);
 
 
 
@@ -595,7 +595,7 @@ namespace Wallop.Engine.Handlers
 
             if(message.Settings.SelectedScene != _sceneSettings.SelectedScene)
             {
-                SwitchScene(_sceneSettings.SelectedScene);
+                SwitchScene(message.Settings.SelectedScene);
             }
         }
 
