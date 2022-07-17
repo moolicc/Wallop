@@ -45,7 +45,7 @@ namespace Wallop.Engine.Handlers
                 "Specifies the border style of the underlying window.");
             var skipOverlayOpt = new Option<bool>(
                 new[] { "--overlay", "-o" },
-                () => _graphicsSettings.SkipOverlay,
+                () => _graphicsSettings.Overlay,
                 "Specifies whether or not to overlay the window over the desktop.");
             var refreshRateOpt = new Option<double>(
                 new[] { "--refresh-rate", "-r" },
@@ -76,7 +76,7 @@ namespace Wallop.Engine.Handlers
                     changes.WindowWidth = winWidth;
                     changes.WindowHeight = winHeight;
                     changes.WindowBorder = winBorder;
-                    changes.SkipOverlay = overlay;
+                    changes.Overlay = overlay;
                     changes.RefreshRate = refreshRate;
                     changes.VSync = vsync;
 
@@ -96,25 +96,24 @@ namespace Wallop.Engine.Handlers
 
         public void HandleGraphicsMessage(GraphicsMessage msg, uint messageId)
         {
-            _graphicsSettings.WindowWidth = msg.ChangeSet.WindowWidth;
-            _graphicsSettings.WindowHeight = msg.ChangeSet.WindowHeight;
-            _graphicsSettings.WindowBorder = msg.ChangeSet.WindowBorder;
-            _graphicsSettings.RefreshRate = msg.ChangeSet.RefreshRate;
-            _graphicsSettings.VSync = msg.ChangeSet.VSync;
+            var newSize = new Vector2D<int>(msg.ChangeSet.WindowWidth, msg.ChangeSet.WindowHeight);
+            var newBorder = msg.ChangeSet.WindowBorder;
+            var newRefreshRate = msg.ChangeSet.RefreshRate;
+            var newVsync = msg.ChangeSet.VSync;
 
-            _window.VSync = _graphicsSettings.VSync;
-            _window.WindowBorder = _graphicsSettings.WindowBorder;
-            _window.Size = new Vector2D<int>(_graphicsSettings.WindowWidth, _graphicsSettings.WindowHeight);
-            _window.UpdatesPerSecond = _graphicsSettings.RefreshRate;
-            _window.FramesPerSecond = _graphicsSettings.RefreshRate;
 
-            if (_graphicsSettings.SkipOverlay != msg.ChangeSet.SkipOverlay)
+            bool? overlayUpdate = null;
+            if (_graphicsSettings.Overlay != msg.ChangeSet.Overlay)
             {
-                // Toggle overlay.
+                overlayUpdate = msg.ChangeSet.Overlay;
             }
-            _graphicsSettings.SkipOverlay = msg.ChangeSet.SkipOverlay;
 
-            UpdateGraphics();
+            UpdateGraphics(newSize, newBorder, newRefreshRate, newVsync, overlayUpdate);
+        }
+
+        public void ShowWindow()
+        {
+            _window.IsVisible = true;
         }
 
         public void RunWindow()
@@ -128,7 +127,7 @@ namespace Wallop.Engine.Handlers
             var options = WindowOptions.Default;
             options.Size = new Vector2D<int>(_graphicsSettings.WindowWidth, _graphicsSettings.WindowHeight);
             options.WindowBorder = _graphicsSettings.WindowBorder;
-            options.IsVisible = _graphicsSettings.SkipOverlay;
+            options.IsVisible = _graphicsSettings.Overlay;
             options.FramesPerSecond = _graphicsSettings.RefreshRate;
             options.UpdatesPerSecond = _graphicsSettings.RefreshRate;
             options.VSync = _graphicsSettings.VSync;
@@ -165,8 +164,11 @@ namespace Wallop.Engine.Handlers
             EngineLog.For<GraphicsHandler>().Info("OpenGL Initialized. Version {major}.{minor}.", GLMajorVersion, GLMinorVersion);
 
 
+            var allScreenBounds = Types.ScreenInfo.GetVirtualScreen().Bounds;
+            Console.WriteLine("Virtual screen bounds: {{ {0}, {1}, {2}, {3} }}", allScreenBounds.Origin.X, allScreenBounds.Origin.Y, allScreenBounds.Size.X, allScreenBounds.Size.Y);
 
-            if (!_graphicsSettings.SkipOverlay)
+
+            if (_graphicsSettings.Overlay)
             {
                 EngineLog.For<GraphicsHandler>().Info("Running execution of Engine Overlay plugin...");
                 pluginContext.ExecuteEndPoint(new OverlayerEndPoint(_window));
@@ -180,7 +182,7 @@ namespace Wallop.Engine.Handlers
                 EngineLog.For<GraphicsHandler>().Info("Skipping execution of Engine Overlay plugin due to settings specified in configuration.");
             }
 
-            
+
             App.WindowLoaded();
             _gl.Viewport(_window.Size);
         }
@@ -190,7 +192,7 @@ namespace Wallop.Engine.Handlers
             UpdateGraphics(size);
         }
 
-        private void UpdateGraphics(Vector2D<int>? size = null)
+        private void UpdateGraphics(Vector2D<int>? size = null, WindowBorder? border = null, double? refreshRate = null, bool? vsync = null, bool? overlay = null)
         {
             if(size == null)
             {
@@ -198,7 +200,49 @@ namespace Wallop.Engine.Handlers
             }
             else
             {
+                _graphicsSettings.WindowWidth = size.Value.X;
+                _graphicsSettings.WindowHeight = size.Value.Y;
+                _window.Size = size.Value;
                 _gl.Viewport(size.Value);
+            }
+
+            if(border.HasValue)
+            {
+                _graphicsSettings.WindowBorder = border.Value;
+                _window.WindowBorder = border.Value;
+            }
+
+            if(refreshRate.HasValue)
+            {
+                _graphicsSettings.RefreshRate = refreshRate.Value;
+                _window.UpdatesPerSecond = refreshRate.Value;
+                _window.FramesPerSecond = refreshRate.Value;
+            }
+
+            if(vsync.HasValue)
+            {
+                _graphicsSettings.VSync = vsync.Value;
+                _window.VSync = vsync.Value;
+            }
+
+
+            if (overlay.HasValue)
+            {
+                if(overlay.Value)
+                {
+                    _graphicsSettings.Overlay = true;
+                    _graphicsSettings.WindowBorder = WindowBorder.Hidden;
+                    _window.WindowBorder = WindowBorder.Hidden;
+
+                    var pluginContext = App.GetService<PluginPantry.PluginContext>().OrThrow();
+                    EngineLog.For<GraphicsHandler>().Info("Running execution of Engine Overlay plugin...");
+
+                    pluginContext.ExecuteEndPoint(new OverlayerEndPoint(_window));
+                    pluginContext.WaitForEndPointExecutionAsync<OverlayerEndPoint>().ContinueWith(_ =>
+                    {
+                        _window.IsVisible = true;
+                    });
+                }
             }
         }
 

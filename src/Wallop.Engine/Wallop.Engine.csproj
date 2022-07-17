@@ -5,8 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <VersionPrefix>0.0.0</VersionPrefix>
-    <VersionSuffix>develop</VersionSuffix>
+    <VersionPrefix>0.1.0</VersionPrefix>
+    <VersionSuffix>alef</VersionSuffix>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Cog\Cog.csproj" />

@@ -156,8 +156,8 @@ namespace Wallop.Engine.SceneManagement.Serialization
         private void SaveElementContext(ScriptedElement element, StoredModule stored, IScriptContext context)
         {
 
-            bool entireState = (SettingsPolicy & SettingsSaveOptions.EntireState) != SettingsSaveOptions.EntireState;
-            bool includeTrackedValues = (SettingsPolicy & SettingsSaveOptions.TrackedValues) != SettingsSaveOptions.TrackedValues;
+            bool entireState = (SettingsPolicy & SettingsSaveOptions.EntireState) == SettingsSaveOptions.EntireState;
+            bool includeTrackedValues = (SettingsPolicy & SettingsSaveOptions.TrackedValues) == SettingsSaveOptions.TrackedValues;
 
             var values = context.GetAddedValues();
             var trackedMembers = context.GetTrackedMembers();

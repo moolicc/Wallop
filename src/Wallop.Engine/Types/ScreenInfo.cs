@@ -44,11 +44,21 @@ namespace Wallop.Engine.Types
 
                 if(!xStarts.Any(xs => xs == screen.Bounds.Origin.X))
                 {
+                    if(xStarts.All(xs => xs >= screen.Bounds.Origin.X))
+                    {
+                        bounds.Origin.X = screen.Bounds.Origin.X;
+                    }
+
                     xStarts.Add(screen.Bounds.Origin.X);
                     bounds.Size.X += screen.Bounds.Size.X;
                 }
                 if (!yStarts.Any(ys => ys == screen.Bounds.Origin.Y))
                 {
+                    if (yStarts.All(ys => ys >= screen.Bounds.Origin.Y))
+                    {
+                        bounds.Origin.Y = screen.Bounds.Origin.Y;
+                    }
+
                     yStarts.Add(screen.Bounds.Origin.Y);
                     bounds.Size.Y += screen.Bounds.Size.Y;
                 }
