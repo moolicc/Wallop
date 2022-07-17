@@ -2,7 +2,7 @@ print("Hello world, from a module!")
 
 def update():
     global x
-    name = getName()
+    name = get_name()
     if name == "Square1" and x > 100:
         panic("Actor is square1 and x is > 100.")
         return
@@ -10,5 +10,5 @@ def update():
 
 def draw():
     global x, y
-    Image("face.png", x, y)
+    image("face.png", x, y)
     return

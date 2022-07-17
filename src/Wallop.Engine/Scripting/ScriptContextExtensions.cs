@@ -36,7 +36,7 @@ namespace Wallop.Engine.Scripting
 
         private static T Get<T>(IScriptContext context, string member)
         {
-            if(!context.ContainsValue(member))
+            if (!context.ContainsValue(member))
             {
                 throw new KeyNotFoundException($"Script context does not contain a variable named {member}.");
             }

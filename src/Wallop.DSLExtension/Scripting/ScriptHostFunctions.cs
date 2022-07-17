@@ -17,11 +17,7 @@ namespace Wallop.DSLExtension.Scripting
     /// Provides dependency injection into scripts.
     /// </summary>
     public class ScriptHostFunctions
-    {
-        public const bool APPEND_ACCESS_WORDS = true;
-        public const bool CONVERT_CAMEL_CASING = true;
-
-        
+    {       
 
         private record struct ScannedMethod(MethodInfo Method, Type BackingDelegate, object? Instance, string Name);
         private record struct ScannedProperty(PropertyInfo Property, object? Instance, string Name, bool Readable, bool Writable);
@@ -99,18 +95,20 @@ namespace Wallop.DSLExtension.Scripting
 
             foreach (var action in _actions)
             {
-                context.SetDelegate(action.Name, action.Method.CreateDelegate(action.BackingDelegate, action.Instance));
+                var name = action.Name;
+                name = context.FormatFunctionName(name);
+                context.SetDelegate(name, action.Method.CreateDelegate(action.BackingDelegate, action.Instance));
             }
 
             foreach (var property in _properties)
             {
                 if(!property.Writable && property.Readable)
                 {
-                    context.AddReadonlyProperty(property.Property, property.Instance, property.Name, APPEND_ACCESS_WORDS, CONVERT_CAMEL_CASING);
+                    context.AddReadonlyProperty(property.Property, property.Instance, property.Name);
                 }
                 else if(property.Writable && property.Readable)
                 {
-                    context.AddProperty(property.Property, property.Instance, property.Name, false, APPEND_ACCESS_WORDS, CONVERT_CAMEL_CASING);
+                    context.AddProperty(property.Property, property.Instance, property.Name, false);
                 }
             }
 
@@ -126,31 +124,23 @@ namespace Wallop.DSLExtension.Scripting
 
             foreach (var action in _addedMethods)
             {
-                context.SetDelegate(action.Name, action.Action);
+                var name = action.Name;
+                name = context.FormatFunctionName(name);
+                context.SetDelegate(name, action.Action);
             }
 
             foreach (var property in _addedProperties)
             {
                 if (property.Getter != null)
                 {
-                    var accessor = CONVERT_CAMEL_CASING ? "get" : "Get";
                     var name = property.Name;
-                    if (property.Name.ToLower().StartsWith("set"))
-                    {
-                        name = name.Remove(0, 3);
-                    }
-                    name = accessor + name;
+                    name = context.FormatGetterName(name);
                     context.SetDelegate(name, property.Getter);
                 }
                 if(property.Setter != null)
                 {
-                    var accessor = CONVERT_CAMEL_CASING ? "set" : "Set";
                     var name = property.Name;
-                    if (property.Name.ToLower().StartsWith("set"))
-                    {
-                        name = name.Remove(0, 3);
-                    }
-                    name = accessor + name;
+                    name = context.FormatSetterName(name);
                     context.SetDelegate(name, property.Setter);
                 }
             }
@@ -164,7 +154,8 @@ namespace Wallop.DSLExtension.Scripting
                 var method = factory.Factory(context, onBehalfOf, tag);
                 if(method != null)
                 {
-                    context.SetDelegate(factory.Name, method);
+                    var name = context.FormatFunctionName(factory.Name);
+                    context.SetDelegate(name, method);
                 }
             }
 
@@ -175,24 +166,14 @@ namespace Wallop.DSLExtension.Scripting
 
                 if(getter != null)
                 {
-                    var accessor = CONVERT_CAMEL_CASING ? "get" : "Get";
                     var name = factory.Name;
-                    if(name.ToLower().StartsWith("get"))
-                    {
-                        name = name.Remove(0, 3);
-                    }
-                    name = accessor + name;
+                    name = context.FormatGetterName(name);
                     context.SetDelegate(name, getter);
                 }
                 if (setter != null)
                 {
-                    var accessor = CONVERT_CAMEL_CASING ? "set" : "Set";
                     var name = factory.Name;
-                    if (name.ToLower().StartsWith("set"))
-                    {
-                        name = name.Remove(0, 3);
-                    }
-                    name = accessor + name;
+                    name = context.FormatSetterName(name);
                     context.SetDelegate(name, setter);
                 }
             }
