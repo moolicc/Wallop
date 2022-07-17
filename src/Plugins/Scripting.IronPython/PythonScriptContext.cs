@@ -37,7 +37,7 @@ namespace Scripting.IronPython
 
         public void SetDelegate(string name, Delegate method)
         {
-            _scope.SetVariable(name, method);
+            _scope.SetVariable(FormatFunctionName(name), method);
         }
 
 
@@ -70,30 +70,30 @@ namespace Scripting.IronPython
 
         public void SetValue(string name, object? value)
         {
-            _scope.SetVariable(name, value);
+            _scope.SetVariable(FormatValueName(name), value);
         }
 
 
         public bool ContainsValue(string name)
-            => _scope.ContainsVariable(name);
+            => _scope.ContainsVariable(FormatValueName(name));
 
 
         public T GetDelegateAs<T>(string memberName)
         {
-            return _scope.GetVariable<T>(memberName);
+            return _scope.GetVariable<T>(FormatFunctionName(memberName));
         }
 
         public object? GetValue(string name)
         {
-            var value = _scope.GetVariable(name);
+            var value = _scope.GetVariable(FormatValueName(name));
             return value;
         }
 
         public T? GetValue<T>(string name)
-            => _scope.GetVariable<T>(name);
+            => _scope.GetVariable<T>(FormatValueName(name));
 
         public bool ContainsDelegate(string name)
-            => _scope.ContainsVariable(name);
+            => _scope.ContainsVariable(FormatFunctionName(name));
 
         public IEnumerable<KeyValuePair<string, object?>> GetValues()
         {
@@ -133,6 +133,49 @@ namespace Scripting.IronPython
             {
                 _trackedKeys.Remove(name);
             }
+        }
+
+        public string FormatValueName(string name)
+            => FormatFunctionName(name);
+
+        public string FormatGetterName(string name)
+        {
+            if(name.StartsWith("get", StringComparison.OrdinalIgnoreCase))
+            {
+                return FormatFunctionName(name);
+            }
+            return FormatFunctionName("get_" + name);
+        }
+
+        public string FormatSetterName(string name)
+        {
+            if (name.StartsWith("set", StringComparison.OrdinalIgnoreCase))
+            {
+                return FormatFunctionName(name);
+            }
+            return FormatFunctionName("set_" + name);
+        }
+
+        public string FormatFunctionName(string name)
+        {
+            var builder = new StringBuilder();
+            bool lastWasUpper = false;
+
+            for (int i = 0; i < name.Length; i++)
+            {
+                if (i > 0 && char.IsUpper(name[i]) && !lastWasUpper)
+                {
+                    lastWasUpper = true;
+                    builder.Append("_");
+                }
+                else if (!char.IsUpper(name[i]))
+                {
+                    lastWasUpper = false;
+                }
+
+                builder.Append(char.ToLower(name[i]));
+            }
+            return builder.ToString();
         }
     }
 }
