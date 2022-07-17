@@ -487,7 +487,7 @@ namespace Wallop.Engine.Handlers
         public void ReloadModule(string moduleId, bool keepState)
         {
             EngineLog.For<SceneHandler>().Info("Reloading module '{module}'...", moduleId);
-            var sceneSaver = new SceneSaver(keepState ? SettingsSaveOptions.EntireState : SettingsSaveOptions.Default, PackageCache);
+            var sceneSaver = new SceneSaver(keepState ? SettingsSaveOptions.EntireState : SettingsSaveOptions.RequiredSettings, PackageCache);
 
             // First, find all elements using this module and save their state.
             EngineLog.For<SceneHandler>().Info("Saving directors with module '{module}'...", moduleId);
