@@ -113,6 +113,7 @@ namespace Wallop.Engine
         public void WindowLoaded()
         {
             SetupScene();
+            _graphicsHandler.ShowWindow();
         }
 
         private void SetupScene()

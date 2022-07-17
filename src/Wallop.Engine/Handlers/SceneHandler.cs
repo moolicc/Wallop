@@ -293,7 +293,7 @@ namespace Wallop.Engine.Handlers
                 updateThreadingPolicyOpts,
             };
 
-            sceneCommand.Handler = CommandHandler.Create<string, ThreadingPolicy, string, IEnumerable<string>, string, ThreadingPolicy>(
+            sceneCommand.SetHandler(new Action<string, ThreadingPolicy, string, IEnumerable<string>, string, ThreadingPolicy>(
                 (defaultSceneName, drawThreadingPolicy, pkgSearchDir, scenePreloads, selectedScene, updateThreadingPolicy) =>
                 {
                     var changes = new SceneSettings()
@@ -306,7 +306,7 @@ namespace Wallop.Engine.Handlers
                         UpdateThreadingPolicy = updateThreadingPolicy
                     };
 
-                    if(_sceneLoaded && firstInstance)
+                    if(_sceneLoaded || !firstInstance)
                     {
                         App.Messenger.Put(new SceneSettingsMessage(changes));
                     }
@@ -314,7 +314,7 @@ namespace Wallop.Engine.Handlers
                     {
                         _sceneSettings = changes;
                     }
-                });
+                }), defaultSceneNameOpts, drawThreadingPolicyOpts, pkgSearchDirOpts, scenePreloadsOpts, selectedSceneOpts, updateThreadingPolicyOpts);
 
 
 
@@ -487,7 +487,7 @@ namespace Wallop.Engine.Handlers
         public void ReloadModule(string moduleId, bool keepState)
         {
             EngineLog.For<SceneHandler>().Info("Reloading module '{module}'...", moduleId);
-            var sceneSaver = new SceneSaver(keepState ? SettingsSaveOptions.EntireState : SettingsSaveOptions.Default, PackageCache);
+            var sceneSaver = new SceneSaver(keepState ? SettingsSaveOptions.EntireState : SettingsSaveOptions.RequiredSettings, PackageCache);
 
             // First, find all elements using this module and save their state.
             EngineLog.For<SceneHandler>().Info("Saving directors with module '{module}'...", moduleId);
@@ -542,13 +542,19 @@ namespace Wallop.Engine.Handlers
             {
                 foreach (var savedActor in item.SavedInfo.ActorModules)
                 {
-                    var actor = Scripting.ECS.Serialization.ElementLoader.Instance.Load<ScriptedActor>(savedActor);
+                    try
+                    {
+                        var actor = Scripting.ECS.Serialization.ElementLoader.Instance.Load<ScriptedActor>(savedActor);
 
-                    item.SceneLayout.EcsRoot.AddActor(actor);
-                    actor.AddedToLayout(item.SceneLayout);
+                        item.SceneLayout.EcsRoot.AddActor(actor);
+                        actor.AddedToLayout(item.SceneLayout);
 
-                    Scripting.ECS.Serialization.ElementInitializer.Instance.InitializeElement(actor, _activeScene);
-
+                        Scripting.ECS.Serialization.ElementInitializer.Instance.InitializeElement(actor, _activeScene);
+                    }
+                    catch (Exception ex)
+                    {
+                        EngineLog.For<SceneHandler>().Error(ex, "Failed to load or initialize actor '{actor}' with module '{module}'!", savedActor.InstanceName, savedActor.ModuleId);
+                    }
                 }
             }
         }
@@ -595,7 +601,7 @@ namespace Wallop.Engine.Handlers
 
             if(message.Settings.SelectedScene != _sceneSettings.SelectedScene)
             {
-                SwitchScene(_sceneSettings.SelectedScene);
+                SwitchScene(message.Settings.SelectedScene);
             }
         }
 
@@ -680,7 +686,21 @@ namespace Wallop.Engine.Handlers
             // Otherwise, we add it to the specified scene in storage.
             if (message.Scene == null || message.Scene.Equals(_activeScene.Name))
             {
-                var actor = Scripting.ECS.Serialization.ElementLoader.Instance.Load<Scripting.ECS.ScriptedActor>(actorDefinition);
+                ScriptedActor? actor = null;
+
+                try
+                {
+                    actor = Scripting.ECS.Serialization.ElementLoader.Instance.Load<ScriptedActor>(actorDefinition);
+                    if (actor == null)
+                    {
+                        throw new NullReferenceException();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    EngineLog.For<SceneHandler>().Error(ex, "Failed to load or initialize actor '{actor}' with module '{module}'!", actorDefinition.InstanceName, actorDefinition.ModuleId);
+                    return;
+                }
 
                 Layout? layout = null;
                 if (message.Layout == null)
@@ -773,7 +793,23 @@ namespace Wallop.Engine.Handlers
             if (message.Scene == null || message.Scene.Equals(_activeScene.Name))
             {
                 // Create and initialize the director.
-                var director = Scripting.ECS.Serialization.ElementLoader.Instance.Load<ScriptedDirector>(directorDefinition);
+                ScriptedDirector? director = null;
+
+                try
+                {
+                    director = Scripting.ECS.Serialization.ElementLoader.Instance.Load<ScriptedDirector>(directorDefinition);
+                    if (director == null)
+                    {
+                        throw new NullReferenceException();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    EngineLog.For<SceneHandler>().Error(ex, "Failed to load or initialize director '{director}' with module '{module}'!", directorDefinition.InstanceName, directorDefinition.ModuleId);
+                    return;
+                }
+
+
                 Scripting.ECS.Serialization.ElementInitializer.Instance.InitializeElement(director, _activeScene);
 
                 // Add the director to the scene.

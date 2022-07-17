@@ -30,8 +30,27 @@ namespace Wallop.Engine.Scripting
 
             EngineLog.For<PackageCache>().Debug("Creating TypeCache...");
             Types = new TypeCache();
+
+
             EngineLog.For<PackageCache>().Debug("Loading packages...");
-            Packages = PackageLoader.LoadPackages(packageDirectory);
+            try
+            {
+
+                Packages = PackageLoader.LoadPackages(packageDirectory).ToArray();
+            }
+            catch(UnauthorizedAccessException badPermsEx)
+            {
+                EngineLog.For<PackageCache>().Error(badPermsEx, "Failed to load packages from base directory: '{PackageDirectory}'!\nInsufficient permissions to access that directory or a subdirectory thereof.", packageDirectory);
+                Packages = Array.Empty<Package>();
+                return;
+            }
+            catch (Exception ex)
+            {
+                EngineLog.For<PackageCache>().Error(ex, "Failed to load packages from base directory: '{PackageDirectory}'!", packageDirectory);
+                Packages = Array.Empty<Package>();
+                return;
+            }
+
 
             EngineLog.For<PackageCache>().Debug("Resolving modules...");
             Modules = ResolveModules();

@@ -33,7 +33,7 @@ namespace Wallop.Engine.SceneManagement.Serialization
         private void CreateLayouts(Scene sceneInstance)
         {
             EngineLog.For<SceneLoader>().Info("Creating {numLayouts} layout elements...", _sceneSettings.Layouts.Count);
-            
+
             // Iterate over each layout defined in our loaded settings.
             foreach (var layoutSpecified in _sceneSettings.Layouts)
             {
@@ -43,7 +43,7 @@ namespace Wallop.Engine.SceneManagement.Serialization
                 layout.RenderSize = new System.Numerics.Vector2(800, 600);
 
                 // Try to set this layout as the scene's active layout.
-                if(layoutSpecified.Active)
+                if (layoutSpecified.Active)
                 {
                     EngineLog.For<SceneLoader>().Info("Setting current layout element ({layout}) as active...", layoutSpecified.Name);
                     if (sceneInstance.ActiveLayout != null)
@@ -68,7 +68,22 @@ namespace Wallop.Engine.SceneManagement.Serialization
             // Iterate over each actor we're supposed to load for this layout.
             foreach (var actorDefinition in layoutDefinition.ActorModules)
             {
-                var actor = Scripting.ECS.Serialization.ElementLoader.Instance.Load<ScriptedActor>(actorDefinition);
+                ScriptedActor? actor = null;
+
+                try
+                {
+                    actor = Scripting.ECS.Serialization.ElementLoader.Instance.Load<ScriptedActor>(actorDefinition);
+                    if (actor == null)
+                    {
+                        throw new NullReferenceException();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    EngineLog.For<SceneLoader>().Error(ex, "Failed to load or initialize actor '{actor}' with module '{module}'!", actorDefinition.InstanceName, actorDefinition.ModuleId);
+                    continue;
+                }
+
                 layoutInstance.EcsRoot.AddActor(actor);
                 actor.AddedToLayout(layoutInstance);
                 loaded++;
@@ -84,7 +99,22 @@ namespace Wallop.Engine.SceneManagement.Serialization
             int loaded = 0;
             foreach (var directorSpecified in _sceneSettings.DirectorModules)
             {
-                var director = Scripting.ECS.Serialization.ElementLoader.Instance.Load<ScriptedDirector>(directorSpecified);
+                ScriptedDirector? director = null;
+
+                try
+                {
+                    director = Scripting.ECS.Serialization.ElementLoader.Instance.Load<ScriptedDirector>(directorSpecified);
+                    if (director == null)
+                    {
+                        throw new NullReferenceException();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    EngineLog.For<SceneLoader>().Error(ex, "Failed to load or initialize director '{director}' with module '{module}'!", directorSpecified.InstanceName, directorSpecified.ModuleId);
+                    return;
+                }
+
                 sceneInstance.Directors.Add(director);
                 loaded++;
             }

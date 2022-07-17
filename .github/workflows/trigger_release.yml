@@ -40,6 +40,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+      with:
+        ref: develop
       
     - name: Create release branch
       run: git checkout -b release/v${{ github.event.inputs.versionPrefix }}
@@ -86,15 +88,35 @@ jobs:
             output: "./CHANGELOG.md"
             excludeLabels: changelog-ignore
 
-        #- name: Commit changelog
-          #run: |          
-            #git add .
-            #git commit --message "Added changelog for release"
-            #echo "::set-output name=commit::$(git rev-parse HEAD)"
+        - name: Commit changelog
+          run: |          
+            git add .
+            git commit --message "Added changelog for release"
+            echo "::set-output name=commit::$(git rev-parse HEAD)"
 
-        #- name: Push changelog
-          #run: git push
+        - name: Push changelog
+          run: git push
 
+        - name: Create pull request into develop
+          uses: repo-sync/pull-request@v2
+          with:
+            source_branch: "release/v${{ github.event.inputs.versionPrefix }}" 
+            destination_branch: "develop"
+            github_token: ${{ secrets.GITHUB_TOKEN }}
+            pr_title: "New release to develop pending 🤖 ${{ github.event.inputs.versionPrefix }} ${{ github.event.inputs.versionSuffix }}"
+            pr_body: "PR created by the creation of a new release branch. Merge in when you can get around to it. Changes contained here-in should mostly just be the changelog."
+            pr_label: "changelog-ignore"
+            
+        - name: Create pull request into main
+          uses: repo-sync/pull-request@v2
+          with:
+            source_branch: "release/v${{ github.event.inputs.versionPrefix }}" 
+            destination_branch: "main"
+            github_token: ${{ secrets.GITHUB_TOKEN }}
+            pr_title: "New release to main pending 🤖 ${{ github.event.inputs.versionPrefix }} ${{ github.event.inputs.versionSuffix }}"
+            pr_body: "PR created by the creation of a new release branch. Merge in when this release is considered stable enough for main."
+            pr_label: "changelog-ignore"
+            
         #- name: Create Pull Request into develop
           #uses: peter-evans/create-pull-request@v4
           #with:
@@ -106,15 +128,15 @@ jobs:
             #labels: changelog-ignore
 
             
-        - name: Create Pull Request into main
-          uses: peter-evans/create-pull-request@v4
-          with:
-            commit-message: A new release has been made to main
-            title: "New release to main pending 🤖 ${{ github.event.inputs.versionPrefix }} ${{ github.event.inputs.versionSuffix }}"
-            body: "PR created by the creation of a new release branch. Merge in when this release is considered stable enough for main."
-            branch: release/v${{ github.event.inputs.versionPrefix }}
-            base: main
-            labels: changelog-ignore
+        #- name: Create Pull Request into main
+          #uses: peter-evans/create-pull-request@v4
+          #with:
+            #commit-message: A new release has been made to main
+            #title: "New release to main pending 🤖 ${{ github.event.inputs.versionPrefix }} ${{ github.event.inputs.versionSuffix }}"
+            #body: "PR created by the creation of a new release branch. Merge in when this release is considered stable enough for main."
+            #branch: release/v${{ github.event.inputs.versionPrefix }}
+            #base: main
+            #labels: changelog-ignore
           
           
   create-release:

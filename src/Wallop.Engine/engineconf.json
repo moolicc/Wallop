@@ -3,7 +3,7 @@
 		"Backend": "OpenGL",
 		"WindowWidth": 800,
 		"WindowHeight": 800,
-		"SkipOverlay": "true",
+		"Overlay": "false",
 		"WindowBorder": "Resizable"
 	}
 }
