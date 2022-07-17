@@ -447,7 +447,7 @@ namespace Wallop.Engine.Handlers
 
             EngineLog.For<SceneHandler>().Info("Initializing ECS Element invokers...");
             var elementLoader = new Scripting.ECS.Serialization.ElementLoader(packageCache);
-            var elementInitializer = new Scripting.ECS.Serialization.ElementInitializer(engineProviders, _taskProvider, hostFunctions, pluginContext, bindableComponentTypes);
+            var elementInitializer = new Scripting.ECS.Serialization.ElementInitializer(App, engineProviders, _taskProvider, hostFunctions, pluginContext, bindableComponentTypes);
 
             EngineLog.For<SceneHandler>().Info("Constructing scene...");
             var sceneLoader = new SceneLoader(settings, packageCache);

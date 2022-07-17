@@ -87,7 +87,7 @@ namespace Wallop.Engine
             _graphicsHandler.RunWindow();
         }
 
-        public void ProcessCommandLine(bool firstInstance, string commands)
+        public void ProcessCommandLine(bool firstInstance, string commands, IEnumerable<Command>? additionalCommands = null)
         {
             var engineConf = new Option<string>(
                 new[] { "--conf", "-c" },
@@ -107,6 +107,14 @@ namespace Wallop.Engine
                 }
             }
 
+            if(additionalCommands != null)
+            {
+                foreach (var item in additionalCommands)
+                {
+                    root.Add(item);
+                }
+            }
+
             root.Invoke(commands.Trim());
         }
 
@@ -119,7 +127,7 @@ namespace Wallop.Engine
         private void SetupScene()
         {
             EngineLog.For<EngineApp>().Info("Warming things up...");
-            AddService(new ScriptEngineProviderCache(_pluginContext));
+            AddService(new ScriptEngineProviderCache(this, _pluginContext));
             LoadBindableTypes();
 
             _sceneHandler.InitScene();
@@ -131,7 +139,7 @@ namespace Wallop.Engine
         private void LoadBindableTypes()
         {
             EngineLog.For<EngineApp>().Info("Initializing BindableType registrations...");
-            var bindableConext = new BindableTypeEndPoint();
+            var bindableConext = new BindableTypeEndPoint(Messenger);
             _pluginContext.ExecuteEndPoint<IBindableTypeRegistrationEndPoint>(bindableConext);
             _pluginContext.WaitForEndPointExecutionAsync<IBindableTypeRegistrationEndPoint>().WaitAndThrow();
             var bindableComponentTypes = new BindableComponentTypeCache(bindableConext.BindableTypes);

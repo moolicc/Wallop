@@ -13,7 +13,8 @@ namespace Wallop.Engine.Types.Plugins.EndPoints
 
         private Dictionary<string, Type> _bindableTypes;
 
-        public BindableTypeEndPoint()
+        public BindableTypeEndPoint(Messaging.Messenger messages)
+            : base(messages)
         {
             _bindableTypes = new Dictionary<string, Type>();
         }

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Wallop.Engine.Types.Plugins.EndPoints
 {
-    public class EntryPointContext : EndPointBase, IEntryPointContext
+    public class EntryPointContext : IEntryPointContext
     {
         public PluginInformation PluginInformation { get; set; }
 

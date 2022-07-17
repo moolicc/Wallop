@@ -97,7 +97,11 @@ namespace Wallop
             using(_app = new EngineApp(engineConfig, context))
             {
                 EngineLog.For<Program>().Info("Setting up Engine...");
-                _app.ProcessCommandLine(true, Environment.CommandLine);
+
+                var startupEndPoint = new Engine.Types.Plugins.EndPoints.EngineStartupEndPoint(_app.Messenger);
+                context.ExecuteEndPoint(startupEndPoint);
+                _app.ProcessCommandLine(true, Environment.CommandLine, startupEndPoint.CommandLineVerbs);
+
                 EngineLog.For<Program>().Info("Running Engine...");
                 _app.Run();
             }

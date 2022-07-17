@@ -120,7 +120,7 @@ namespace Wallop.Engine.Handlers
         {
             var pluginContext = App.GetService<PluginPantry.PluginContext>().OrThrow();
             EngineLog.For<GraphicsHandler>().Debug("Executing plugins on EngineStartup...");
-            pluginContext.ExecuteEndPoint(new EngineStartupEndPoint { GraphicsSettings = _graphicsSettings });
+            //pluginContext.ExecuteEndPoint(new EngineStartupEndPoint { GraphicsSettings = _graphicsSettings });
 
 
             EngineLog.For<GraphicsHandler>().Info("Creating window with options: {options}", _graphicsSettings);
@@ -166,12 +166,12 @@ namespace Wallop.Engine.Handlers
 
             var allScreenBounds = Types.ScreenInfo.GetVirtualScreen().Bounds;
             Console.WriteLine("Virtual screen bounds: {{ {0}, {1}, {2}, {3} }}", allScreenBounds.Origin.X, allScreenBounds.Origin.Y, allScreenBounds.Size.X, allScreenBounds.Size.Y);
-
+            
 
             if (_graphicsSettings.Overlay)
             {
                 EngineLog.For<GraphicsHandler>().Info("Running execution of Engine Overlay plugin...");
-                pluginContext.ExecuteEndPoint(new OverlayerEndPoint(_window));
+                pluginContext.ExecuteEndPoint(new OverlayerEndPoint(App.Messenger, _window));
                 pluginContext.WaitForEndPointExecutionAsync<OverlayerEndPoint>().ContinueWith(_ =>
                 {
                     _window.IsVisible = true;
@@ -237,7 +237,7 @@ namespace Wallop.Engine.Handlers
                     var pluginContext = App.GetService<PluginPantry.PluginContext>().OrThrow();
                     EngineLog.For<GraphicsHandler>().Info("Running execution of Engine Overlay plugin...");
 
-                    pluginContext.ExecuteEndPoint(new OverlayerEndPoint(_window));
+                    pluginContext.ExecuteEndPoint(new OverlayerEndPoint(App.Messenger, _window));
                     pluginContext.WaitForEndPointExecutionAsync<OverlayerEndPoint>().ContinueWith(_ =>
                     {
                         _window.IsVisible = true;

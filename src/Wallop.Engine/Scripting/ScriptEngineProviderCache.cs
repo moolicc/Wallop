@@ -14,17 +14,17 @@ namespace Wallop.Engine.Scripting
         public IEnumerable<IScriptEngineProvider> Providers { get; private set; }
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        public ScriptEngineProviderCache(PluginPantry.PluginContext pluginContext)
+        public ScriptEngineProviderCache(EngineApp app, PluginPantry.PluginContext pluginContext)
         {
-            RefreshProviders(pluginContext);
+            RefreshProviders(app, pluginContext);
         }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
-        public void RefreshProviders(PluginPantry.PluginContext pluginContext)
+        public void RefreshProviders(EngineApp app, PluginPantry.PluginContext pluginContext)
         {
             EngineLog.For<ScriptEngineProviderCache>().Info("Initializing ScriptEngines providers...");
 
-            var engineEndPointPluginContext = new ScriptEngineEndPoint();
+            var engineEndPointPluginContext = new ScriptEngineEndPoint(app.Messenger);
             pluginContext.ExecuteEndPoint<ILoadingScriptEnginesEndPoint>(engineEndPointPluginContext);
             pluginContext.WaitForEndPointExecutionAsync<ILoadingScriptEnginesEndPoint>().WaitAndThrow();
             Providers = engineEndPointPluginContext.GetScriptEngineProviders();

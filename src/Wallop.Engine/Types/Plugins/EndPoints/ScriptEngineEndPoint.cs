@@ -12,7 +12,8 @@ namespace Wallop.Engine.Types.Plugins.EndPoints
         internal readonly List<IScriptEngineProvider> EngineProviders;
 
 
-        public ScriptEngineEndPoint()
+        public ScriptEngineEndPoint(Messaging.Messenger messages)
+            : base(messages)
         {
             EngineProviders = new List<IScriptEngineProvider>();
         }

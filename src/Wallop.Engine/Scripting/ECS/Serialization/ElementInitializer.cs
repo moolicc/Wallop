@@ -28,14 +28,16 @@ namespace Wallop.Engine.Scripting.ECS.Serialization
 
         private static ElementInitializer? _instance;
 
+        private EngineApp _app;
         private ScriptEngineProviderCache _scriptEngineProviders;
         private TaskHandlerProvider _taskProvider;
         private ScriptHostFunctions _scriptHostFunctions;
         private PluginContext _pluginContext;
         private BindableComponentTypeCache _bindableComponentTypes;
 
-        internal ElementInitializer(ScriptEngineProviderCache scriptEngineProviders, TaskHandlerProvider taskProvider, ScriptHostFunctions scriptHostFunctions, PluginContext pluginContext, BindableComponentTypeCache bindableComponentTypes)
+        internal ElementInitializer(EngineApp app, ScriptEngineProviderCache scriptEngineProviders, TaskHandlerProvider taskProvider, ScriptHostFunctions scriptHostFunctions, PluginContext pluginContext, BindableComponentTypeCache bindableComponentTypes)
         {
+            _app = app;
             _scriptEngineProviders = scriptEngineProviders;
             _taskProvider = taskProvider;
             _scriptHostFunctions = scriptHostFunctions;
@@ -262,7 +264,7 @@ namespace Wallop.Engine.Scripting.ECS.Serialization
         {
             // Execute the injection endpoint.
             EngineLog.For<ElementInitializer>().Info("Calling " + nameof(ScriptInjectEndPoint) + " plugin end point...");
-            var endPointContext = new ScriptInjectEndPoint(component.ModuleDeclaration, context);
+            var endPointContext = new ScriptInjectEndPoint(_app.Messenger, component.ModuleDeclaration, context);
             _pluginContext.ExecuteEndPoint<IInjectScriptContextEndPoint>(endPointContext);
 
             _pluginContext.WaitForEndPointExecutionAsync<IInjectScriptContextEndPoint>().WaitAndCall(component, (e, c)

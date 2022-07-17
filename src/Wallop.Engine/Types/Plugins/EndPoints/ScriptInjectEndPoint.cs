@@ -14,7 +14,8 @@ namespace Wallop.Engine.Types.Plugins.EndPoints
 
         public IScriptContext Context { get; private set; }
 
-        public ScriptInjectEndPoint(Module currentModule, IScriptContext currentContext)
+        public ScriptInjectEndPoint(Messaging.Messenger messages, Module currentModule, IScriptContext currentContext)
+            : base(messages)
         {
             CurrentModule = currentModule;
             Context = currentContext;

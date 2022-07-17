@@ -12,7 +12,8 @@ namespace Wallop.Engine.Types.Plugins.EndPoints
         public IWindow Window { get; private set; }
         public nint WindowHandle => Window.Handle;
 
-        internal OverlayerEndPoint(IWindow window)
+        internal OverlayerEndPoint(Messaging.Messenger messages, IWindow window)
+            : base(messages)
         {
             Window = window;
         }
