@@ -114,6 +114,26 @@ namespace Wallop.Engine.Messaging
             return msgId;
         }
 
+        internal uint Put<T>(T message, uint preferredId) where T : struct
+        {
+            if (!_queues.TryGetValue(typeof(T), out var queue))
+            {
+                queue = new MessageQueue<T>();
+                _queues.Add(typeof(T), queue);
+            }
+
+            if (queue is MessageQueue<T> msgQueue)
+            {
+                preferredId = msgQueue.Enqueue(message, preferredId);
+            }
+            else
+            {
+                return 0;
+            }
+
+            return preferredId;
+        }
+
         public void Listen<T>(MessageListener<T> listener) where T : struct
         {
             if (!_queues.TryGetValue(typeof(T), out var queue))

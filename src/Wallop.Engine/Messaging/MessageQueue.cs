@@ -54,15 +54,19 @@ namespace Wallop.Engine.Messaging
 
         public uint Enqueue(T value, ushort highId)
         {
-            bool handled = false;
-
-            uint messageId = 0;
             ushort low = 0;
             unchecked
             {
                 low = _nextId++;
             }
-            messageId = (uint)highId << 16 | low;
+            uint messageId = (uint)highId << 16 | low;
+
+            return Enqueue(value, messageId);
+        }
+
+        public uint Enqueue(T value, uint messageId)
+        {
+            bool handled = false;
 
             if (MessageListener != null)
             {
