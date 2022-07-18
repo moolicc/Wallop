@@ -59,59 +59,66 @@ namespace Wallop.Engine.Scripting.ECS.Serialization
             if (engineProvider == null)
             {
                 EngineLog.For<ElementInitializer>().Error("Failed to find ScriptEngineProvider {engine} from module {module} for ECS element {element}.", component.ModuleDeclaration.ModuleInfo.ScriptEngineId, component.ModuleDeclaration.ModuleInfo.Id, component.Name);
-                return;
+                throw new ElementInitializationException("Failed to find ScriptEngineProvider.");
             }
 
-            string sourceFullpath = component.ModuleDeclaration.ModuleInfo.SourcePath;
-
-            EngineLog.For<ElementInitializer>().Info("Creating module script resources for {element} from source {filepath}...", component.Name, sourceFullpath);
-            var source = File.ReadAllText(sourceFullpath);
-
-            EngineLog.For<ElementInitializer>().Debug("Creating script components...");
-            var engine = engineProvider.CreateScriptEngine(component.ModuleDeclaration.ModuleInfo.ScriptEngineArgs);
-            var context = engineProvider.CreateContext();
-
-            EngineLog.For<ElementInitializer>().Debug("Attaching script components...");
-            engine.AttachContext(context);
-
-            EngineLog.For<ElementInitializer>().Debug("Injecting system host API...");
-            _scriptHostFunctions.Inject(context, component.ModuleDeclaration, component);
-
-            //EngineLog.For<ElementInitializer>().Debug("Caller mutating script context...");
-            //mutateScriptContext(context);
-
-            EngineLog.For<ElementInitializer>().Debug("Injecting script settings into context...");
-            AddSettingsToContext(context, component);
-
-            EngineLog.For<ElementInitializer>().Debug("Plugins mutating script context...");
-            AddInjectionsToContext(context, component);
-
-            EngineLog.For<ElementInitializer>().Debug("Plugins injecting apis into script context...");
-            SetupHostApisForContext(context, component);
-
-            EngineLog.For<ElementInitializer>().Debug("Performing validation over script context...");
-            ValidateContext(context, component);
-
-
-            EngineLog.For<ElementInitializer>().Debug("Executing script initialization...");
-            component.InitializeScript(_taskProvider, engine, source);
-
-            EngineLog.For<ElementInitializer>().Debug("Setting up ECS element callback scene triggers...");
-            if(scene == null)
+            try
             {
-                EngineLog.For<ElementInitializer>().Warn("Scene not provided, can't setup callbacks. Therefore, it is the caller's responsibility to MAKE SURE TO WIRE THESE UP.");
+                string sourceFullpath = component.ModuleDeclaration.ModuleInfo.SourcePath;
+
+                EngineLog.For<ElementInitializer>().Info("Creating module script resources for {element} from source {filepath}...", component.Name, sourceFullpath);
+                var source = File.ReadAllText(sourceFullpath);
+
+                EngineLog.For<ElementInitializer>().Debug("Creating script components...");
+                var engine = engineProvider.CreateScriptEngine(component.ModuleDeclaration.ModuleInfo.ScriptEngineArgs);
+                var context = engineProvider.CreateContext();
+
+                EngineLog.For<ElementInitializer>().Debug("Attaching script components...");
+                engine.AttachContext(context);
+
+                EngineLog.For<ElementInitializer>().Debug("Injecting system host API...");
+                _scriptHostFunctions.Inject(context, component.ModuleDeclaration, component);
+
+                //EngineLog.For<ElementInitializer>().Debug("Caller mutating script context...");
+                //mutateScriptContext(context);
+
+                EngineLog.For<ElementInitializer>().Debug("Injecting script settings into context...");
+                AddSettingsToContext(context, component);
+
+                EngineLog.For<ElementInitializer>().Debug("Plugins mutating script context...");
+                AddInjectionsToContext(context, component);
+
+                EngineLog.For<ElementInitializer>().Debug("Plugins injecting apis into script context...");
+                SetupHostApisForContext(context, component);
+
+                EngineLog.For<ElementInitializer>().Debug("Performing validation over script context...");
+                ValidateContext(context, component);
+
+
+                EngineLog.For<ElementInitializer>().Debug("Executing script initialization...");
+                component.InitializeScript(_taskProvider, engine, source);
+
+                EngineLog.For<ElementInitializer>().Debug("Setting up ECS element callback scene triggers...");
+                if (scene == null)
+                {
+                    EngineLog.For<ElementInitializer>().Warn("Scene not provided, can't setup callbacks. Therefore, it is the caller's responsibility to MAKE SURE TO WIRE THESE UP.");
+                }
+                else
+                {
+                    component.BeforeUpdateCallback = scene.OnBeforeScriptedElementUpdate;
+                    component.AfterUpdateCallback = scene.OnAfterScriptedElementUpdate;
+                    component.BeforeDrawCallback = scene.OnBeforeScriptedElementDraw;
+                    component.AfterDrawCallback = scene.OnAfterScriptedElementDraw;
+                    component.PanicCallback = scene.OnScriptedElementPanic;
+                }
+
+
+                EngineLog.For<ElementInitializer>().Info("Script initialized!");
             }
-            else
+            catch (Exception ex)
             {
-                component.BeforeUpdateCallback = scene.OnBeforeScriptedElementUpdate;
-                component.AfterUpdateCallback = scene.OnAfterScriptedElementUpdate;
-                component.BeforeDrawCallback = scene.OnBeforeScriptedElementDraw;
-                component.AfterDrawCallback = scene.OnAfterScriptedElementDraw;
-                component.PanicCallback = scene.OnScriptedElementPanic;
+                throw new ElementInitializationException("Failed to initialize element! See inner exception for details.", ex);
             }
-
-
-            EngineLog.For<ElementInitializer>().Info("Script initialized!");
         }
 
         public void InitializeActorSettingBindings(ScriptedActor actor)
@@ -164,8 +171,7 @@ namespace Wallop.Engine.Scripting.ECS.Serialization
             {
                 if (!_bindableComponentTypes.TryGetValue(binding.TypeName, out var bindingType))
                 {
-                    // TODO: Error / Warning
-                    continue;
+                    throw new ElementInitializationException("Failed to resolve Bindable Component Type.");
                 }
 
                 if (bindingInstances.TryGetValue(bindingType, out var instance))
@@ -177,8 +183,7 @@ namespace Wallop.Engine.Scripting.ECS.Serialization
                     var newBindable = (BindableType?)Activator.CreateInstance(bindingType);
                     if (newBindable == null)
                     {
-                        // TODO: Error / Warning
-                        continue;
+                        throw new ElementInitializationException("Failed to instantiate Binding Type.");
                     }
 
                     newBindable.Bind(context);
