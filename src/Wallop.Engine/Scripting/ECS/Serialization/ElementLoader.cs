@@ -55,7 +55,7 @@ namespace Wallop.Engine.Scripting.ECS.Serialization
             if (associatedModule == null)
             {
                 EngineLog.For(nameof(ElementLoader)).Error("Module {module} for actor definition {actor} not found!", storedElement.ModuleId, storedElement.InstanceName);
-                throw new InvalidOperationException("Failed to resolve module from package cache.");
+                throw new ElementLoadException("Failed to resolve module from package cache.");
             }
 
             if(type == ModuleTypes.Director)

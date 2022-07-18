@@ -544,12 +544,18 @@ namespace Wallop.Engine.Handlers
                 {
                     try
                     {
-                        var actor = Scripting.ECS.Serialization.ElementLoader.Instance.Load<ScriptedActor>(savedActor);
+                        SafetyNet.Handle<SceneHandler, StoredModule, ScriptedActor>((a) => Scripting.ECS.Serialization.ElementLoader.Instance.Load<ScriptedActor>(a), savedActor, out var actor)
+                            .Then<ScriptedActor>((a) =>
+                            {
+                                item.SceneLayout.EcsRoot.AddActor(a);
+                                a.AddedToLayout(item.SceneLayout);
+                            }).Next<ScriptedActor>(a =>
+                            {
+                                Scripting.ECS.Serialization.ElementInitializer.Instance.InitializeElement(a, _activeScene);
+                            });
 
-                        item.SceneLayout.EcsRoot.AddActor(actor);
-                        actor.AddedToLayout(item.SceneLayout);
 
-                        Scripting.ECS.Serialization.ElementInitializer.Instance.InitializeElement(actor, _activeScene);
+                        
                     }
                     catch (Exception ex)
                     {
