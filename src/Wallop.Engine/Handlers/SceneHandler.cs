@@ -29,7 +29,7 @@ namespace Wallop.Engine.Handlers
 
         internal SceneStore SceneStore => _sceneStore;
 
-        private TaskHandlerProvider _taskProvider;
+        private TaskHandler _taskHandler;
 
         private SceneSettings _sceneSettings;
         private SceneStore _sceneStore;
@@ -349,10 +349,7 @@ namespace Wallop.Engine.Handlers
 
         private void SetupServices()
         {
-            _taskProvider = new TaskHandlerProvider(_sceneSettings.UpdateThreadingPolicy, _sceneSettings.DrawThreadingPolicy, () =>
-            {
-                //_window.MakeCurrent();
-            });
+            _taskHandler = new TaskHandler(_sceneSettings.UpdateThreadingPolicy, _sceneSettings.DrawThreadingPolicy);
         }
 
         private void SetupDefaultScene()
@@ -447,7 +444,7 @@ namespace Wallop.Engine.Handlers
 
             EngineLog.For<SceneHandler>().Info("Initializing ECS Element invokers...");
             var elementLoader = new Scripting.ECS.Serialization.ElementLoader(packageCache);
-            var elementInitializer = new Scripting.ECS.Serialization.ElementInitializer(App, engineProviders, _taskProvider, hostFunctions, pluginContext, bindableComponentTypes);
+            var elementInitializer = new Scripting.ECS.Serialization.ElementInitializer(App, engineProviders, _taskHandler, hostFunctions, pluginContext, bindableComponentTypes);
 
             EngineLog.For<SceneHandler>().Info("Constructing scene...");
             var sceneLoader = new SceneLoader(settings, packageCache);
@@ -582,12 +579,12 @@ namespace Wallop.Engine.Handlers
             if (_sceneSettings.DrawThreadingPolicy != message.Settings.DrawThreadingPolicy)
             {
                 _sceneSettings.DrawThreadingPolicy = message.Settings.DrawThreadingPolicy;
-                _taskProvider.SetDrawPolicy(message.Settings.DrawThreadingPolicy);
+                _taskHandler.DrawPolicy = message.Settings.DrawThreadingPolicy;
             }
             if (_sceneSettings.UpdateThreadingPolicy != message.Settings.UpdateThreadingPolicy)
             {
                 _sceneSettings.UpdateThreadingPolicy = message.Settings.UpdateThreadingPolicy;
-                _taskProvider.SetUpdatePolicy(message.Settings.UpdateThreadingPolicy);
+                _taskHandler.UpdatePolicy = message.Settings.UpdateThreadingPolicy;
             }
 
 
@@ -845,11 +842,13 @@ namespace Wallop.Engine.Handlers
         public void SceneUpdate()
         {
             _activeScene.Update();
+            _taskHandler.OnUpdate();
         }
 
         public void SceneDraw()
         {
             _activeScene.Draw();
+            _taskHandler.OnDraw();
         }
 
         public override void Shutdown()

@@ -14,7 +14,7 @@ namespace Wallop.Engine
             EngineLog.For<TCaller>().Error(exception, exception.Message);
         }
 
-        public static Net Handle<TCaller>(Action action)
+        public static Net<TCaller> Handle<TCaller>(Action action)
         {
             try
             {
@@ -23,13 +23,13 @@ namespace Wallop.Engine
             catch (Exception ex)
             {
                 Handle<TCaller>(ex);
-                return new Net(ex);
+                return new Net<TCaller>(ex);
             }
 
-            return new Net();
+            return new Net<TCaller>();
         }
 
-        public static Net Handle<TCaller, TArg>(Action<TArg> action, TArg argument)
+        public static Net<TCaller> Handle<TCaller, TArg>(Action<TArg> action, TArg argument)
         {
             try
             {
@@ -38,13 +38,13 @@ namespace Wallop.Engine
             catch (Exception ex)
             {
                 Handle<TCaller>(ex);
-                return new Net(ex);
+                return new Net<TCaller>(ex);
             }
 
-            return new Net();
+            return new Net<TCaller>();
         }
 
-        public static Net Handle<TCaller, TArg1, TArg2>(Action<TArg1, TArg2> action, TArg1 argument1, TArg2 argument2)
+        public static Net<TCaller> Handle<TCaller, TArg1, TArg2>(Action<TArg1, TArg2> action, TArg1 argument1, TArg2 argument2)
         {
             try
             {
@@ -53,13 +53,13 @@ namespace Wallop.Engine
             catch (Exception ex)
             {
                 Handle<TCaller>(ex);
-                return new Net(ex);
+                return new Net<TCaller>(ex);
             }
 
-            return new Net();
+            return new Net<TCaller>();
         }
 
-        public static Net Handle<TCaller, TArg1, TArg2, TArg3>(Action<TArg1, TArg2, TArg3> action, TArg1 argument1, TArg2 argument2, TArg3 argument3)
+        public static Net<TCaller> Handle<TCaller, TArg1, TArg2, TArg3>(Action<TArg1, TArg2, TArg3> action, TArg1 argument1, TArg2 argument2, TArg3 argument3)
         {
             try
             {
@@ -68,13 +68,13 @@ namespace Wallop.Engine
             catch (Exception ex)
             {
                 Handle<TCaller>(ex);
-                return new Net(ex);
+                return new Net<TCaller>(ex);
             }
 
-            return new Net();
+            return new Net<TCaller>();
         }
 
-        public static Net Handle<TCaller, TRet>(Func<TRet> action, out TRet? result)
+        public static Net<TCaller> Handle<TCaller, TRet>(Func<TRet> action, out TRet? result)
         {
             try
             {
@@ -84,14 +84,14 @@ namespace Wallop.Engine
             {
                 Handle<TCaller>(ex);
                 result = default;
-                return new Net(ex);
+                return new Net<TCaller>(ex);
             }
 
-            return new Net(result);
+            return new Net<TCaller>(result);
         }
 
 
-        public static Net Handle<TCaller, TArg, TRet>(Func<TArg, TRet> action, TArg argument, out TRet? result)
+        public static Net<TCaller> Handle<TCaller, TArg, TRet>(Func<TArg, TRet> action, TArg argument, out TRet? result)
         {
             try
             {
@@ -101,13 +101,13 @@ namespace Wallop.Engine
             {
                 Handle<TCaller>(ex);
                 result = default;
-                return new Net(ex);
+                return new Net<TCaller>(ex);
             }
 
-            return new Net(result);
+            return new Net<TCaller>(result);
         }
 
-        public static Net Handle<TCaller, TArg1, TArg2, TRet>(Func<TArg1, TArg2, TRet> action, TArg1 argument1, TArg2 argument2, out TRet? result)
+        public static Net<TCaller> Handle<TCaller, TArg1, TArg2, TRet>(Func<TArg1, TArg2, TRet> action, TArg1 argument1, TArg2 argument2, out TRet? result)
         {
             try
             {
@@ -117,13 +117,13 @@ namespace Wallop.Engine
             {
                 Handle<TCaller>(ex);
                 result = default;
-                return new Net(ex);
+                return new Net<TCaller>(ex);
             }
 
-            return new Net(result);
+            return new Net<TCaller>(result);
         }
 
-        public static Net Handle<TCaller, TArg1, TArg2, TArg3, TRet>(Func<TArg1, TArg2, TArg3, TRet> action, TArg1 argument1, TArg2 argument2, TArg3 argument3, out TRet? result)
+        public static Net<TCaller> Handle<TCaller, TArg1, TArg2, TArg3, TRet>(Func<TArg1, TArg2, TArg3, TRet> action, TArg1 argument1, TArg2 argument2, TArg3 argument3, out TRet? result)
         {
             try
             {
@@ -133,10 +133,10 @@ namespace Wallop.Engine
             {
                 Handle<TCaller>(ex);
                 result = default;
-                return new Net(ex);
+                return new Net<TCaller>(ex);
             }
 
-            return new Net(result);
+            return new Net<TCaller>(result);
         }
     }
 }

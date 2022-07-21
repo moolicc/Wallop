@@ -30,16 +30,16 @@ namespace Wallop.Engine.Scripting.ECS.Serialization
 
         private EngineApp _app;
         private ScriptEngineProviderCache _scriptEngineProviders;
-        private TaskHandlerProvider _taskProvider;
+        private TaskHandler _taskHandler;
         private ScriptHostFunctions _scriptHostFunctions;
         private PluginContext _pluginContext;
         private BindableComponentTypeCache _bindableComponentTypes;
 
-        internal ElementInitializer(EngineApp app, ScriptEngineProviderCache scriptEngineProviders, TaskHandlerProvider taskProvider, ScriptHostFunctions scriptHostFunctions, PluginContext pluginContext, BindableComponentTypeCache bindableComponentTypes)
+        internal ElementInitializer(EngineApp app, ScriptEngineProviderCache scriptEngineProviders, TaskHandler taskHandler, ScriptHostFunctions scriptHostFunctions, PluginContext pluginContext, BindableComponentTypeCache bindableComponentTypes)
         {
             _app = app;
             _scriptEngineProviders = scriptEngineProviders;
-            _taskProvider = taskProvider;
+            _taskHandler = taskHandler;
             _scriptHostFunctions = scriptHostFunctions;
             _pluginContext = pluginContext;
 
@@ -96,7 +96,7 @@ namespace Wallop.Engine.Scripting.ECS.Serialization
 
 
                 EngineLog.For<ElementInitializer>().Debug("Executing script initialization...");
-                component.InitializeScript(_taskProvider, engine, source);
+                component.InitializeScript(_taskHandler, engine, source);
 
                 EngineLog.For<ElementInitializer>().Debug("Setting up ECS element callback scene triggers...");
                 if (scene == null)
