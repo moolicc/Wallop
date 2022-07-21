@@ -6,5 +6,5 @@ using System.Threading.Tasks;
 
 namespace Wallop.DSLExtension.Modules
 {
-    public record PackageInfo(string ManifestPath, string PackageName, string PackageVersion, string PackageDescription);
+    public record PackageInfo(string ManifestPath, string PackageName, string PackageVersion, string PackageDescription, IEnumerable<(string Key, string Value)> PackageVariables);
 }
