@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Wallop.Engine
 {
-    public class Net
+    public class Net<TCaller>
     {
         public Exception? Exception { get; private set; }
         public bool Success { get; private set; }
@@ -34,67 +34,67 @@ namespace Wallop.Engine
         }
 
 
-        public Net Next(Action action)
+        public Net<TCaller> Next(Action action)
         {
             if (Success)
             {
-                return SafetyNet.Handle(action);
+                return SafetyNet.Handle<TCaller>(action);
             }
             return this;
         }
 
-        public Net Next<TPrevResult>(Action<TPrevResult> action)
+        public Net<TCaller> Next<TPrevResult>(Action<TPrevResult> action)
         {
-            if (Result != null && Result.GetType() == typeof(TPrevResult))
+            if (Result != null && Result.GetType() is TPrevResult result)
             {
-                return SafetyNet.Handle(action, Result);
+                return SafetyNet.Handle<TCaller, TPrevResult>(action, result);
             }
             return this;
         }
 
-        public Net Next<TArg1>(Action<TArg1> action, TArg1 argument)
-        {
-            if (Result != null)
-            {
-                return SafetyNet.Handle(action, argument);
-            }
-            return this;
-        }
-
-
-
-
-
-        public Net Next<TRet>(Func<TRet> action)
+        public Net<TCaller> Next<TArg1>(Action<TArg1> action, TArg1 argument)
         {
             if (Success)
             {
-                return SafetyNet.Handle(action);
+                return SafetyNet.Handle<TCaller, TArg1>(action, argument);
             }
             return this;
         }
 
-        public Net Next<TPrevResult, TRet>(Func<TPrevResult, TRet> action)
+
+
+
+
+        public Net<TCaller> Next<TRet>(Func<TRet> action)
         {
-            if (Result != null && Result.GetType() == typeof(TPrevResult))
+            if (Success)
             {
-                return SafetyNet.Handle(action, Result);
+                return SafetyNet.Handle<TCaller, TRet>(action, out _);
             }
             return this;
         }
 
-        public Net Next<TArg1, TRet>(Func<TArg1, TRet> action, TArg1 argument)
+        public Net<TCaller> Next<TPrevResult, TRet>(Func<TPrevResult, TRet> action)
+        {
+            if (Result != null && Result.GetType() is TPrevResult result)
+            {
+                return SafetyNet.Handle<TCaller, TPrevResult, TRet>(action, result, out _);
+            }
+            return this;
+        }
+
+        public Net<TCaller> Next<TArg1, TRet>(Func<TArg1, TRet> action, TArg1 argument)
         {
             if (Result != null)
             {
-                return SafetyNet.Handle(action, argument);
+                return SafetyNet.Handle<TCaller, TArg1, TRet>(action, argument, out _);
             }
             return this;
         }
 
 
 
-        public Net Then(Action action)
+        public Net<TCaller> Then(Action action)
         {
             if(Success)
             {
@@ -103,7 +103,7 @@ namespace Wallop.Engine
             return this;
         }
 
-        public Net Then<TResult>(Action<TResult> action)
+        public Net<TCaller> Then<TResult>(Action<TResult> action)
         {
             if(Result != null && Result.GetType() == typeof(TResult))
             {
@@ -112,7 +112,7 @@ namespace Wallop.Engine
             return this;
         }
 
-        public Net Catch(Action<Exception> action)
+        public Net<TCaller> Catch(Action<Exception> action)
         {
             if(Exception != null)
             {
