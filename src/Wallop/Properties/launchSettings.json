@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "Wallop.Engine": {
+    "Wallop": {
       "commandName": "Project"
     }
   }
