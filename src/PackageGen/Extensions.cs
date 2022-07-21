@@ -9,7 +9,7 @@ namespace PackageGen
 {
     public static class Extensions
     {
-        public static string ToTreeString(this Package package)
+        public static string ToTreeString(this Package package, ChangeTracking.ChangeSet changeSet)
         {
             var builder = new TreeBuilder();
 
