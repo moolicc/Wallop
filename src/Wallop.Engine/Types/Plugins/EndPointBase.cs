@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Wallop.Engine.Messaging;
-namespace Wallop.Engine.Types.Plugins
+using Wallop.Messaging;
+namespace Wallop.Types.Plugins
 {
     public class EndPointBase
     {

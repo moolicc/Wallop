@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Wallop.Engine.Scripting;
+using Wallop.Scripting;
 
-namespace Wallop.Engine.Settings
+namespace Wallop.Settings
 {
     public class SceneSettings : Cog.Settings
     {

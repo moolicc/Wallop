@@ -2,10 +2,10 @@
 using System.Numerics;
 using Wallop.DSLExtension.Modules;
 using Wallop.DSLExtension.Scripting;
-using Wallop.Engine.SceneManagement;
-using Wallop.Engine.Scripting.ECS;
+using Wallop.SceneManagement;
+using Wallop.Scripting.ECS;
 
-namespace Wallop.Engine.Scripting
+namespace Wallop.Scripting
 {
     public class HostData
     {

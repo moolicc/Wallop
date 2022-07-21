@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Wallop.DSLExtension.Modules;
-using Wallop.Engine.SceneManagement;
+using Wallop.SceneManagement;
 
-namespace Wallop.Engine.Scripting.ECS
+namespace Wallop.Scripting.ECS
 {
     public class ScriptedDirector : ScriptedElement, Engine.ECS.IDirector
     {

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Wallop.Engine.ECS.ActorQuerying.FilterMachine
+namespace Wallop.ECS.ActorQuerying.FilterMachine
 {
     public class Machine
     {

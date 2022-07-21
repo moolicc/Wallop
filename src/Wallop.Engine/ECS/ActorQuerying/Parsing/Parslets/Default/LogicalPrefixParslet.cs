@@ -1,7 +1,7 @@
-using Wallop.Engine.ECS.ActorQuerying.Parsing.Expressions;
-using Wallop.Engine.ECS.ActorQuerying.Parsing.Tokens;
+using Wallop.ECS.ActorQuerying.Parsing.Expressions;
+using Wallop.ECS.ActorQuerying.Parsing.Tokens;
 
-namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Parslets.Default
+namespace Wallop.ECS.ActorQuerying.Parsing.Parslets.Default
 {
     public class LogicalPrefixParslet : PrefixParsletBase
     {

@@ -3,11 +3,11 @@ using System.CommandLine;
 using System.CommandLine.Parsing;
 using Wallop.DSLExtension.Scripting;
 using Wallop.DSLExtension.Types.Plugin;
-using Wallop.Engine.Handlers;
-using Wallop.Engine.Messaging;
-using Wallop.Engine.Scripting;
-using Wallop.Engine.Settings;
-using Wallop.Engine.Types.Plugins.EndPoints;
+using Wallop.Handlers;
+using Wallop.Messaging;
+using Wallop.Scripting;
+using Wallop.Settings;
+using Wallop.Types.Plugins.EndPoints;
 
 
 // TODO:
@@ -20,7 +20,7 @@ using Wallop.Engine.Types.Plugins.EndPoints;
 // Cleanup and unify initialization. Make handlers less hard coded and more abstract from the consumer's point of view.
 
 
-namespace Wallop.Engine
+namespace Wallop
 {
     // TODO: Ensure we're using SDL and not GLFW
     public class EngineApp : IDisposable

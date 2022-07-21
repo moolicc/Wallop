@@ -7,14 +7,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Wallop.DSLExtension.Scripting;
-using Wallop.Engine.Messaging.Messages;
-using Wallop.Engine.SceneManagement;
-using Wallop.Engine.SceneManagement.Serialization;
-using Wallop.Engine.Scripting;
-using Wallop.Engine.Scripting.ECS;
-using Wallop.Engine.Settings;
+using Wallop.Messaging.Messages;
+using Wallop.SceneManagement;
+using Wallop.SceneManagement.Serialization;
+using Wallop.Scripting;
+using Wallop.Scripting.ECS;
+using Wallop.Settings;
 
-namespace Wallop.Engine.Handlers
+namespace Wallop.Handlers
 {
 
     internal class SceneHandler : EngineHandler

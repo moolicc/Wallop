@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Wallop.Engine.ECS.ActorQuerying.FilterMachine;
-using Wallop.Engine.ECS.ActorQuerying.Parsing.Expressions;
+using Wallop.ECS.ActorQuerying.FilterMachine;
+using Wallop.ECS.ActorQuerying.Parsing.Expressions;
 
-namespace Wallop.Engine.ECS.ActorQuerying.Queries.Default
+namespace Wallop.ECS.ActorQuerying.Queries.Default
 {
     public class FilterQuery : ExecutableQuery
     {

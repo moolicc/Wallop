@@ -1,4 +1,4 @@
-namespace Wallop.Engine.ECS.ActorQuerying.FilterMachine
+namespace Wallop.ECS.ActorQuerying.FilterMachine
 {
     public abstract class MemberBase : IMachineMember
     {

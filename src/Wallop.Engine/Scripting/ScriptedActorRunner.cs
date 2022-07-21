@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Wallop.DSLExtension.Scripting;
 using Wallop.DSLExtension.Types.Plugin;
-using Wallop.Engine.Scripting.ECS;
+using Wallop.Scripting.ECS;
 
-namespace Wallop.Engine.Scripting
+namespace Wallop.Scripting
 {
     /*
     internal class ScriptedActorRunner

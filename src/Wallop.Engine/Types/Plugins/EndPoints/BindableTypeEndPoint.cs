@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Wallop.DSLExtension.Scripting;
 
-namespace Wallop.Engine.Types.Plugins.EndPoints
+namespace Wallop.Types.Plugins.EndPoints
 {
     public class BindableTypeEndPoint : EndPointBase, DSLExtension.Types.Plugin.IBindableTypeRegistrationEndPoint
     {

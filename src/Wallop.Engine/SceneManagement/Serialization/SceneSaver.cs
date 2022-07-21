@@ -1,9 +1,9 @@
 ﻿using Wallop.DSLExtension.Modules;
 using Wallop.DSLExtension.Scripting;
-using Wallop.Engine.Scripting;
-using Wallop.Engine.Scripting.ECS;
+using Wallop.Scripting;
+using Wallop.Scripting.ECS;
 
-namespace Wallop.Engine.SceneManagement.Serialization
+namespace Wallop.SceneManagement.Serialization
 {
     [Flags]
     public enum SettingsSaveOptions

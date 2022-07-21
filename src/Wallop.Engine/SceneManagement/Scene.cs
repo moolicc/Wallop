@@ -7,11 +7,11 @@ using System.Text;
 using System.Threading.Tasks;
 using Wallop.DSLExtension.Scripting;
 using Wallop.DSLExtension.Types.Plugin;
-using Wallop.Engine.ECS;
-using Wallop.Engine.Scripting;
-using Wallop.Engine.Scripting.ECS;
+using Wallop.ECS;
+using Wallop.Scripting;
+using Wallop.Scripting.ECS;
 
-namespace Wallop.Engine.SceneManagement
+namespace Wallop.SceneManagement
 {
     public class Scene
     {

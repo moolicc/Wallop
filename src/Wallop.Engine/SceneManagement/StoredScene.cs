@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Wallop.Engine.SceneManagement
+namespace Wallop.SceneManagement
 {
     static class Extensions
     {

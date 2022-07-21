@@ -1,8 +1,8 @@
 ﻿using Wallop.DSLExtension.Modules;
-using Wallop.Engine.Scripting;
-using Wallop.Engine.Scripting.ECS;
+using Wallop.Scripting;
+using Wallop.Scripting.ECS;
 
-namespace Wallop.Engine.SceneManagement.Serialization
+namespace Wallop.SceneManagement.Serialization
 {
     /// <summary>
     /// Parses a <see cref="Scene"/> from a loaded in-memory representation contained in an instance of a <see cref="StoredScene" />.

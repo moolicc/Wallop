@@ -4,7 +4,7 @@ using NLog.LayoutRenderers;
 using System.Text;
 using Wallop.DSLExtension.Modules;
 
-namespace Wallop.Engine
+namespace Wallop
 {
     [LayoutRenderer("modulelogger")]
     class ModuleLoggerLayout : LayoutRenderer

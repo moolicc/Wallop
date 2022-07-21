@@ -8,12 +8,12 @@ using System.CommandLine.NamingConventionBinder;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Wallop.Engine.Messaging;
-using Wallop.Engine.Settings;
-using Wallop.Engine.Types.Plugins;
-using Wallop.Engine.Types.Plugins.EndPoints;
+using Wallop.Messaging;
+using Wallop.Settings;
+using Wallop.Types.Plugins;
+using Wallop.Types.Plugins.EndPoints;
 
-namespace Wallop.Engine.Handlers
+namespace Wallop.Handlers
 {
     // TODO: Should move ALL graphics related setup and modifying to here.
     internal class GraphicsHandler : EngineHandler

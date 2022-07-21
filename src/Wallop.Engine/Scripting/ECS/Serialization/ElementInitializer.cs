@@ -6,11 +6,11 @@ using System.Text;
 using System.Threading.Tasks;
 using Wallop.DSLExtension.Scripting;
 using Wallop.DSLExtension.Types.Plugin;
-using Wallop.Engine.SceneManagement;
-using Wallop.Engine.SceneManagement.Serialization;
-using Wallop.Engine.Types.Plugins.EndPoints;
+using Wallop.SceneManagement;
+using Wallop.SceneManagement.Serialization;
+using Wallop.Types.Plugins.EndPoints;
 
-namespace Wallop.Engine.Scripting.ECS.Serialization
+namespace Wallop.Scripting.ECS.Serialization
 {
     public class ElementInitializer
     {

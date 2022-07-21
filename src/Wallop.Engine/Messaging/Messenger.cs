@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Wallop.Engine.Messaging
+namespace Wallop.Messaging
 {
     public delegate void MessageListener<T>((T payload, uint messageId) message, ref bool handled) where T : struct;
 

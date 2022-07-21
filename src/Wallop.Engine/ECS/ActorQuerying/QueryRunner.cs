@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Wallop.Engine.ECS.ActorQuerying.Queries;
+using Wallop.ECS.ActorQuerying.Queries;
 
-namespace Wallop.Engine.ECS.ActorQuerying
+namespace Wallop.ECS.ActorQuerying
 {
     // TODO: Make queries and their associated parsing mechanisms extensible.
     // TODO: Create collection to operate on groups of components/actors.

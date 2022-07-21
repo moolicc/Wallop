@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Wallop.Engine.ECS
+namespace Wallop.ECS
 {
     public interface IActor : IEcsMember
     {

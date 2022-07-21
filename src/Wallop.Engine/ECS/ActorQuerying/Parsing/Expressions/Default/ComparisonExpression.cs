@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Wallop.Engine.ECS.ActorQuerying.FilterMachine;
-using Wallop.Engine.ECS.ActorQuerying.Parsing.Tokens.Default;
+using Wallop.ECS.ActorQuerying.FilterMachine;
+using Wallop.ECS.ActorQuerying.Parsing.Tokens.Default;
 
-namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Expressions.Default
+namespace Wallop.ECS.ActorQuerying.Parsing.Expressions.Default
 {
     public class ComparisonExpression : InfixExpressionBase
     {

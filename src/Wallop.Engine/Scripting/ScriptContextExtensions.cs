@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Wallop.DSLExtension.Scripting;
 using static Wallop.Engine.Scripting.HostData;
 
-namespace Wallop.Engine.Scripting
+namespace Wallop.Scripting
 {
     public static class ScriptContextExtensions
     {

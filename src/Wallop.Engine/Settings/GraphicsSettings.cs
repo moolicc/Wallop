@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Wallop.Engine.Settings
+namespace Wallop.Settings
 {
     public class GraphicsSettings : Cog.Settings
     {

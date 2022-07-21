@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Wallop.Engine.Types.Plugins.EndPoints
+namespace Wallop.Types.Plugins.EndPoints
 {
     public class EngineStartupEndPoint : EndPointBase
     {

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Wallop.Engine.Scripting;
+using Wallop.Scripting;
 
-namespace Wallop.Engine.Scheduling
+namespace Wallop.Scheduling
 {
     public static class Extensions
     {

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 
-namespace Wallop.Engine.Rendering
+namespace Wallop.Rendering
 {
     public class GraphicsDevice
     {

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Wallop.Engine.ECS.ActorQuerying.FilterMachine;
+using Wallop.ECS.ActorQuerying.FilterMachine;
 
-namespace Wallop.Engine.ECS.ActorQuerying.Queries
+namespace Wallop.ECS.ActorQuerying.Queries
 {
     public abstract class ExecutableQuery : IQuery
     {

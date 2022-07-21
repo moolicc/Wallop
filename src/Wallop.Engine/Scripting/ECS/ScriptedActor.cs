@@ -1,9 +1,9 @@
 ﻿using Wallop.DSLExtension.Modules;
-using Wallop.Engine.ECS;
-using Wallop.Engine.SceneManagement;
-using Wallop.Engine.Settings;
+using Wallop.ECS;
+using Wallop.SceneManagement;
+using Wallop.Settings;
 
-namespace Wallop.Engine.Scripting.ECS
+namespace Wallop.Scripting.ECS
 {
     public class ScriptedActor : ScriptedElement, IActor
     {

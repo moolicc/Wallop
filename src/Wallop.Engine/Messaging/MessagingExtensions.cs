@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Wallop.Engine.Messaging.Messages;
+using Wallop.Messaging.Messages;
 
-namespace Wallop.Engine.Messaging
+namespace Wallop.Messaging
 {
     public static class MessagingExtensions
     {

@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\PluginPantry\PluginPantry.csproj" />
-    <ProjectReference Include="..\..\Wallop.Engine\Wallop.Engine.csproj" />
+    <ProjectReference Include="..\..\Wallop.Engine\Wallop.csproj" />
   </ItemGroup>
 
 </Project>

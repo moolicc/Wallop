@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Wallop.Engine.ECS.ActorQuerying.Parsing.Expressions;
+using Wallop.ECS.ActorQuerying.Parsing.Expressions;
 
-namespace Wallop.Engine.ECS.ActorQuerying.Queries
+namespace Wallop.ECS.ActorQuerying.Queries
 {
     /*
      * We want to express actors with certain names

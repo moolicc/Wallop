@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Wallop.Engine.Scheduling
+namespace Wallop.Scheduling
 {
     public class ImmediateScheduleStrategy : IScheduleStrategy
     {

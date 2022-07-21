@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Silk.NET.Windowing;
 using Monitor = Silk.NET.Windowing.Monitor;
 
-namespace Wallop.Engine.Types
+namespace Wallop.Types
 {
     public class ScreenInfo
     {

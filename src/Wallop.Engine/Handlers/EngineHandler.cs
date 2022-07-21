@@ -4,9 +4,9 @@ using System.CommandLine;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Wallop.Engine.Messaging;
+using Wallop.Messaging;
 
-namespace Wallop.Engine.Handlers
+namespace Wallop.Handlers
 {
     public abstract class EngineHandler
     {

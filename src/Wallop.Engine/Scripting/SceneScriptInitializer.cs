@@ -7,13 +7,13 @@ using System.Text;
 using System.Threading.Tasks;
 using Wallop.DSLExtension.Scripting;
 using Wallop.DSLExtension.Types.Plugin;
-using Wallop.Engine.ECS;
-using Wallop.Engine.SceneManagement;
-using Wallop.Engine.Scripting.ECS;
-using Wallop.Engine.Types.Plugins;
-using Wallop.Engine.Types.Plugins.EndPoints;
+using Wallop.ECS;
+using Wallop.SceneManagement;
+using Wallop.Scripting.ECS;
+using Wallop.Types.Plugins;
+using Wallop.Types.Plugins.EndPoints;
 
-namespace Wallop.Engine.Scripting
+namespace Wallop.Scripting
 {
     internal class SceneScriptInitializer
     {

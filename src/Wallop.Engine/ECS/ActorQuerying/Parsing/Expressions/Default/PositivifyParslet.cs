@@ -1,6 +1,6 @@
-using Wallop.Engine.ECS.ActorQuerying.FilterMachine;
+using Wallop.ECS.ActorQuerying.FilterMachine;
 
-namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Expressions.Default
+namespace Wallop.ECS.ActorQuerying.Parsing.Expressions.Default
 {
     public class PositivifyExpression : PrefixExpressionBase
     {

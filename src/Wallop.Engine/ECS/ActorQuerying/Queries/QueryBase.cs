@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Wallop.Engine.ECS.ActorQuerying.Queries
+namespace Wallop.ECS.ActorQuerying.Queries
 {
     public abstract class QueryBase : IQuery
     {

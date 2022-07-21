@@ -5,11 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using Wallop.DSLExtension.Modules;
 using Wallop.DSLExtension.Scripting;
-using Wallop.Engine.ECS;
-using Wallop.Engine.Scheduling;
-using Wallop.Engine.SceneManagement;
+using Wallop.ECS;
+using Wallop.Scheduling;
+using Wallop.SceneManagement;
 
-namespace Wallop.Engine.Scripting.ECS
+namespace Wallop.Scripting.ECS
 {
     public class ScriptedElement : IEcsMember
     {

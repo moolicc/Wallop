@@ -4,9 +4,9 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
-using Wallop.Engine.Types;
+using Wallop.Types;
 
-namespace Wallop.Engine.SceneManagement
+namespace Wallop.SceneManagement
 {
     public class Layout
     {

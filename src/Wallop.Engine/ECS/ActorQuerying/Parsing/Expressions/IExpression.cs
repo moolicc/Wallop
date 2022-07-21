@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Expressions
+namespace Wallop.ECS.ActorQuerying.Parsing.Expressions
 {
     public interface IExpression
     {

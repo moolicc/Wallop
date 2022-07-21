@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace Wallop.Engine.ECS.ActorQuerying.FilterMachine
+namespace Wallop.ECS.ActorQuerying.FilterMachine
 {
     public class PropertyInfoMember : MemberBase
     {

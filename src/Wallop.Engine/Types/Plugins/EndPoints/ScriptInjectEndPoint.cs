@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Wallop.DSLExtension.Modules;
 using Wallop.DSLExtension.Scripting;
 
-namespace Wallop.Engine.Types.Plugins.EndPoints
+namespace Wallop.Types.Plugins.EndPoints
 {
     internal class ScriptInjectEndPoint : EndPointBase, DSLExtension.Types.Plugin.IInjectScriptContextEndPoint
     {

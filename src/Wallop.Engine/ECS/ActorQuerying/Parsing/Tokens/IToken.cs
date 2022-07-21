@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Wallop.Engine.ECS.ActorQuerying.Parsing.Tokens
+namespace Wallop.ECS.ActorQuerying.Parsing.Tokens
 {
     public interface IToken
     {

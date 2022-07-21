@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Wallop.DSLExtension.Modules;
 
-namespace Wallop.Engine.Scripting.ECS.Serialization
+namespace Wallop.Scripting.ECS.Serialization
 {
     public class ElementLoader
     {

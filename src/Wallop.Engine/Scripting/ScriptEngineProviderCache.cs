@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Wallop.DSLExtension.Scripting;
 using Wallop.DSLExtension.Types.Plugin;
-using Wallop.Engine.Types.Plugins.EndPoints;
+using Wallop.Types.Plugins.EndPoints;
 
-namespace Wallop.Engine.Scripting
+namespace Wallop.Scripting
 {
     public class ScriptEngineProviderCache
     {

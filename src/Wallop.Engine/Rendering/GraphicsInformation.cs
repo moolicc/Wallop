@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Wallop.Engine.Rendering
+namespace Wallop.Rendering
 {
     public record GraphicsInformation(
         Version OpenGLVersion, int UniformBufferOffsetAlignment, int MaxUniformBufferBindings, int MaxUniformBlockSize, int MaxSamples,

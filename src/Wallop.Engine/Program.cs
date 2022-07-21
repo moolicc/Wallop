@@ -1,8 +1,8 @@
 ﻿
 using System.CommandLine;
 using System.Reflection;
-using Wallop.Engine;
-using Wallop.Engine.ECS;
+using Wallop;
+using Wallop.ECS;
 
 namespace Wallop
 {

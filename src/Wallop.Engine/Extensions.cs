@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 
-namespace Wallop.Engine
+namespace Wallop
 {
     internal static class Extensions
     {

@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Wallop.Engine.Settings;
+using Wallop.Settings;
 
-namespace Wallop.Engine.SceneManagement
+namespace Wallop.SceneManagement
 {
     /// <summary>
     /// Manages a container of in-memory scenes represented by <see cref="StoredScene" />, mapped by scene name.

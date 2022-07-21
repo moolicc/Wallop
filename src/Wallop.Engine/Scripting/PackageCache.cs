@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Wallop.DSLExtension.Modules;
 using Wallop.DSLExtension.Modules.SettingTypes;
 
-namespace Wallop.Engine.Scripting
+namespace Wallop.Scripting
 {
     public class PackageCache
     {

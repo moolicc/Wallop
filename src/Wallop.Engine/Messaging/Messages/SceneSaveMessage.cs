@@ -1,6 +1,6 @@
-﻿using Wallop.Engine.SceneManagement.Serialization;
+﻿using Wallop.SceneManagement.Serialization;
 
-namespace Wallop.Engine.Messaging.Messages
+namespace Wallop.Messaging.Messages
 {
     public readonly record struct SceneSaveMessage(SettingsSaveOptions Options, string Location);
 }

@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Wallop.Engine.Scripting.ECS;
+using Wallop.Scripting.ECS;
 
-namespace Wallop.Engine.Scripting
+namespace Wallop.Scripting
 {
     public enum ThreadingPolicy
     {
