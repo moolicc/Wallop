@@ -9,6 +9,11 @@
     <VersionSuffix>alef</VersionSuffix>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="PluginManagement\**" />
+    <EmbeddedResource Remove="PluginManagement\**" />
+    <None Remove="PluginManagement\**" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Cog\Cog.csproj" />
     <ProjectReference Include="..\PluginPantry\PluginPantry.csproj" />
     <ProjectReference Include="..\Wallop.DSLExtension\Wallop.DSLExtension.csproj" />
@@ -17,9 +22,6 @@
     <None Update="engineconf.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="PluginManagement\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NLog" Version="5.0.0-rc2" />
