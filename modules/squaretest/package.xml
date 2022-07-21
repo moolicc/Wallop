@@ -4,13 +4,17 @@
         <name>Tests</name>
         <version>1.0</version>
         <description>Contains various modules</description>
+        <variables>
+            <ver>1.0</ver>
+            <desc>Renders a beautiful square</desc>
+        </variables>
     </metadata>
     <modules>
         <module>
             <metadata>
                 <name>Square Test</name>
-                <version>1.0</version>
-                <description>Renders a beautiful square</description>
+                <version>$ver</version>
+                <description>$desc</description>
                 <scriptEngine>
                     <name>Iron Python</name>
                     <args verbose="true" />
@@ -55,8 +59,8 @@
         <module>
             <metadata>
                 <name>Director Test</name>
-                <version>1.0</version>
-                <description>Renders a beautiful square</description>
+                <version>$ver</version>
+                <description>$desc</description>
                 <scriptEngine>
                     <name>Iron Python</name>
                     <args verbose="true" />
@@ -66,6 +70,9 @@
                     <api>EzRender</api>
                 </apis>
                 <source>director.py</source>
+                <variables>
+                    <desc>Renders a beautiful square MODULE</desc>
+                </variables>
             </metadata>
 
             <settings>
