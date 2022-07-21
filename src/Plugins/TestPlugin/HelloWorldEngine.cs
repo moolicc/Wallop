@@ -1,4 +1,4 @@
-﻿using Wallop.Engine.Types.Plugins;
+﻿using Wallop.Types.Plugins;
 using PluginPantry.Extending;
 
 namespace TestPlugin
@@ -12,7 +12,7 @@ namespace TestPlugin
             info.Exposed.RegisterEndPoint<EngineStartupEndPoint>("EngineStartup", this, info.PluginId);
         }
 
-        public void EngineStartup(Wallop.Engine.Settings.GraphicsSettings settings)
+        public void EngineStartup(Wallop.Settings.GraphicsSettings settings)
         {
             Console.WriteLine(settings.ToString());
         }

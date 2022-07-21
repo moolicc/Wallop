@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <VersionPrefix>0.1.0</VersionPrefix>
+    <VersionSuffix>alef</VersionSuffix>
+    <StartupObject>Wallop.Program</StartupObject>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="PluginManagement\**" />
+    <EmbeddedResource Remove="PluginManagement\**" />
+    <None Remove="PluginManagement\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Cog\Cog\Cog.csproj" />
+    <ProjectReference Include="..\PluginPantry\PluginPantry\PluginPantry.csproj" />
+    <ProjectReference Include="..\Wallop.DSLExtension\Wallop.DSLExtension.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="engineconf.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="NLog" Version="5.0.0-rc2" />
+    <PackageReference Include="Silk.NET" Version="2.15.0" />
+    <PackageReference Include="Silk.NET.OpenGL" Version="2.15.0" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta3.22114.1" />
+    <PackageReference Include="System.CommandLine.NamingConventionBinder" Version="2.0.0-beta3.22114.1" />
+  </ItemGroup>
+</Project>

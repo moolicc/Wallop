@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Wallop.Engine\Wallop.Engine.csproj" />
-    <ProjectReference Include="..\..\PluginPantry\PluginPantry.csproj" />
+    <ProjectReference Include="..\..\PluginPantry\PluginPantry\PluginPantry.csproj" />
+    <ProjectReference Include="..\..\Wallop\Wallop.csproj" />
   </ItemGroup>
 
 </Project>

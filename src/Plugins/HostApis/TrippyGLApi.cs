@@ -11,7 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TrippyGL;
 using Wallop.DSLExtension.Scripting;
-using Wallop.Engine.Scripting;
+using Wallop.Scripting;
 
 namespace HostApis
 {

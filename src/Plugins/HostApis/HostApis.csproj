@@ -19,7 +19,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\..\Wallop.DSLExtension\Wallop.DSLExtension.csproj" />
-	  <ProjectReference Include="..\..\Wallop.Engine\Wallop.Engine.csproj" />
+	  <ProjectReference Include="..\..\Wallop\Wallop.csproj" />
 	</ItemGroup>
 
 </Project>

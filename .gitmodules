@@ -1,0 +1,6 @@
+[submodule "src/Cog"]
+	path = src/Cog
+	url = https://github.com/moolicc/Cog
+[submodule "src/PluginPantry"]
+	path = src/PluginPantry
+	url = https://github.com/moolicc/PluginPantry
