@@ -74,10 +74,10 @@ namespace Wallop
             EngineLog.For<Program>().Info("Loading plugin assemblies...");
             var pluginLoader = new PluginPantry.PluginLoader();
             //var plugins = pluginLoader.LoadPluginAssembly(@"C:\Users\joel\source\repos\moolicc\Wallop\Plugins\TestPlugin\bin\Debug\net6.0\TestPlugin.dll");
-            var morePlugins = pluginLoader.LoadPluginAssembly(@"C:\Users\joel\source\repos\moolicc\Wallop\src\Plugins\EnginePlugins\bin\Debug\net6.0\EnginePlugins.dll");
-            var yetMore = pluginLoader.LoadPluginAssembly(@"C:\Users\joel\source\repos\moolicc\Wallop\src\Plugins\HostApis\bin\Debug\net6.0\HostApis.dll");
-            var moarPlugions = pluginLoader.LoadPluginAssembly(@"C:\Users\joel\source\repos\moolicc\Wallop\src\Plugins\Scripting.IronPython\bin\Debug\net6.0\Scripting.IronPython.dll");
-            var anotherone = pluginLoader.LoadPluginAssembly(@"C:\Users\joel\source\repos\moolicc\Wallop\src\Plugins\StandardComponents\bin\Debug\net6.0\StandardComponents.dll");
+            var morePlugins = pluginLoader.LoadPluginAssembly(@"C:\Users\joel\source\repos\Wallop\src\Plugins\EnginePlugins\bin\Debug\net6.0\EnginePlugins.dll");
+            var yetMore = pluginLoader.LoadPluginAssembly(@"C:\Users\joel\source\repos\Wallop\src\Plugins\HostApis\bin\Debug\net6.0\HostApis.dll");
+            var moarPlugions = pluginLoader.LoadPluginAssembly(@"C:\Users\joel\source\repos\Wallop\src\Plugins\Scripting.IronPython\bin\Debug\net6.0\Scripting.IronPython.dll");
+            var anotherone = pluginLoader.LoadPluginAssembly(@"C:\Users\joel\source\repos\Wallop\src\Plugins\StandardComponents\bin\Debug\net6.0\StandardComponents.dll");
 
 
             EngineLog.For<Program>().Info("Including plugins into context...");
