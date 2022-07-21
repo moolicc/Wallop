@@ -1,7 +1,16 @@
 ﻿
+using PackageGen;
 using System.CommandLine;
+using Wallop.DSLExtension.Modules;
 
 Console.WriteLine("Hello, World!");
+
+var package = PackageLoader.LoadPackages(@"C:\Users\joel\source\repos\Wallop\modules\squaretest").First();
+
+Console.WriteLine(package.ToTreeString());
+
+Console.ReadLine();
+
 
 var command = BuildCommandTree();
 
@@ -17,7 +26,7 @@ while (repl)
 
 RootCommand BuildCommandTree()
 {
-    var root = new RootCommand("");
+    var root = new RootCommand("Package generator and editor.");
 
     return root;
 }
