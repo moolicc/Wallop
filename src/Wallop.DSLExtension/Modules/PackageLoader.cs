@@ -30,7 +30,7 @@ namespace Wallop.DSLExtension.Modules
             var fileInfo = new FileInfo(file);
             var baseDir = fileInfo.Directory?.FullName ?? "";
             var packageInfo = LoadPackageInfo(file, root.XPathSelectElement("./metadata"));
-            var modules = LoadModules(root.XPathSelectElement("./modules"), file, baseDir);
+            var modules = LoadModules(packageInfo, root.XPathSelectElement("./modules"), baseDir);
 
             return new Package()
             {
@@ -46,10 +46,14 @@ namespace Wallop.DSLExtension.Modules
                 throw new XmlException("Failed to find package metadata.");
             }
             var commonData = GetCommonMetadataValues(rootElement);
-            return new PackageInfo(xmlFile, commonData.Name, commonData.Version, commonData.Description);
+            return new PackageInfo(xmlFile,
+                ApplyVariables(commonData.Name, commonData.Variables, null),
+                ApplyVariables(commonData.Version, commonData.Variables, null),
+                ApplyVariables(commonData.Description, commonData.Variables, null),
+                commonData.Variables);
         }
 
-        private static IEnumerable<Module> LoadModules(XElement? rootElement, string packageFile, string baseDir)
+        private static IEnumerable<Module> LoadModules(PackageInfo packageInfo, XElement? rootElement, string baseDir)
         {
             if (rootElement == null)
             {
@@ -57,19 +61,19 @@ namespace Wallop.DSLExtension.Modules
             }
             foreach (var element in rootElement.XPathSelectElements("./module"))
             {
-                yield return LoadModule(element, packageFile, baseDir);
+                yield return LoadModule(packageInfo, element, baseDir);
             }
         }
 
-        private static Module LoadModule(XElement? moduleElement, string packageFile, string baseDir)
+        private static Module LoadModule(PackageInfo packageInfo, XElement? moduleElement, string baseDir)
         {
             if (moduleElement == null)
             {
                 throw new XmlException("Failed to load module from package.");
             }
 
-            var info = LoadModuleInfo(moduleElement.XPathSelectElement("./metadata"), packageFile, baseDir);
-            var settings = LoadModuleSettings(moduleElement.XPathSelectElement("./settings"));
+            var info = LoadModuleInfo(packageInfo, moduleElement.XPathSelectElement("./metadata"), baseDir);
+            var settings = LoadModuleSettings(packageInfo, info, moduleElement.XPathSelectElement("./settings"));
             return new Module()
             {
                 ModuleInfo = info,
@@ -77,7 +81,7 @@ namespace Wallop.DSLExtension.Modules
             };
         }
 
-        private static ModuleInfo LoadModuleInfo(XElement? metadataElement, string packageFile, string baseDir)
+        private static ModuleInfo LoadModuleInfo(PackageInfo packageInfo, XElement? metadataElement, string baseDir)
         {
             if(metadataElement == null)
             {
@@ -110,10 +114,22 @@ namespace Wallop.DSLExtension.Modules
                 }
             }
 
-            return new ModuleInfo(packageFile, baseDir, moduleSourceFile, commonMetadata.Name, commonMetadata.Version, commonMetadata.Description, engineInfo.ScriptEngineName, engineInfo.EngineArgs, typeEnumValue, hostApis);
+            return new ModuleInfo(packageInfo.ManifestPath,
+                baseDir,
+                ApplyVariables(moduleSourceFile, packageInfo.PackageVariables, commonMetadata.Variables),
+                ApplyVariables(commonMetadata.Name, packageInfo.PackageVariables, commonMetadata.Variables),
+                ApplyVariables(commonMetadata.Version, packageInfo.PackageVariables, commonMetadata.Variables),
+                ApplyVariables(commonMetadata.Description, packageInfo.PackageVariables, commonMetadata.Variables),
+                ApplyVariables(engineInfo.ScriptEngineName, packageInfo.PackageVariables, commonMetadata.Variables),
+                engineInfo.EngineArgs.Select(kvp
+                    => new KeyValuePair<string, string>(ApplyVariables(kvp.Key, packageInfo.PackageVariables, commonMetadata.Variables),
+                    ApplyVariables(kvp.Value, packageInfo.PackageVariables, commonMetadata.Variables))),
+                typeEnumValue,
+                hostApis.Select(api => ApplyVariables(api, packageInfo.PackageVariables, commonMetadata.Variables)),
+                commonMetadata.Variables);
         }
 
-        private static IEnumerable<ModuleSetting> LoadModuleSettings(XElement? settingRoot)
+        private static IEnumerable<ModuleSetting> LoadModuleSettings(PackageInfo packageInfo, ModuleInfo moduleInfo, XElement? settingRoot)
         {
             if (settingRoot == null)
             {
@@ -122,7 +138,7 @@ namespace Wallop.DSLExtension.Modules
 
             foreach (var settingElement in settingRoot.XPathSelectElements("./setting"))
             {
-                var setting = LoadModuleSetting(settingElement);
+                var setting = LoadModuleSetting(packageInfo, moduleInfo, settingElement);
                 if(setting != null)
                 {
                     yield return setting;
@@ -130,7 +146,7 @@ namespace Wallop.DSLExtension.Modules
             }
         }
 
-        private static ModuleSetting? LoadModuleSetting(XElement? settingElement)
+        private static ModuleSetting? LoadModuleSetting(PackageInfo packageInfo, ModuleInfo moduleInfo, XElement? settingElement)
         {
             if (settingElement == null)
             {
@@ -169,18 +185,32 @@ namespace Wallop.DSLExtension.Modules
                     throw new XmlException("Module setting is not required and thus requires a default value.");
                 }
             }
+            else
+            {
+                defaultValue = ApplyVariables(defaultValue, packageInfo, moduleInfo);
+            }
             if(bindingElements != null)
             {
-                bindings = LoadBindings(bindingElements);
+                bindings = LoadBindings(packageInfo, moduleInfo, bindingElements);
             }
 
-            var type = typeElement.Value;
-            var typeArgs = typeElement.Attributes().Select(a => new KeyValuePair<string, string>(a.Name.ToString(), a.Value));
+            var type = ApplyVariables(typeElement.Value, packageInfo, moduleInfo);
+            var typeArgs = typeElement.Attributes().Select(a
+                => new KeyValuePair<string, string>(
+                    ApplyVariables(a.Name.ToString(), packageInfo, moduleInfo),
+                    ApplyVariables(a.Value, packageInfo, moduleInfo)));
 
-            return new ModuleSetting(name, description, defaultValue, type, requiredBool, trackedBool, bindings, typeArgs);
+            return new ModuleSetting(ApplyVariables(name, packageInfo, moduleInfo),
+                ApplyVariables(description, packageInfo, moduleInfo),
+                defaultValue,
+                type,
+                requiredBool,
+                trackedBool,
+                bindings,
+                typeArgs);
         }
 
-        private static IEnumerable<ModuleSettingBinding> LoadBindings(IEnumerable<XElement> bindingElements)
+        private static IEnumerable<ModuleSettingBinding> LoadBindings(PackageInfo packageInfo, ModuleInfo moduleInfo, IEnumerable<XElement> bindingElements)
         {
             const string TYPE_PROPERTY_DELIMITER = ":";
 
@@ -193,7 +223,9 @@ namespace Wallop.DSLExtension.Modules
                 var delimiterIndex = element.Value.IndexOf(TYPE_PROPERTY_DELIMITER);
                 var type = element.Value.Substring(0, delimiterIndex);
                 var property = element.Value.Substring(delimiterIndex + 1);
-                yield return new ModuleSettingBinding(type, property);
+                yield return new ModuleSettingBinding(
+                    ApplyVariables(type, packageInfo, moduleInfo),
+                    ApplyVariables(property, packageInfo, moduleInfo));
             }
         }
 
@@ -235,7 +267,7 @@ namespace Wallop.DSLExtension.Modules
             return subElements.Select(e => e.Value);
         }
 
-        private static (string Name, string Version, string Description) GetCommonMetadataValues(XElement? metadataRoot)
+        private static (string Name, string Version, string Description, IEnumerable<(string Key, string Value)> Variables) GetCommonMetadataValues(XElement? metadataRoot)
         {
             if(metadataRoot == null)
             {
@@ -245,8 +277,9 @@ namespace Wallop.DSLExtension.Modules
             var name = metadataRoot.XPathSelectElement("./name")?.Value;
             var version = metadataRoot.XPathSelectElement("./version")?.Value;
             var description = metadataRoot.XPathSelectElement("./description")?.Value;
+            var variables = GetVariableDeclarations(metadataRoot);
 
-            if(name == null)
+            if (name == null)
             {
                 throw new XmlException("Package metadata must contain a package name.");
             }
@@ -259,7 +292,51 @@ namespace Wallop.DSLExtension.Modules
                 description = string.Empty;
             }
 
-            return (name, version, description);
+            return (name, version, description, variables);
+        }
+
+        private static IEnumerable<(string Key, string Value)> GetVariableDeclarations(XElement metadataRoot)
+        {
+            var variablesElement = metadataRoot.XPathSelectElement("./variables");
+
+            if(variablesElement == null)
+            {
+                return Array.Empty<(string, string)>();
+            }
+            var ele = variablesElement.Elements();
+            return ele.Select(e => GetVariableDeclaration(e));
+        }
+
+        private static (string Key, string Value) GetVariableDeclaration(XElement? variableDeclElement)
+        {
+            if(variableDeclElement == null)
+            {
+                throw new XmlException("Failed to load package variable declaration.");
+            }
+
+            return (variableDeclElement.Name.ToString(), variableDeclElement.Value);
+        }
+
+
+        private static string ApplyVariables(string input, PackageInfo packageInfo, ModuleInfo? moduleInfo)
+            => ApplyVariables(input, packageInfo.PackageVariables, moduleInfo?.Variables);
+
+        private static string ApplyVariables(string input, IEnumerable<(string Key, string Value)> packageVariables, IEnumerable<(string Key, string Value)>? moduleVariables)
+        {
+            if(moduleVariables != null)
+            {
+                foreach (var item in moduleVariables)
+                {
+                    input = input.Replace($"${item.Key}", item.Value);
+                }
+            }
+
+            foreach (var item in packageVariables)
+            {
+                input = input.Replace($"${item.Key}", item.Value);
+            }
+
+            return input;
         }
     }
 }
