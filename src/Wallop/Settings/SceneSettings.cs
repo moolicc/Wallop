@@ -9,7 +9,7 @@ namespace Wallop.Settings
 {
     public class SceneSettings : Cog.Settings
     {
-        public string PackageSearchDirectory { get; set; } = @"C:\Users\joel\source\repos\moolicc\Wallop\modules\squaretest";
+        public string PackageSearchDirectory { get; set; } = @"C:\Users\joel\source\repos\Wallop\modules\squaretest";
 
         /// <summary>
         /// The name of the constant, empty scene.

@@ -80,7 +80,7 @@ namespace Wallop.SceneManagement.Serialization
                 }
                 catch (Exception ex)
                 {
-                    EngineLog.For<SceneLoader>().Error(ex, "Failed to load or initialize actor '{actor}' with module '{module}'!", actorDefinition.InstanceName, actorDefinition.ModuleId);
+                    EngineLog.For<SceneLoader>().Error(ex, "Failed to load or initialize actor {actor} with module {module}!", actorDefinition.InstanceName, actorDefinition.ModuleId);
                     continue;
                 }
 

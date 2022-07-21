@@ -434,7 +434,6 @@ namespace Wallop.Handlers
                 return;
             }
 
-            var packageCache = App.GetService<PackageCache>().OrThrow();
             var bindableComponentTypes = App.GetService<BindableComponentTypeCache>().OrThrow();
             //var taskProvider = App.GetService<TaskHandlerProvider>().OrThrow();
             var pluginContext = App.GetService<PluginPantry.PluginContext>().OrThrow();
@@ -443,11 +442,11 @@ namespace Wallop.Handlers
 
 
             EngineLog.For<SceneHandler>().Info("Initializing ECS Element invokers...");
-            var elementLoader = new Scripting.ECS.Serialization.ElementLoader(packageCache);
+            var elementLoader = new Scripting.ECS.Serialization.ElementLoader(PackageCache);
             var elementInitializer = new Scripting.ECS.Serialization.ElementInitializer(App, engineProviders, _taskHandler, hostFunctions, pluginContext, bindableComponentTypes);
 
             EngineLog.For<SceneHandler>().Info("Constructing scene...");
-            var sceneLoader = new SceneLoader(settings, packageCache);
+            var sceneLoader = new SceneLoader(settings, PackageCache);
             var scene = sceneLoader.LoadScene();
 
 
@@ -571,9 +570,8 @@ namespace Wallop.Handlers
 
             if (_sceneSettings.PackageSearchDirectory != message.Settings.PackageSearchDirectory)
             {
-                var packageCache = App.GetService<PackageCache>().OrThrow();
                 _sceneSettings.PackageSearchDirectory = message.Settings.PackageSearchDirectory;
-                packageCache.ReloadAll(message.Settings.PackageSearchDirectory);
+                PackageCache.ReloadAll(message.Settings.PackageSearchDirectory);
             }
 
             if (_sceneSettings.DrawThreadingPolicy != message.Settings.DrawThreadingPolicy)

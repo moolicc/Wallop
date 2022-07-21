@@ -128,8 +128,8 @@ namespace Wallop
 
             var searchDirectories = new[]
             {
-                @"C:\Users\joel\source\repos\moolicc\Wallop\src\Plugins\Scripting.IronPython\bin\Debug\net6.0",
-                @"C:\Users\joel\source\repos\moolicc\Wallop\src\Plugins\HostApis\bin\Debug\net6.0",
+                @"C:\Users\joel\source\repos\Wallop\src\Plugins\Scripting.IronPython\bin\Debug\net6.0",
+                @"C:\Users\joel\source\repos\Wallop\src\Plugins\HostApis\bin\Debug\net6.0",
             };
 
             EngineLog.For<Program>().Debug("Searching in {numDir} directories.", searchDirectories.Length);
