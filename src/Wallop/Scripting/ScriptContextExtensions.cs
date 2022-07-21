@@ -8,7 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Wallop.DSLExtension.Scripting;
-using static Wallop.Engine.Scripting.HostData;
+using static Wallop.Scripting.HostData;
 
 namespace Wallop.Scripting
 {

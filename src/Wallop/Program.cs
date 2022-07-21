@@ -63,8 +63,8 @@ namespace Wallop
             EngineLog.For<Program>().Info("Configuration loaded");
 
             EngineLog.For<Program>().Info("Resolving config bindings...");
-            engineConfig.ResolveBindingsAsync<Engine.Settings.GraphicsSettings>().Wait();
-            engineConfig.ResolveBindingsAsync<Engine.Settings.SceneSettings>().Wait();
+            engineConfig.ResolveBindingsAsync<Settings.GraphicsSettings>().Wait();
+            engineConfig.ResolveBindingsAsync<Settings.SceneSettings>().Wait();
             foreach (var item in engineConfig.GetValues())
             {
                 EngineLog.For<Program>().Debug("{key}: {value}", item.Key, item.Value);
@@ -90,7 +90,7 @@ namespace Wallop
 
 
             EngineLog.For<Program>().Info("Running plugin entry points...");
-            context.BeginPluginExecution(new Wallop.Engine.Types.Plugins.EndPoints.EntryPointContext());
+            context.BeginPluginExecution(new Types.Plugins.EndPoints.EntryPointContext());
 
             AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(LoadDep);
 
@@ -98,7 +98,7 @@ namespace Wallop
             {
                 EngineLog.For<Program>().Info("Setting up Engine...");
 
-                var startupEndPoint = new Engine.Types.Plugins.EndPoints.EngineStartupEndPoint(_app.Messenger);
+                var startupEndPoint = new Types.Plugins.EndPoints.EngineStartupEndPoint(_app.Messenger);
                 context.ExecuteEndPoint(startupEndPoint);
                 _app.ProcessCommandLine(true, Environment.CommandLine, startupEndPoint.CommandLineVerbs);
 

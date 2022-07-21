@@ -5,7 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using Wallop.Engine.Types.Plugins.EndPoints;
+using Wallop.Types.Plugins.EndPoints;
 
 namespace EnginePlugins
 {
@@ -27,7 +27,7 @@ namespace EnginePlugins
         public void OverlayWindowEndPoint_Windows(Silk.NET.Windowing.IWindow window)
         {
 
-            var bounds = Wallop.Engine.Types.ScreenInfo.GetVirtualScreen().Bounds;
+            var bounds = Wallop.Types.ScreenInfo.GetVirtualScreen().Bounds;
             Console.WriteLine("Setting SDL window bounds: {{ {0}, {1}, {2}, {3} }}", bounds.Origin.X, bounds.Origin.Y, bounds.Size.X, bounds.Size.Y);
             window.Position = new Silk.NET.Maths.Vector2D<int>(0, 0);
             window.Size = bounds.Size;

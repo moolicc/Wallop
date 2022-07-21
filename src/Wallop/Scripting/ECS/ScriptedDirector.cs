@@ -8,7 +8,7 @@ using Wallop.SceneManagement;
 
 namespace Wallop.Scripting.ECS
 {
-    public class ScriptedDirector : ScriptedElement, Engine.ECS.IDirector
+    public class ScriptedDirector : ScriptedElement, Wallop.ECS.IDirector
     {
         public ScriptedDirector(Module declaringModule, StoredModule storedModule)
             : base(storedModule.InstanceName, declaringModule, storedModule)

@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\PluginPantry\PluginPantry.csproj" />
-    <ProjectReference Include="..\..\Wallop.Engine\Wallop.csproj" />
+    <ProjectReference Include="..\..\PluginPantry\PluginPantry\PluginPantry.csproj" />
+    <ProjectReference Include="..\..\Wallop\Wallop.csproj" />
   </ItemGroup>
 
 </Project>

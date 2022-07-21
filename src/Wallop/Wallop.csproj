@@ -7,6 +7,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <VersionPrefix>0.1.0</VersionPrefix>
     <VersionSuffix>alef</VersionSuffix>
+    <StartupObject>Wallop.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="PluginManagement\**" />
@@ -14,8 +15,8 @@
     <None Remove="PluginManagement\**" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Cog\Cog.csproj" />
-    <ProjectReference Include="..\PluginPantry\PluginPantry.csproj" />
+    <ProjectReference Include="..\Cog\Cog\Cog.csproj" />
+    <ProjectReference Include="..\PluginPantry\PluginPantry\PluginPantry.csproj" />
     <ProjectReference Include="..\Wallop.DSLExtension\Wallop.DSLExtension.csproj" />
   </ItemGroup>
   <ItemGroup>
