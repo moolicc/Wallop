@@ -302,8 +302,10 @@ namespace PackageGen
                     return;
                 }
 
+                var changeType = string.IsNullOrEmpty(_selectedPackage.Info.PackageVersion) ? ChangeTypes.Create : ChangeTypes.Update;
+
                 _changes.Changes.Enqueue(
-                    new PackageFieldChange(ChangeTypes.Update, $"(P) {_selectedPackage.Info.PackageName}:{nameof(_selectedPackage.Info.PackageVersion)}", _selectedPackage.Info.PackageVersion, s));
+                    new PackageFieldChange(changeType, $"(P) {_selectedPackage.Info.PackageName}:{nameof(_selectedPackage.Info.PackageVersion)}", _selectedPackage.Info.PackageVersion, s));
                 _selectedPackage.SetPackageVersion(s);
                 Console.WriteLine($"Package version update added to changeset.");
             }, verArg);
@@ -321,8 +323,10 @@ namespace PackageGen
                     return;
                 }
 
+                var changeType = string.IsNullOrEmpty(_selectedPackage.Info.PackageName) ? ChangeTypes.Create : ChangeTypes.Update;
+
                 _changes.Changes.Enqueue(
-                    new PackageFieldChange(ChangeTypes.Update, $"(P) {_selectedPackage.Info.PackageName}:{nameof(_selectedPackage.Info.PackageDescription)}", _selectedPackage.Info.PackageDescription, s));
+                    new PackageFieldChange(changeType, $"(P) {_selectedPackage.Info.PackageName}:{nameof(_selectedPackage.Info.PackageDescription)}", _selectedPackage.Info.PackageDescription, s));
                 _selectedPackage.SetPackageDescription(s);
                 Console.WriteLine($"Package description update added to changeset.");
             }, descArg);
@@ -340,8 +344,10 @@ namespace PackageGen
                     return;
                 }
 
+                var changeType = string.IsNullOrEmpty(_selectedPackage.Info.ManifestPath) ? ChangeTypes.Create : ChangeTypes.Update;
+
                 _changes.Changes.Enqueue(
-                    new PackageFieldChange(ChangeTypes.Update, $"(P) {_selectedPackage.Info.PackageName}:{nameof(_selectedPackage.Info.ManifestPath)}", _selectedPackage.Info.ManifestPath, s));
+                    new PackageFieldChange(changeType, $"(P) {_selectedPackage.Info.PackageName}:{nameof(_selectedPackage.Info.ManifestPath)}", _selectedPackage.Info.ManifestPath, s));
                 _selectedPackage.SetPackagePath(s);
                 Console.WriteLine($"Package file update added to changeset.");
             }, pathArg);
@@ -432,8 +438,10 @@ namespace PackageGen
                     return;
                 }
 
+                var changeType = string.IsNullOrEmpty(_selectedModule.ModuleInfo.ScriptVersion) ? ChangeTypes.Create : ChangeTypes.Update;
+
                 _changes.Changes.Enqueue(
-                    new ModuleFieldChange(ChangeTypes.Update, $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(_selectedModule.ModuleInfo.ScriptVersion)}", _selectedModule.ModuleInfo.ScriptVersion, s));
+                    new ModuleFieldChange(changeType, $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(_selectedModule.ModuleInfo.ScriptVersion)}", _selectedModule.ModuleInfo.ScriptVersion, s));
                 _selectedModule.SetModuleVersion(s);
                 Console.WriteLine($"Module version update added to changeset.");
             }, verArg);
@@ -451,8 +459,10 @@ namespace PackageGen
                     return;
                 }
 
+                var changeType = string.IsNullOrEmpty(_selectedModule.ModuleInfo.ScriptDescription) ? ChangeTypes.Create : ChangeTypes.Update;
+
                 _changes.Changes.Enqueue(
-                    new ModuleFieldChange(ChangeTypes.Update, $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(_selectedModule.ModuleInfo.ScriptDescription)}", _selectedModule.ModuleInfo.ScriptDescription, s));
+                    new ModuleFieldChange(changeType, $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(_selectedModule.ModuleInfo.ScriptDescription)}", _selectedModule.ModuleInfo.ScriptDescription, s));
                 _selectedModule.SetModuleDescription(s);
                 Console.WriteLine($"Module description update added to changeset.");
             }, descArg);
@@ -470,8 +480,10 @@ namespace PackageGen
                     return;
                 }
 
+                var changeType = string.IsNullOrEmpty(_selectedModule.ModuleInfo.SourcePath) ? ChangeTypes.Create : ChangeTypes.Update;
+
                 _changes.Changes.Enqueue(
-                    new ModuleFieldChange(ChangeTypes.Update, $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(_selectedModule.ModuleInfo.SourcePath)}", _selectedModule.ModuleInfo.SourcePath, s));
+                    new ModuleFieldChange(changeType, $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(_selectedModule.ModuleInfo.SourcePath)}", _selectedModule.ModuleInfo.SourcePath, s));
                 _selectedModule.SetModuleSourceFile(s);
                 Console.WriteLine($"Module source file update added to changeset.");
             }, pathArg);
