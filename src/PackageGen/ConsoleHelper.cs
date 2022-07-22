@@ -63,10 +63,12 @@ namespace PackageGen
         private bool _cyclingCompletions;
         private (string Word, int StartPos, int EndPos) _completionCycleKey;
 
+        private List<string> _commandHistory;
+        private int _commandHistoryIndex;
+
         public ConsoleHelper()
         {
             _completionRoot = new CompletionTree("");
-
 
             _completionNode = null;
             _completionIndex = 0;
@@ -74,6 +76,8 @@ namespace PackageGen
             _completionCycleKey = ("", 0, 0);
 
             Keywords = new List<Keyword>();
+            _commandHistory = new List<string>();
+            _commandHistoryIndex = -1;
         }
 
         public string Prompt()
@@ -95,6 +99,16 @@ namespace PackageGen
                 {
                     // We no longer support navigating caret position.
                     //Console.CursorLeft++;
+                }
+                else if(key.Key == ConsoleKey.UpArrow && _commandHistory.Count > 0 && _commandHistoryIndex + 1 < _commandHistory.Count)
+                {
+                    _commandHistoryIndex++;
+                    current = HandleCommandHistory(current.Length);
+                }
+                else if (key.Key == ConsoleKey.DownArrow && _commandHistoryIndex > -1)
+                {
+                    _commandHistoryIndex--;
+                    current = HandleCommandHistory(current.Length);
                 }
                 else if(key.Key == ConsoleKey.Backspace)
                 {
@@ -157,6 +171,7 @@ namespace PackageGen
                     Console.Write(key.KeyChar);
                 }
 
+                current = current.Trim('\0');
 
                 var curWord = GetWord(current, curPos);
                 var kw = GetKeyword(curWord.Word);
@@ -184,12 +199,98 @@ namespace PackageGen
                     Console.CursorLeft = curLeft;
                 }
 
-                current = current.Trim('\0');
                 key = Console.ReadKey(true);
             }
 
+            var curIndex = _commandHistory.IndexOf(current);
+            if (curIndex >= 0)
+            {
+                _commandHistory.RemoveAt(curIndex);
+            }
+            _commandHistory.Insert(0, current);
+            _commandHistoryIndex = -1;
             Console.WriteLine();
             return current;
+        }
+
+        private string HandleCommandHistory(int curLength)
+        {
+            string item = "";
+            Console.CursorLeft = PROMPT.Length;
+            if (_commandHistoryIndex == -1)
+            {
+                if(curLength < Console.BufferWidth - 1)
+                {
+                    curLength++;
+                }
+                Console.Write(new string(' ', curLength));
+                Console.CursorLeft = PROMPT.Length;
+            }
+            else
+            {
+                item = _commandHistory[_commandHistoryIndex];
+                Console.CursorLeft = PROMPT.Length + item.Length;
+                Console.Write(new string(' ', curLength));
+            }
+
+            WriteHighlightedWholeRow(item);
+
+            return item;
+        }
+
+        private void WriteHighlightedWholeRow(string row)
+        {
+            void WriteWord(string word, int start)
+            {
+                Console.CursorLeft = start + PROMPT.Length;
+                var kw = GetKeyword(word);
+                if (kw.HasValue)
+                {
+                    var curColor = Console.ForegroundColor;
+
+                    Console.ForegroundColor = kw.Value.Color;
+
+                    Console.Write(kw.Value.Value);
+
+                    Console.ForegroundColor = curColor;
+                }
+                else
+                {
+                    Console.Write(word);
+                }
+            }
+
+            var wordStart = -1;
+            var wordLen = 0;
+            var curWord = "";
+            for (int i = 0; i < row.Length; i++)
+            {
+                if (char.IsWhiteSpace(row[i]))
+                {
+                    if(wordStart != -1)
+                    {
+                        WriteWord(curWord, wordStart);
+
+                        wordStart = -1;
+                        curWord = "";
+                        wordLen = 0;
+                    }
+                    Console.Write(row[i]);
+                    continue;
+                }
+                else if (wordStart == -1)
+                {
+                    wordStart = i;
+                }
+
+                curWord += row[i];
+                wordLen++;
+            }
+
+            if (wordStart != -1)
+            {
+                WriteWord(curWord, wordStart);
+            }
         }
 
         private Keyword? GetKeyword(string text)
