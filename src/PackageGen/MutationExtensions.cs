@@ -117,6 +117,22 @@ namespace PackageGen
             package.DeclaredModules = mods.ToArray();
         }
 
+        public static void RemoveModule(this Package package, string moduleName)
+        {
+            var mods = new List<Module>(package.DeclaredModules);
+
+            for (int i = 0; i < mods.Count; i++)
+            {
+                if (mods[i].ModuleInfo.ScriptName == moduleName)
+                {
+                    mods.RemoveAt(i);
+                    break;
+                }
+            }
+
+            package.DeclaredModules = mods.ToArray();
+        }
+
         public static Module CreateEmptyModule(Package? owner, string name)
         {
             var newModule = new Module();

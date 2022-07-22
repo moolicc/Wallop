@@ -15,10 +15,12 @@ namespace PackageGen
         private static bool _repl = true;
         private static ChangeSet _changes;
 
+        private static ConsoleHelper _helper;
+
         static int Main(string[] args)
         {
+            Console.ForegroundColor = ConsoleColor.Gray;
             _packages = PackageLoader.LoadPackages(Environment.CurrentDirectory).ToList();
-
 
             if (!_packages.Any())
             {
@@ -29,11 +31,22 @@ namespace PackageGen
 
             var command = BuildCommandTree();
 
+            _helper = new ConsoleHelper();
+
+            _helper.Keywords.Add(new Keyword("tree", ConsoleColor.Green));
+
+            foreach (var item in command)
+            {
+                if(item is Command c)
+                {
+                    AddCompletions(c, _helper.Completions);
+                }
+            }
+
             command.Invoke("--help");
             while (_repl)
             {
-                Console.Write("> ");
-                var input = Console.ReadLine();
+                var input = _helper.Prompt();
                 if (string.IsNullOrEmpty(input))
                 {
                     continue;
@@ -41,7 +54,6 @@ namespace PackageGen
 
                 command.Invoke(input);
                 Console.WriteLine();
-
             }
 
 
@@ -816,11 +828,58 @@ namespace PackageGen
             }, bindingSettingArg, bindingPropertyArg, bindingTypeArg);
 
 
+
+            var packageOpt = new Option<string>(new[] { "--package", "-p" } , "The name or number of the package to add the module to.");
+            var addToPackageCommand = new Command("topackage", "Adds or clones the active module to a package.")
+            {
+                packageOpt
+            };
+            addToPackageCommand.SetHandler(p =>
+            {
+                if (!CheckActiveModule() || _selectedModule == null)
+                {
+                    return;
+                }
+
+                Package? targetPackage = _selectedPackage;
+                if(!string.IsNullOrEmpty(p))
+                {
+                    if (int.TryParse(p, out var i))
+                    {
+                        targetPackage = _packages[i];
+                    }
+                    else
+                    {
+                        targetPackage = _packages.FirstOrDefault(pk => pk.Info.PackageName == p);
+                    }
+                    if(targetPackage == null)
+                    {
+                        Console.WriteLine("Package not found.");
+                        return;
+                    }
+                }
+
+                if(targetPackage == null)
+                {
+                    Console.WriteLine("No package selected or specified.");
+                    return;
+                }
+
+                _changes.Changes.Enqueue(
+                    new ModuleFieldChange(ChangeTypes.Create, $"(P) {targetPackage.Info.PackageName}:{nameof(Package.DeclaredModules)}", "", $"{_selectedModule.ModuleInfo.ScriptName}"));
+
+                targetPackage.AddModule(_selectedModule);
+                Console.WriteLine("Module added to package changeset.");
+            }, packageOpt);
+
+
+
             var addModuleCommand = new Command("module")
             {
                 addApiCommand,
                 addSettingCommand,
                 addBindingCommand,
+                addToPackageCommand
             };
 
             return addModuleCommand;
@@ -958,12 +1017,58 @@ namespace PackageGen
             }, bindingSettingArg, bindingPropertyArg, bindingTypeArg);
 
 
+            var packageOpt = new Option<string>(new[] { "--package", "-p" });
+            var rmFromPackageCommand = new Command("frompackage", "Removes a module from the package.")
+            {
+                packageOpt
+            };
+            rmFromPackageCommand.SetHandler(p =>
+            {
+                if(!CheckActiveModule() || _selectedModule == null)
+                {
+                    return;
+                }
+
+                Package? targetPackage = _selectedPackage;
+                if (!string.IsNullOrEmpty(p))
+                {
+                    if (int.TryParse(p, out var i))
+                    {
+                        targetPackage = _packages[i];
+                    }
+                    else
+                    {
+                        targetPackage = _packages.FirstOrDefault(pk => pk.Info.PackageName == p);
+                    }
+                    if (targetPackage == null)
+                    {
+                        Console.WriteLine("Package not found.");
+                        return;
+                    }
+                }
+
+                if (targetPackage == null)
+                {
+                    Console.WriteLine("No package selected or specified.");
+                    return;
+                }
+
+                _changes.Changes.Enqueue(
+                    new ModuleFieldChange(ChangeTypes.Delete, $"(P) {targetPackage.Info.PackageName}:{nameof(Package.DeclaredModules)}", _selectedModule.ModuleInfo.ScriptName, ""));
+
+                targetPackage.RemoveModule(_selectedModule.ModuleInfo.ScriptName);
+                Console.WriteLine("Module removed from package changeset.");
+            }, packageOpt);
+
+
+
             var rmModuleCommand = new Command("module")
             {
                 rmEngineVarCommand,
                 rmApiCommand,
                 rmSettingCommand,
                 rmBindingCommand,
+                rmFromPackageCommand
             };
 
             return rmModuleCommand;
@@ -987,6 +1092,23 @@ namespace PackageGen
             }
 
             return _selectedModule != null;
+        }
+
+        private static void AddCompletions(Command command, List<CompletionTree> collection)
+        {
+            var completionItem = new CompletionTree(command.Name);
+            foreach (var item in command)
+            {
+                if (item is Command c)
+                {
+                    AddCompletions(c, completionItem.Completions);
+                }
+                else
+                {
+                    completionItem.Completions.Add(new CompletionTree(item.Name));
+                }
+            }
+            collection.Add(completionItem);
         }
     }
 }
