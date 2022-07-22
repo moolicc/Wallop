@@ -19,7 +19,6 @@ namespace PackageGen
 
         static int Main(string[] args)
         {
-            Console.ForegroundColor = ConsoleColor.Gray;
             _packages = PackageLoader.LoadPackages(Environment.CurrentDirectory).ToList();
 
             if (!_packages.Any())
@@ -27,13 +26,14 @@ namespace PackageGen
                 Console.WriteLine("No packages found in current directory. Exiting");
                 return 0;
             }
-            _changes = new ChangeSet();
 
+
+            _changes = new ChangeSet();
             var command = BuildCommandTree();
 
             _helper = new ConsoleHelper();
-
-            _helper.Keywords.Add(new Keyword("tree", ConsoleColor.Green));
+            SetPrompt();
+            AddKeywords();
 
             foreach (var item in command)
             {
@@ -46,7 +46,7 @@ namespace PackageGen
             command.Invoke("--help");
             while (_repl)
             {
-                var input = _helper.Prompt();
+                var input = _helper.ReadLine();
                 if (string.IsNullOrEmpty(input))
                 {
                     continue;
@@ -57,10 +57,10 @@ namespace PackageGen
             }
 
 
-
             return 0;
         }
 
+       
         private static RootCommand BuildCommandTree()
         {
 
@@ -149,8 +149,12 @@ namespace PackageGen
                         Console.WriteLine($"New package '{s}' added to changeset.");
                         _selectedPackage = MutationExtensions.CreateEmptyPackage(s);
                         _packages.Add(_selectedPackage);
+
+                        AddKeyword(s);
                     }
                 }
+
+                SetPrompt();
             }, packageArg);
 
             var moduleArg = new Argument<string>("number/name", "The module number or name. If a name is specified and a module does not exist by that name, creates a module using that name."); ;
@@ -216,8 +220,11 @@ namespace PackageGen
                         _changes.Changes.Enqueue(new ModuleChange(ChangeTypes.Create, "", s));
 
                         Console.WriteLine($"New module '{s}' added to changeset.");
+                        AddKeyword(s);
                     }
                 }
+
+                SetPrompt();
             }, moduleArg);
 
             var useCommand = new Command("use", "Selects or creates the active package or module.")
@@ -1109,6 +1116,33 @@ namespace PackageGen
                 }
             }
             collection.Add(completionItem);
+        }
+
+        private static void AddKeywords()
+        {
+            foreach (var pkg in _packages)
+            {
+                AddKeyword(pkg.Info.PackageName);
+
+                foreach (var mod in pkg.DeclaredModules)
+                {
+                    AddKeyword(mod.ModuleInfo.ScriptName);
+                }
+            }
+        }
+
+        private static void AddKeyword(string kw)
+        {
+            const ConsoleColor KW_COLOR = ConsoleColor.Blue;
+            _helper.Keywords.Add(new Keyword(kw, KW_COLOR));
+        }
+
+        private static void SetPrompt()
+        {
+            var pkgRun = new PromptRun(_selectedPackage?.Info.PackageName ?? "_", ConsoleColor.Blue);
+            var modRun = new PromptRun(_selectedModule?.ModuleInfo.ScriptName ?? "_", ConsoleColor.Blue);
+
+            _helper.Prompt = new Prompt(pkgRun, "/", modRun, " > ");
         }
     }
 }

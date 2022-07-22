@@ -6,6 +6,64 @@ using System.Threading.Tasks;
 
 namespace PackageGen
 {
+    public readonly record struct PromptRun(string Text, ConsoleColor Color)
+    {
+        public static implicit operator string(PromptRun run)
+        {
+            return run.Text;
+        }
+
+        public static implicit operator PromptRun(string text)
+        {
+            return new PromptRun(text, Console.ForegroundColor);
+        }
+    }
+
+    public readonly record struct Prompt
+    {
+        public List<PromptRun> Runs { get; init; }
+        public int Length => Runs.Select(r => r.Text.Length).Aggregate((x, y) => x + y);
+
+        public Prompt()
+        {
+            Runs = new List<PromptRun>();
+        }
+        public Prompt(params PromptRun[] runs)
+        {
+            Runs = new List<PromptRun>(runs);
+        }
+
+        public void Print()
+        {
+            var color = Console.ForegroundColor;
+            foreach (var item in Runs)
+            {
+                Console.ForegroundColor = item.Color;
+                Console.Write(item.Text);
+            }
+            Console.ForegroundColor = color;
+        }
+
+        public static implicit operator Prompt(string text)
+        {
+            var newP = new Prompt();
+            newP.Runs.Add(new PromptRun(text, Console.ForegroundColor));
+            return newP;
+        }
+
+        public static explicit operator string(Prompt text)
+        {
+            var builder = new StringBuilder();
+
+            foreach (var item in text.Runs)
+            {
+                builder.Append(item.Text);
+            }
+
+            return builder.ToString();
+        }
+    }
+
     public readonly record struct Keyword(string Value, ConsoleColor Color);
 
     public class CompletionTree
@@ -53,9 +111,11 @@ namespace PackageGen
     {
         private const string PROMPT = "> ";
 
-        public List<CompletionTree> Completions => _completionRoot.Completions;
+        public Prompt Prompt { get; set; }
 
         public List<Keyword> Keywords { get; private set; }
+
+        public List<CompletionTree> Completions => _completionRoot.Completions;
 
         private CompletionTree _completionRoot;
         private CompletionTree? _completionNode;
@@ -78,19 +138,22 @@ namespace PackageGen
             Keywords = new List<Keyword>();
             _commandHistory = new List<string>();
             _commandHistoryIndex = -1;
+
+            Prompt = new Prompt();
+            Prompt.Runs.Add(new PromptRun(PROMPT, Console.ForegroundColor));
         }
 
-        public string Prompt()
+        public string ReadLine()
         {
-            Console.Write(PROMPT);
+            Prompt.Print();
 
             var current = "";
             var key = Console.ReadKey(true);
             while (key.Key != ConsoleKey.Enter)
             {
-                var curPos = Console.CursorLeft - PROMPT.Length;
+                var curPos = Console.CursorLeft - Prompt.Length;
 
-                if(key.Key == ConsoleKey.LeftArrow && Console.CursorLeft > PROMPT.Length)
+                if(key.Key == ConsoleKey.LeftArrow && Console.CursorLeft > Prompt.Length)
                 {
                     // We no longer support navigating caret position.
                     //Console.CursorLeft--;
@@ -112,7 +175,7 @@ namespace PackageGen
                 }
                 else if(key.Key == ConsoleKey.Backspace)
                 {
-                    if(Console.CursorLeft > PROMPT.Length)
+                    if(Console.CursorLeft > Prompt.Length)
                     {
                         Console.CursorLeft--;
                         Console.Write(' ');
@@ -146,7 +209,7 @@ namespace PackageGen
                         {
                             //Console.CursorLeft = PROMPT.Length + _completionCycleKey.EndPos;
 
-                            while (Console.CursorLeft > PROMPT.Length + _completionCycleKey.EndPos)
+                            while (Console.CursorLeft > Prompt.Length + _completionCycleKey.EndPos)
                             {
                                 Console.Write(' ');
                                 Console.CursorLeft -= 2;
@@ -181,7 +244,7 @@ namespace PackageGen
                     var curLeft = Console.CursorLeft;
 
                     Console.ForegroundColor = kw.Value.Color;
-                    Console.CursorLeft = curWord.Start + PROMPT.Length;
+                    Console.CursorLeft = curWord.Start + Prompt.Length;
 
                     Console.Write(kw.Value.Value);
 
@@ -192,7 +255,7 @@ namespace PackageGen
                 {
                     var curLeft = Console.CursorLeft;
 
-                    Console.CursorLeft = curWord.Start + PROMPT.Length;
+                    Console.CursorLeft = curWord.Start + Prompt.Length;
 
                     Console.Write(curWord.Word);
 
@@ -216,7 +279,7 @@ namespace PackageGen
         private string HandleCommandHistory(int curLength)
         {
             string item = "";
-            Console.CursorLeft = PROMPT.Length;
+            Console.CursorLeft = Prompt.Length;
             if (_commandHistoryIndex == -1)
             {
                 if(curLength < Console.BufferWidth - 1)
@@ -224,12 +287,12 @@ namespace PackageGen
                     curLength++;
                 }
                 Console.Write(new string(' ', curLength));
-                Console.CursorLeft = PROMPT.Length;
+                Console.CursorLeft = Prompt.Length;
             }
             else
             {
                 item = _commandHistory[_commandHistoryIndex];
-                Console.CursorLeft = PROMPT.Length + item.Length;
+                Console.CursorLeft = Prompt.Length + item.Length;
                 Console.Write(new string(' ', curLength));
             }
 
@@ -242,7 +305,7 @@ namespace PackageGen
         {
             void WriteWord(string word, int start)
             {
-                Console.CursorLeft = start + PROMPT.Length;
+                Console.CursorLeft = start + Prompt.Length;
                 var kw = GetKeyword(word);
                 if (kw.HasValue)
                 {
