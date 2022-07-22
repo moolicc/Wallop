@@ -1139,10 +1139,10 @@ namespace PackageGen
 
         private static void SetPrompt()
         {
-            var pkgRun = new PromptRun(_selectedPackage?.Info.PackageName ?? "_", ConsoleColor.Blue);
-            var modRun = new PromptRun(_selectedModule?.ModuleInfo.ScriptName ?? "_", ConsoleColor.Blue);
+            var pkgRun = new PromptRun(_selectedPackage?.Info.PackageName ?? "_", ConsoleColor.Yellow);
+            var modRun = new PromptRun(_selectedModule?.ModuleInfo.ScriptName ?? "_", ConsoleColor.Yellow);
 
-            _helper.Prompt = new Prompt(pkgRun, "/", modRun, " > ");
+            _helper.Prompt = new Prompt(pkgRun, " / ", modRun, " >> ");
         }
     }
 }
