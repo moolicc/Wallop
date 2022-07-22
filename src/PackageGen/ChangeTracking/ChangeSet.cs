@@ -29,17 +29,17 @@ namespace PackageGen.ChangeTracking
                 if (item.ChangeType == ChangeTypes.Create)
                 {
                     Console.ForegroundColor = COLOR_ADD;
-                    Console.WriteLine($"(+) Creating {item.TargetField} {item.NewValue}");
+                    Console.WriteLine($"(+) Creating {item.TargetField} '{item.NewValue}'");
                 }
                 else if (item.ChangeType == ChangeTypes.Update)
                 {
                     Console.ForegroundColor = COLOR_UPDATE;
-                    Console.WriteLine($"(*) Updating {item.TargetField} {item.CurrentValue}->{item.NewValue}");
+                    Console.WriteLine($"(*) Updating {item.TargetField} '{item.CurrentValue}'->'{item.NewValue}'");
                 }
                 else
                 {
                     Console.ForegroundColor = COLOR_REMOVE;
-                    Console.WriteLine($"(-) Removing {item.TargetField} {item.CurrentValue}");
+                    Console.WriteLine($"(-) Removing {item.TargetField} '{item.CurrentValue}'");
                 }
             }
 

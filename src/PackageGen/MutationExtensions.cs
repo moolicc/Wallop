@@ -183,6 +183,51 @@ namespace PackageGen
             };
         }
 
+        public static void SetModuleScriptEngineArg(this Module module, string arg, string value)
+        {
+            var args = new List<KeyValuePair<string, string>>(module.ModuleInfo.ScriptEngineArgs);
+
+            bool found = false;
+            for (int i = 0; i < args.Count; i++)
+            {
+                if (args[i].Key == arg)
+                {
+                    args[i] = new KeyValuePair<string, string>(arg, value);
+                    found = true;
+                    break;
+                }
+            }
+
+            if(!found)
+            {
+                args.Add(new KeyValuePair<string, string>(arg, value));
+            }
+
+            module.ModuleInfo = module.ModuleInfo with
+            {
+                ScriptEngineArgs = args,
+            };
+        }
+
+        public static void RemoveModuleScriptEngineArg(this Module module, string arg)
+        {
+            var args = new List<KeyValuePair<string, string>>(module.ModuleInfo.ScriptEngineArgs);
+
+            for (int i = 0; i < args.Count; i++)
+            {
+                if (args[i].Key == arg)
+                {
+                    args.RemoveAt(i);
+                    break;
+                }
+            }
+
+            module.ModuleInfo = module.ModuleInfo with
+            {
+                ScriptEngineArgs = args,
+            };
+        }
+
         public static void AddModuleHostApi(this Module module, string api)
         {
             var apis = new List<string>(module.ModuleInfo.HostApis);
