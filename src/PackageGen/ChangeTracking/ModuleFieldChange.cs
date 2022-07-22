@@ -24,8 +24,7 @@ namespace PackageGen.ChangeTracking
             NewValue = newValue;
         }
 
-
-        public bool IsObjectTarget(object target)
+        public IChange Revert()
         {
             throw new NotImplementedException();
         }

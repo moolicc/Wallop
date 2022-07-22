@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,16 +7,29 @@ using System.Threading.Tasks;
 
 namespace PackageGen.ChangeTracking
 {
-    public class ChangeSet
+    public class ChangeSet : IEnumerable<Change>
     {
-        public Queue<IChange> Changes { get; private set; }
+        public Change[] Changes => _changes.ToArray();
+
+        private List<Change> _changes;
 
         public ChangeSet()
         {
-            Changes = new Queue<IChange>();
+            _changes = new List<Change>();
         }
 
-        public void PrintChangeSet()
+        public Change this[int index]
+        {
+            get => _changes[index];
+            set => _changes[index] = value;
+        }
+
+        public void AddChange(Change change)
+        {
+            _changes.Add(change);
+        }
+
+        public void PrintChangeSet(string filter = "")
         {
             const ConsoleColor COLOR_ADD = ConsoleColor.DarkGreen;
             const ConsoleColor COLOR_UPDATE = ConsoleColor.DarkCyan;
@@ -24,14 +38,23 @@ namespace PackageGen.ChangeTracking
 
             var originalForeColor = Console.ForegroundColor;
 
-            foreach (var item in Changes)
+            for(int i = 0; i < _changes.Count; i++)
             {
-                if (item.ChangeType == ChangeTypes.Create)
+                var item = _changes[i];
+
+                Console.ForegroundColor = originalForeColor;
+                Console.Write("{0}: ", i);
+                if(item.ChangeType.HasFlag(ChangeTypes.Revert))
+                {
+                    Console.Write("(R) ");
+                }
+
+                if (item.ChangeType.HasFlag(ChangeTypes.Create))
                 {
                     Console.ForegroundColor = COLOR_ADD;
                     Console.WriteLine($"(+) Creating {item.TargetField} '{item.NewValue}'");
                 }
-                else if (item.ChangeType == ChangeTypes.Update)
+                else if (item.ChangeType.HasFlag(ChangeTypes.Update))
                 {
                     Console.ForegroundColor = COLOR_UPDATE;
                     Console.WriteLine($"(*) Updating {item.TargetField} '{item.CurrentValue}'->'{item.NewValue}'");
@@ -44,6 +67,16 @@ namespace PackageGen.ChangeTracking
             }
 
             Console.ForegroundColor = originalForeColor;
+        }
+
+        public IEnumerator<Change> GetEnumerator()
+        {
+            return _changes.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return _changes.GetEnumerator();
         }
     }
 }

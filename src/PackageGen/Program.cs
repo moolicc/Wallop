@@ -29,6 +29,10 @@ namespace PackageGen
 
 
             _changes = new ChangeSet();
+
+            _changes.AddChange(new Change(ChangeTypes.Update, $"(P) {_packages[0].Info.PackageName}:{nameof(Package.Info.PackageName)}", "", "newValue"));
+            _changes[0].TryApply(_packages, new List<Module>(_packages[0].DeclaredModules));
+
             var command = BuildCommandTree();
 
             _helper = new ConsoleHelper();
@@ -145,10 +149,10 @@ namespace PackageGen
                     _selectedPackage = _packages.FirstOrDefault(p => p.Info.PackageName == s);
                     if (_selectedPackage == null)
                     {
-                        // Add new package to changelist.
-                        Console.WriteLine($"New package '{s}' added to changeset.");
                         _selectedPackage = MutationExtensions.CreateEmptyPackage(s);
+                        _changes.AddChange(new Change(ChangeTypes.Create, nameof(Package), "", s));
                         _packages.Add(_selectedPackage);
+                        Console.WriteLine($"New package '{s}' added to changeset.");
 
                         AddKeyword(s);
                     }
@@ -217,7 +221,15 @@ namespace PackageGen
                     {
 
                         _selectedModule = MutationExtensions.CreateEmptyModule(_selectedPackage, s);
-                        _changes.Changes.Enqueue(new ModuleChange(ChangeTypes.Create, "", s));
+
+                        if(_selectedPackage == null)
+                        {
+                            _changes.AddChange(new Change(ChangeTypes.Create, nameof(Module), "", s));
+                        }
+                        else
+                        {
+                            _changes.AddChange(new Change(ChangeTypes.Create, nameof(Package.DeclaredModules), "", s));
+                        }
 
                         Console.WriteLine($"New module '{s}' added to changeset.");
                         AddKeyword(s);
@@ -247,11 +259,54 @@ namespace PackageGen
                 }
             });
 
-            var changesCommand = new Command("changes", "Lists the current changes that are pending.");
-            changesCommand.SetHandler(_ =>
+
+
+            var changeIndex = new Argument<int>("change", "The index of the change to undo.");
+            var recursiveOpt = new Option<bool>(new[] {"--recursive", "-r"}, () => false, "Whether or not to recursively undo back to the target change.");
+            var changesUndoCommand = new Command("undo", "Reverts the specified change.")
             {
-                _changes.PrintChangeSet();
+                changeIndex,
+                recursiveOpt
+            };
+            changesUndoCommand.SetHandler((c, r) =>
+            {
+                int start = c;
+                if(r)
+                {
+                    start = 0;
+                }
+
+
+                for (int i = c; i <= c; i++)
+                {
+                    if (!_changes[i].CanRevert)
+                    {
+                        Console.WriteLine("Change {0} could not be reverted! Reversion not supported for that change.", 0);
+                        break;
+                    }
+                    _changes.AddChange(_changes[i].GetReversion());
+                }
+            }, changeIndex, recursiveOpt);
+
+
+
+            var filterOption = new Option<string>(new[] { "--filter", "-f" }, "Filters output.");
+            var changesCommand = new Command("changes", "Lists the current changes that are pending.")
+            {
+                filterOption
+            };
+            changesCommand.SetHandler(f =>
+            {
+                // _changes.PrintChangeSet(f);
+            }, filterOption);
+
+
+            var saveCommand = new Command("save", "Saves all changes to disk.");
+            saveCommand.SetHandler(_ =>
+            {
+                SaveAll();
             });
+
 
             var root = new RootCommand("Package generator and editor.")
             {
@@ -262,6 +317,8 @@ namespace PackageGen
                 GetAddCommand(),
                 GetRemoveCommand(),
                 changesCommand,
+                changesUndoCommand,
+                saveCommand,
                 exitCommand,
             };
 
@@ -303,6 +360,8 @@ namespace PackageGen
             return rmCommand;
         }
 
+
+
         private static Command GetSetPackageCommand()
         {
             var nameArg = new Argument<string>("value", "The new name.");
@@ -316,7 +375,7 @@ namespace PackageGen
                 {
                     return;
                 }
-                _changes.Changes.Enqueue(new PackageChange(ChangeTypes.Update, _selectedPackage.Info.PackageName, s));
+                _changes.AddChange(new Change(ChangeTypes.Update, nameof(Package.Info.PackageName), _selectedPackage.Info.PackageName, s));
                 _selectedPackage.SetPackageName(s);
                 Console.WriteLine($"Package name update added to changeset.");
             }, nameArg);
@@ -336,8 +395,8 @@ namespace PackageGen
 
                 var changeType = string.IsNullOrEmpty(_selectedPackage.Info.PackageVersion) ? ChangeTypes.Create : ChangeTypes.Update;
 
-                _changes.Changes.Enqueue(
-                    new PackageFieldChange(changeType, $"(P) {_selectedPackage.Info.PackageName}:{nameof(Package.Info.PackageVersion)}", _selectedPackage.Info.PackageVersion, s));
+
+                _changes.AddChange(new Change(ChangeTypes.Update, nameof(Package.Info.PackageVersion), _selectedPackage.Info.PackageVersion, s));
                 _selectedPackage.SetPackageVersion(s);
                 Console.WriteLine($"Package version update added to changeset.");
             }, verArg);
@@ -357,8 +416,8 @@ namespace PackageGen
 
                 var changeType = string.IsNullOrEmpty(_selectedPackage.Info.PackageName) ? ChangeTypes.Create : ChangeTypes.Update;
 
-                _changes.Changes.Enqueue(
-                    new PackageFieldChange(changeType, $"(P) {_selectedPackage.Info.PackageName}:{nameof(Package.Info.PackageDescription)}", _selectedPackage.Info.PackageDescription, s));
+
+                _changes.AddChange(new Change(ChangeTypes.Update, nameof(Package.Info.PackageDescription), _selectedPackage.Info.PackageDescription, s));
                 _selectedPackage.SetPackageDescription(s);
                 Console.WriteLine($"Package description update added to changeset.");
             }, descArg);
@@ -378,8 +437,8 @@ namespace PackageGen
 
                 var changeType = string.IsNullOrEmpty(_selectedPackage.Info.ManifestPath) ? ChangeTypes.Create : ChangeTypes.Update;
 
-                _changes.Changes.Enqueue(
-                    new PackageFieldChange(changeType, $"(P) {_selectedPackage.Info.PackageName}:{nameof(Package.Info.ManifestPath)}", _selectedPackage.Info.ManifestPath, s));
+
+                _changes.AddChange(new Change(ChangeTypes.Update, nameof(Package.Info.ManifestPath), _selectedPackage.Info.ManifestPath, s));
                 _selectedPackage.SetPackagePath(s);
                 Console.WriteLine($"Package file update added to changeset.");
             }, pathArg);
@@ -388,7 +447,7 @@ namespace PackageGen
 
 
 
-
+            // TODO: Changes for variables.
             var keyArg = new Argument<string>("name", "The name of the variable to set or create.");
             var valueArg = new Argument<string>("value", "The variable's new value.");
             var setVarCommand = new Command("variable", "Sets a package variable.")
@@ -408,8 +467,8 @@ namespace PackageGen
 
                 ChangeTypes type = string.IsNullOrEmpty(existingValue) ? ChangeTypes.Create : ChangeTypes.Update;
 
-                _changes.Changes.Enqueue(
-                    new PackageFieldChange(type, $"(P) {_selectedPackage.Info.PackageName}:{nameof(Package.Info.PackageVariables)}:{k}", existingValue ?? "", v));
+                // _changes.Changes.Enqueue(
+                //    new PackageFieldChange(type, $"(P) {_selectedPackage.Info.PackageName}:{nameof(Package.Info.PackageVariables)}:{k}", existingValue ?? "", v));
                 _selectedPackage.SetPackageVariable(k, v);
 
                 if(type == ChangeTypes.Create)
@@ -438,7 +497,6 @@ namespace PackageGen
             return setPackageCommand;
         }
 
-
         private static Command GetSetModuleCommand()
         {
             var nameArg = new Argument<string>("value", "The new name.");
@@ -452,7 +510,7 @@ namespace PackageGen
                 {
                     return;
                 }
-                _changes.Changes.Enqueue(new ModuleChange(ChangeTypes.Update, _selectedModule.ModuleInfo.ScriptName, s));
+                // _changes.Changes.Enqueue(new ModuleChange(ChangeTypes.Update, _selectedModule.ModuleInfo.ScriptName, s));
                 _selectedModule.SetModuleName(s);
                 Console.WriteLine($"Module name update added to changeset.");
             }, nameArg);
@@ -472,8 +530,8 @@ namespace PackageGen
 
                 var changeType = string.IsNullOrEmpty(_selectedModule.ModuleInfo.ScriptVersion) ? ChangeTypes.Create : ChangeTypes.Update;
 
-                _changes.Changes.Enqueue(
-                    new ModuleFieldChange(changeType, $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleInfo.ScriptVersion)}", _selectedModule.ModuleInfo.ScriptVersion, s));
+                // _changes.Changes.Enqueue(
+                //    new ModuleFieldChange(changeType, $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleInfo.ScriptVersion)}", _selectedModule.ModuleInfo.ScriptVersion, s));
                 _selectedModule.SetModuleVersion(s);
 
                 if (changeType == ChangeTypes.Create)
@@ -501,8 +559,8 @@ namespace PackageGen
 
                 var changeType = string.IsNullOrEmpty(_selectedModule.ModuleInfo.ScriptDescription) ? ChangeTypes.Create : ChangeTypes.Update;
 
-                _changes.Changes.Enqueue(
-                    new ModuleFieldChange(changeType, $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleInfo.ScriptDescription)}", _selectedModule.ModuleInfo.ScriptDescription, s));
+                // _changes.Changes.Enqueue(
+                //    new ModuleFieldChange(changeType, $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleInfo.ScriptDescription)}", _selectedModule.ModuleInfo.ScriptDescription, s));
                 _selectedModule.SetModuleDescription(s);
 
                 if (changeType == ChangeTypes.Create)
@@ -530,8 +588,8 @@ namespace PackageGen
 
                 var changeType = string.IsNullOrEmpty(_selectedModule.ModuleInfo.SourcePath) ? ChangeTypes.Create : ChangeTypes.Update;
 
-                _changes.Changes.Enqueue(
-                    new ModuleFieldChange(changeType, $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleInfo.SourcePath)}", _selectedModule.ModuleInfo.SourcePath, s));
+                // _changes.Changes.Enqueue(
+                //    new ModuleFieldChange(changeType, $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleInfo.SourcePath)}", _selectedModule.ModuleInfo.SourcePath, s));
                 _selectedModule.SetModuleSourceFile(s);
 
                 if(changeType == ChangeTypes.Create)
@@ -564,8 +622,8 @@ namespace PackageGen
 
                 ChangeTypes type = string.IsNullOrEmpty(existingValue) ? ChangeTypes.Create : ChangeTypes.Update;
 
-                _changes.Changes.Enqueue(
-                    new PackageFieldChange(type, $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleInfo.Variables)}:{k}", existingValue ?? "", v));
+                // _changes.Changes.Enqueue(
+                //    new PackageFieldChange(type, $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleInfo.Variables)}:{k}", existingValue ?? "", v));
                 _selectedModule.SetModuleVariable(k, v);
 
                 if (type == ChangeTypes.Create)
@@ -594,8 +652,8 @@ namespace PackageGen
 
                 var changeType = string.IsNullOrEmpty(_selectedModule.ModuleInfo.ScriptEngineId) ? ChangeTypes.Create : ChangeTypes.Update;
 
-                _changes.Changes.Enqueue(
-                    new ModuleFieldChange(changeType, $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleInfo.ScriptEngineId)}", _selectedModule.ModuleInfo.ScriptEngineId, s));
+                // _changes.Changes.Enqueue(
+                //    new ModuleFieldChange(changeType, $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleInfo.ScriptEngineId)}", _selectedModule.ModuleInfo.ScriptEngineId, s));
                 _selectedModule.SetModuleScriptEngine(s);
 
                 if(changeType == ChangeTypes.Create)
@@ -628,8 +686,8 @@ namespace PackageGen
 
                 ChangeTypes type = string.IsNullOrEmpty(existingValue) ? ChangeTypes.Create : ChangeTypes.Update;
 
-                _changes.Changes.Enqueue(
-                    new PackageFieldChange(type, $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleInfo.ScriptEngineArgs)}:{k}", existingValue ?? "", v));
+                // _changes.Changes.Enqueue(
+                //    new PackageFieldChange(type, $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleInfo.ScriptEngineArgs)}:{k}", existingValue ?? "", v));
                 _selectedModule.SetModuleScriptEngineArg(k, v);
 
                 if (type == ChangeTypes.Create)
@@ -690,30 +748,30 @@ namespace PackageGen
 
                 if(descChanged)
                 {
-                    _changes.Changes.Enqueue(
-                        new ModuleFieldChange(descType,
-                        $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleSettings)}:{n}:{nameof(ModuleSetting.SettingDescription)}",
-                        curSetting.SettingDescription, d));
+                    // _changes.Changes.Enqueue(
+                        //new ModuleFieldChange(descType,
+                        //$"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleSettings)}:{n}:{nameof(ModuleSetting.SettingDescription)}",
+                        //curSetting.SettingDescription, d));
 
                     Console.WriteLine("Module setting's description change added to changeset.");
                 }
 
                 if(defChanged)
                 {
-                    _changes.Changes.Enqueue(
-                        new ModuleFieldChange(defType,
-                        $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleSettings)}:{n}:{nameof(ModuleSetting.DefaultValue)}",
-                        curSetting.DefaultValue ?? "", v));
+                    // _changes.Changes.Enqueue(
+                    //new ModuleFieldChange(defType,
+                    //$"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleSettings)}:{n}:{nameof(ModuleSetting.DefaultValue)}",
+                    //curSetting.DefaultValue ?? "", v));
 
                     Console.WriteLine("Module setting's default value change added to changeset.");
                 }
 
                 if(typeChanged)
                 {
-                    _changes.Changes.Enqueue(
-                        new ModuleFieldChange(typeType,
-                        $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleSettings)}:{n}:{nameof(ModuleSetting.SettingType)}",
-                        curSetting.SettingType, t));
+                    // _changes.Changes.Enqueue(
+                        //new ModuleFieldChange(typeType,
+                        //$"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleSettings)}:{n}:{nameof(ModuleSetting.SettingType)}",
+                        //curSetting.SettingType, t));
 
                     Console.WriteLine("Module setting's type change added to changeset.");
                 }
@@ -721,10 +779,10 @@ namespace PackageGen
 
                 if(requiredChanged)
                 {
-                    _changes.Changes.Enqueue(
-                        new ModuleFieldChange(requiredType,
-                        $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleSettings)}:{n}:{nameof(ModuleSetting.Required)}",
-                        curSetting.Required.ToString(), r.ToString()));
+                    // _changes.Changes.Enqueue(
+                        //new ModuleFieldChange(requiredType,
+                        //$"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleSettings)}:{n}:{nameof(ModuleSetting.Required)}",
+                        //curSetting.Required.ToString(), r.ToString()));
 
                     Console.WriteLine("Module setting's required change added to changeset.");
                 }
@@ -732,10 +790,10 @@ namespace PackageGen
 
                 if(trackedChanged)
                 {
-                    _changes.Changes.Enqueue(
-                        new ModuleFieldChange(trackedType,
-                        $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleSettings)}:{n}:{nameof(ModuleSetting.Tracked)}",
-                        curSetting.Tracked.ToString(), k.ToString()));
+                    // _changes.Changes.Enqueue(
+                    //    new ModuleFieldChange(trackedType,
+                        //$"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleSettings)}:{n}:{nameof(ModuleSetting.Tracked)}",
+                        //curSetting.Tracked.ToString(), k.ToString()));
 
                     Console.WriteLine("Module setting's tracked change added to changeset.");
                 }
@@ -766,6 +824,8 @@ namespace PackageGen
             return setModuleCommand;
         }
 
+
+
         private static Command GetAddModuleCommand()
         {
             var apiArg = new Argument<string>("id", "The host API to add.");
@@ -779,9 +839,9 @@ namespace PackageGen
                 {
                     return;
                 }
-                _changes.Changes.Enqueue(
-                    new ModuleFieldChange(ChangeTypes.Create, $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleInfo.HostApis)}", "", s));
-                
+                // _changes.Changes.Enqueue(
+                //    new ModuleFieldChange(ChangeTypes.Create, $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleInfo.HostApis)}", "", s));
+
                 _selectedModule.AddModuleHostApi(s);
 
                 Console.WriteLine($"Module Host API added to changeset.");
@@ -801,8 +861,8 @@ namespace PackageGen
                     return;
                 }
 
-                _changes.Changes.Enqueue(
-                    new ModuleFieldChange(ChangeTypes.Create, $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleSettings)}:{s}", "", s));
+                // _changes.Changes.Enqueue(
+                //   new ModuleFieldChange(ChangeTypes.Create, $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleSettings)}:{s}", "", s));
 
                 _selectedModule.AddModuleSetting(s);
 
@@ -826,8 +886,8 @@ namespace PackageGen
                     return;
                 }
 
-                _changes.Changes.Enqueue(
-                    new ModuleFieldChange(ChangeTypes.Create, $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleSettings)}:{s}:{p}:{t}", "", $"{p}:{t}"));
+                // _changes.Changes.Enqueue(
+                //    new ModuleFieldChange(ChangeTypes.Create, $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleSettings)}:{s}:{p}:{t}", "", $"{p}:{t}"));
 
                 _selectedModule.AddSettingBinding(s, p, t);
 
@@ -872,8 +932,8 @@ namespace PackageGen
                     return;
                 }
 
-                _changes.Changes.Enqueue(
-                    new ModuleFieldChange(ChangeTypes.Create, $"(P) {targetPackage.Info.PackageName}:{nameof(Package.DeclaredModules)}", "", $"{_selectedModule.ModuleInfo.ScriptName}"));
+                // _changes.Changes.Enqueue(
+                //    new ModuleFieldChange(ChangeTypes.Create, $"(P) {targetPackage.Info.PackageName}:{nameof(Package.DeclaredModules)}", "", $"{_selectedModule.ModuleInfo.ScriptName}"));
 
                 targetPackage.AddModule(_selectedModule);
                 Console.WriteLine("Module added to package changeset.");
@@ -891,6 +951,8 @@ namespace PackageGen
 
             return addModuleCommand;
         }
+
+
 
         private static Command GetRemovePackageCommand()
         {
@@ -914,8 +976,8 @@ namespace PackageGen
                 var existingVar = _selectedPackage.Info.PackageVariables.FirstOrDefault(v => v.Key == k);
 
 
-                _changes.Changes.Enqueue(
-                    new PackageFieldChange(ChangeTypes.Delete, $"(P) {_selectedPackage.Info.PackageName}:{nameof(Package.Info.PackageVariables)}:{k}", existingVar.Value, ""));
+                // _changes.Changes.Enqueue(
+                //    new PackageFieldChange(ChangeTypes.Delete, $"(P) {_selectedPackage.Info.PackageName}:{nameof(Package.Info.PackageVariables)}:{k}", existingVar.Value, ""));
                 _selectedPackage.RemovePackageVariable(k);
 
                 Console.WriteLine($"Package variable removal added to changeset.");
@@ -948,8 +1010,8 @@ namespace PackageGen
                 var existingVar = _selectedModule.ModuleInfo.ScriptEngineArgs.FirstOrDefault(v => v.Key == k);
                 var existingValue = _selectedModule.ModuleInfo.ScriptEngineArgs.Any(v => v.Key == k) ? existingVar.Value : null;
 
-                _changes.Changes.Enqueue(
-                    new PackageFieldChange(ChangeTypes.Delete, $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleInfo.ScriptEngineArgs)}:{k}", existingValue, ""));
+                // _changes.Changes.Enqueue(
+                //    new PackageFieldChange(ChangeTypes.Delete, $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleInfo.ScriptEngineArgs)}:{k}", existingValue, ""));
                 _selectedModule.RemoveModuleScriptEngineArg(k);
 
                 Console.WriteLine($"Script engine argument removed from changeset.");
@@ -969,8 +1031,8 @@ namespace PackageGen
                     return;
                 }
 
-                _changes.Changes.Enqueue(
-                    new ModuleFieldChange(ChangeTypes.Delete, $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleInfo.HostApis)}", s, ""));
+                // _changes.Changes.Enqueue(
+                //    new ModuleFieldChange(ChangeTypes.Delete, $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleInfo.HostApis)}", s, ""));
 
                 _selectedModule.RemoveModuleHostApi(s);
 
@@ -990,8 +1052,8 @@ namespace PackageGen
                     return;
                 }
 
-                _changes.Changes.Enqueue(
-                    new ModuleFieldChange(ChangeTypes.Delete, $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleSettings)}:{s}", $"{s}", ""));
+                // _changes.Changes.Enqueue(
+                //    new ModuleFieldChange(ChangeTypes.Delete, $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleSettings)}:{s}", $"{s}", ""));
 
                 _selectedModule.RemoveModuleSetting(s);
 
@@ -1015,8 +1077,8 @@ namespace PackageGen
                     return;
                 }
 
-                _changes.Changes.Enqueue(
-                    new ModuleFieldChange(ChangeTypes.Delete, $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleSettings)}:{s}:{p}:{t}", $"{p}:{t}", ""));
+                // _changes.Changes.Enqueue(
+                //    new ModuleFieldChange(ChangeTypes.Delete, $"(M) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleSettings)}:{s}:{p}:{t}", $"{p}:{t}", ""));
 
                 _selectedModule.AddSettingBinding(s, p, t);
 
@@ -1060,8 +1122,8 @@ namespace PackageGen
                     return;
                 }
 
-                _changes.Changes.Enqueue(
-                    new ModuleFieldChange(ChangeTypes.Delete, $"(P) {targetPackage.Info.PackageName}:{nameof(Package.DeclaredModules)}", _selectedModule.ModuleInfo.ScriptName, ""));
+                // _changes.Changes.Enqueue(
+                //    new ModuleFieldChange(ChangeTypes.Delete, $"(P) {targetPackage.Info.PackageName}:{nameof(Package.DeclaredModules)}", _selectedModule.ModuleInfo.ScriptName, ""));
 
                 targetPackage.RemoveModule(_selectedModule.ModuleInfo.ScriptName);
                 Console.WriteLine("Module removed from package changeset.");
@@ -1079,6 +1141,13 @@ namespace PackageGen
             };
 
             return rmModuleCommand;
+        }
+
+
+
+        private static void SaveAll()
+        {
+
         }
 
         private static bool CheckActivePackage()

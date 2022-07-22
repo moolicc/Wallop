@@ -9,6 +9,8 @@ namespace PackageGen
 {
     public static class Extensions
     {
+
+        // TODO: Display changes in tree.
         public static string ToTreeString(this Package package, ChangeTracking.ChangeSet changeSet)
         {
             var builder = new TreeBuilder();

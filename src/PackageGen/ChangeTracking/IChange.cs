@@ -6,11 +6,18 @@ using System.Threading.Tasks;
 
 namespace PackageGen.ChangeTracking
 {
+    [Flags]
     public enum ChangeTypes
     {
-        Create,
-        Update,
-        Delete
+        Create = 2,
+        Update = 4,
+        Delete = 8,
+        Revert = 16,
+
+        CreateReversion = Create | Revert,
+        UpdateReversion = Update | Revert,
+        DeleteReversion = Delete | Revert,
+
     }
 
     public interface IChange
@@ -20,6 +27,6 @@ namespace PackageGen.ChangeTracking
         string CurrentValue { get; }
         string NewValue { get; }
 
-        bool IsObjectTarget(object target);
+        IChange Revert();
     }
 }

@@ -23,8 +23,20 @@ namespace PackageGen.ChangeTracking
             NewValue = newValue;
         }
 
-        public bool IsObjectTarget(object target)
+        public IChange Revert()
         {
+            switch (ChangeType)
+            {
+                case ChangeTypes.Create:
+                    break;
+                case ChangeTypes.Update:
+                    return new ModuleChange(ChangeTypes.UpdateReversion, NewValue, CurrentValue);
+                case ChangeTypes.Delete:
+                    break;
+                default:
+                    break;
+            }
+
             throw new NotImplementedException();
         }
     }
