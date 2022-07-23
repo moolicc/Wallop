@@ -57,7 +57,7 @@ namespace PackageGen
         {
             Package package = new Package();
             package.DeclaredModules = Array.Empty<Module>();
-            package.Info = new PackageInfo("", name, "", "", new List<(string, string)>());
+            package.Info = new PackageInfo("", name, "", "", new List<KeyValuePair<string, string>>());
             return package;
         }
 
@@ -101,24 +101,24 @@ namespace PackageGen
             package.Info = newInfo;
         }
 
-        [MutationMap(nameof(Package.Info.PackageVariables), typeof(Action<Package, string, string>))]
+        [MutationMap(nameof(Package.Info.PackageVariables) + ":$", typeof(Action<Package, string, string>))]
         public static void SetPackageVariable(this Package package, string key, string value)
         {
-            var vars = new List<(string, string)>(package.Info.PackageVariables);
+            var vars = new List<KeyValuePair<string, string>>(package.Info.PackageVariables);
 
             var found = false;
             for (int i = 0; i < vars.Count; i++)
             {
-                if (vars[i].Item1 == key)
+                if (vars[i].Key == key)
                 {
-                    vars[i] = (key, value);
+                    vars[i] = new KeyValuePair<string, string>(key, value);
                     found = true;
                     break;
                 }
             }
             if (!found)
             {
-                vars.Add((key, value));
+                vars.Add(new KeyValuePair<string, string>(key, value));
             }
 
             PackageInfo newInfo = package.Info with
@@ -128,14 +128,14 @@ namespace PackageGen
             package.Info = newInfo;
         }
 
-        [MutationMap(nameof(Package.Info.PackageVariables), typeof(Action<Package, string>))]
+        [MutationMap(nameof(Package.Info.PackageVariables) + ":$", typeof(Action<Package, string>))]
         public static void RemovePackageVariable(this Package package, string key)
         {
-            var vars = new List<(string, string)>(package.Info.PackageVariables);
+            var vars = new List<KeyValuePair<string, string>>(package.Info.PackageVariables);
 
             for (int i = 0; i < vars.Count; i++)
             {
-                if (vars[i].Item1 == key)
+                if (vars[i].Key == key)
                 {
                     vars.RemoveAt(i);
                     break;
@@ -179,7 +179,7 @@ namespace PackageGen
         {
             var newModule = new Module();
 
-            newModule.ModuleInfo = new ModuleInfo("", "", "", name, "", "", "", _emptyStringKvp, ModuleTypes.Actor, _emptyString, _emptyStringTuple);
+            newModule.ModuleInfo = new ModuleInfo("", "", "", name, "", "", "", _emptyStringKvp, ModuleTypes.Actor, _emptyString, _emptyStringKvp);
             newModule.ModuleSettings = new List<ModuleSetting>();
 
 
@@ -314,24 +314,24 @@ namespace PackageGen
             };
         }
 
-        [MutationMap(nameof(Module.ModuleInfo.Variables), typeof(Action<Module, string, string>))]
+        [MutationMap(nameof(Module.ModuleInfo.Variables) + ":$", typeof(Action<Module, string, string>))]
         public static void SetModuleVariable(this Module module, string key, string value)
         {
-            var vars = new List<(string, string)>(module.ModuleInfo.Variables);
+            var vars = new List<KeyValuePair<string, string>>(module.ModuleInfo.Variables);
 
             var found = false;
             for (int i = 0; i < vars.Count; i++)
             {
-                if (vars[i].Item1 == key)
+                if (vars[i].Key == key)
                 {
-                    vars[i] = (key, value);
+                    vars[i] = new KeyValuePair<string, string>(key, value);
                     found = true;
                     break;
                 }
             }
             if (!found)
             {
-                vars.Add((key, value));
+                vars.Add(new KeyValuePair<string, string>(key, value));
             }
 
             module.ModuleInfo = module.ModuleInfo with
@@ -365,7 +365,7 @@ namespace PackageGen
             module.ModuleSettings = settings;
         }
 
-        [MutationMap(nameof(Module.ModuleSettings) + "$" + nameof(ModuleSetting.SettingName), typeof(Action<Module, string, string>))]
+        [MutationMap(nameof(Module.ModuleSettings) + ":$:" + nameof(ModuleSetting.SettingName), typeof(Action<Module, string, string>))]
         public static void SetSettingName(this Module module, string key, string newName)
         {
             var settings = new List<ModuleSetting>(module.ModuleSettings);
@@ -386,7 +386,7 @@ namespace PackageGen
 
 
 
-        [MutationMap(nameof(Module.ModuleSettings) + "$" + nameof(ModuleSetting.SettingDescription), typeof(Action<Module, string, string>))]
+        [MutationMap(nameof(Module.ModuleSettings) + ":$:" + nameof(ModuleSetting.SettingDescription), typeof(Action<Module, string, string>))]
         public static void SetSettingDescription(this Module module, string key, string desc)
         {
             var settings = new List<ModuleSetting>(module.ModuleSettings);
@@ -405,7 +405,7 @@ namespace PackageGen
             module.ModuleSettings = settings;
         }
 
-        [MutationMap(nameof(Module.ModuleSettings) + "$" + nameof(ModuleSetting.SettingType), typeof(Action<Module, string, string>))]
+        [MutationMap(nameof(Module.ModuleSettings) + ":$:" + nameof(ModuleSetting.SettingType), typeof(Action<Module, string, string>))]
         public static void SetSettingType(this Module module, string key, string type)
         {
             var settings = new List<ModuleSetting>(module.ModuleSettings);
@@ -424,7 +424,7 @@ namespace PackageGen
             module.ModuleSettings = settings;
         }
 
-        [MutationMap(nameof(Module.ModuleSettings) + "$" + nameof(ModuleSetting.DefaultValue), typeof(Action<Module, string, string>))]
+        [MutationMap(nameof(Module.ModuleSettings) + ":$:" + nameof(ModuleSetting.DefaultValue), typeof(Action<Module, string, string>))]
         public static void SetSettingDefault(this Module module, string key, string defaultValue)
         {
             var settings = new List<ModuleSetting>(module.ModuleSettings);
@@ -443,7 +443,7 @@ namespace PackageGen
             module.ModuleSettings = settings;
         }
 
-        [MutationMap(nameof(Module.ModuleSettings) + "$" + nameof(ModuleSetting.Required), typeof(Action<Module, string, bool>))]
+        [MutationMap(nameof(Module.ModuleSettings) + ":$:" + nameof(ModuleSetting.Required), typeof(Action<Module, string, bool>))]
         public static void SetSettingRequired(this Module module, string key, bool required)
         {
             var settings = new List<ModuleSetting>(module.ModuleSettings);
@@ -462,7 +462,7 @@ namespace PackageGen
             module.ModuleSettings = settings;
         }
 
-        [MutationMap(nameof(Module.ModuleSettings) + "$" + nameof(ModuleSetting.Tracked), typeof(Action<Module, string, bool>))]
+        [MutationMap(nameof(Module.ModuleSettings) + ":$:" + nameof(ModuleSetting.Tracked), typeof(Action<Module, string, bool>))]
         public static void SetSettingTracked(this Module module, string key, bool tracked)
         {
             var settings = new List<ModuleSetting>(module.ModuleSettings);
@@ -481,7 +481,7 @@ namespace PackageGen
             module.ModuleSettings = settings;
         }
 
-        [MutationMap(nameof(Module.ModuleSettings) + "$" + nameof(ModuleSetting.SettingTypeArgs), typeof(Action<Module, string, string, string>))]
+        [MutationMap(nameof(Module.ModuleSettings) + ":$:" + nameof(ModuleSetting.SettingTypeArgs), typeof(Action<Module, string, string, string>))]
         public static void SetSettingTypeArg(this Module module, string key, string arg, string value)
         {
             var settings = new List<ModuleSetting>(module.ModuleSettings);
@@ -546,7 +546,7 @@ namespace PackageGen
         }
 
 
-        [MutationMap(nameof(Module.ModuleSettings) + "$" + nameof(ModuleSetting.Bindings), typeof(Action<Module, string, string, string>))]
+        [MutationMap(nameof(Module.ModuleSettings) + ":$:" + nameof(ModuleSetting.Bindings), typeof(Action<Module, string, string, string>))]
         public static void AddSettingBinding(this Module module, string key, string typeName, string propertyName)
         {
             var settings = new List<ModuleSetting>(module.ModuleSettings);
@@ -577,7 +577,7 @@ namespace PackageGen
             module.ModuleSettings = settings;
         }
 
-        [MutationMap(nameof(Module.ModuleSettings) + "$" + nameof(ModuleSetting.Bindings), typeof(Action<Module, string, string, string>))]
+        [MutationMap(nameof(Module.ModuleSettings) + ":$:" + nameof(ModuleSetting.Bindings), typeof(Action<Module, string, string, string>))]
         public static void RemoveSettingBinding(this Module module, string key, string typeName, string propertyName)
         {
             var settings = new List<ModuleSetting>(module.ModuleSettings);

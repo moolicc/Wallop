@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -68,15 +69,22 @@ namespace PackageGen.ChangeTracking
             var targetMember = "";
             var target = Traverse(root, parsed.Path, ref targetMember);
 
-            if(target == null)
+
+            if (target == null)
             {
                 return false;
             }
 
-            return SetValue(root, targetMember);
+            var singlePath = string.Join(":", parsed.Path);
+            if(!string.Equals(singlePath, targetMember, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            return SetValue(root, parsed.Path);
         }
 
-        private object? Traverse(object? root, string[] path, ref string memberName, bool first = false)
+        private object? Traverse(object? root, string[] path, ref string memberName, bool matchSelector = false)
         {
             // TODO: This is going to have to be more clever to handle collections and wildcards ($) in paths.
 
@@ -92,28 +100,159 @@ namespace PackageGen.ChangeTracking
 
             var rootType = root.GetType();
             var splicedPath = path[1..];
-            
 
-            foreach (var pathItem in path)
+            string additionalMemberName = "";
+            if (matchSelector)
             {
+                if (Equals(root, path[0]) || (root is KeyValuePair<string, string> kvp && kvp.Key == path[0]))
+                {
+                    memberName = path[0];
+                    return root;
+                }
+
                 foreach (var prop in rootType.GetProperties())
                 {
-                    if(prop.Name == pathItem)
+                    if (string.Equals(prop.GetValue(root)?.ToString(), path[0], StringComparison.OrdinalIgnoreCase))
                     {
-                        memberName = prop.Name;
-                        return Traverse(prop.GetValue(root), splicedPath, ref memberName);
+                        var result = Traverse(root, splicedPath, ref additionalMemberName);
+                        memberName = path[0];
+                        if(!string.IsNullOrEmpty(additionalMemberName))
+                        {
+                            memberName += $":{additionalMemberName}";
+                        }
+                        return result;
                     }
                 }
 
                 foreach (var field in rootType.GetFields())
                 {
-                    if (field.Name == pathItem)
+                    if (string.Equals(field.GetValue(root)?.ToString(), path[0], StringComparison.OrdinalIgnoreCase))
                     {
-                        memberName = field.Name;
-                        return Traverse(field.GetValue(root), splicedPath[1..], ref memberName);
+                        var result = Traverse(root, splicedPath, ref additionalMemberName);
+                        memberName = path[0];
+                        if (!string.IsNullOrEmpty(additionalMemberName))
+                        {
+                            memberName += $":{additionalMemberName}";
+                        }
+                        return result;
+                    }
+                }
+
+                return null;
+            }
+
+
+
+
+            if (root is IEnumerable<object> enumerable)
+            {
+                foreach (var item in enumerable)
+                {
+                    var result = Traverse(item, path, ref memberName, true);
+                    if (result != null)
+                    {
+                        return result;
                     }
                 }
             }
+
+
+
+
+            foreach (var prop in rootType.GetProperties())
+            {
+                if (prop.Name == path[0])
+                {
+                    object? result = null;
+                    var propValue = prop.GetValue(root);
+                    if (propValue is IEnumerable propEnumerable)
+                    {
+                        foreach (var item in propEnumerable)
+                        {
+                            result = Traverse(item, splicedPath, ref additionalMemberName, true);
+                            if (result != null)
+                            {
+                                break;
+                            }
+                        }
+
+                        if(result == null)
+                        {
+                            result = propValue;
+                            memberName = $"{path[0]}:{path[1]}";
+                            return result;
+                        }
+                    }
+
+                    if (propValue is IEnumerable<object> propEnumerable2)
+                    {
+                        foreach (var item in propEnumerable2)
+                        {
+                            result = Traverse(item, splicedPath, ref additionalMemberName, true);
+                            if (result != null)
+                            {
+                                break;
+                            }
+                        }
+
+                        if (result == null)
+                        {
+                            result = propValue;
+                            memberName = $"{path[0]}:{path[1]}";
+                            return result;
+                        }
+                    }
+
+
+
+                    if (result == null)
+                    {
+                        result = Traverse(propValue, splicedPath, ref additionalMemberName);
+                    }
+
+                    memberName = prop.Name;
+                    if(!string.IsNullOrEmpty(additionalMemberName))
+                    {
+                        memberName += $":{additionalMemberName}";
+                    }
+                    return result;
+                }
+            }
+
+            foreach (var field in rootType.GetFields())
+            {
+                if (field.Name == path[0])
+                {
+                    object? result = null;
+                    var fieldValue = field.GetValue(root);
+                    if (fieldValue is IEnumerable<object> propEnumerable)
+                    {
+                        foreach (var item in propEnumerable)
+                        {
+                            result = Traverse(item, path, ref memberName, true);
+                            if (result != null)
+                            {
+                                break;
+                            }
+                        }
+                    }
+
+                    if (result == null)
+                    {
+                        result = Traverse(fieldValue, splicedPath, ref additionalMemberName);
+                    }
+
+                    memberName = field.Name;
+                    if (!string.IsNullOrEmpty(additionalMemberName))
+                    {
+                        memberName += $":{additionalMemberName}";
+                    }
+                    return result;
+                }
+            }
+
+
+
 
             foreach (var prop in rootType.GetProperties())
             {
@@ -136,24 +275,87 @@ namespace PackageGen.ChangeTracking
             return root;
         }
 
-        private bool SetValue(object target, string targetMember)
+        private bool SetValue(object target, string[] targetPath)
         {
-            var mappings = MutationExtensions.GetMappings().Where(m => m.Key == targetMember).ToArray();
+            var mappings = new List<MutationMapping>();
+            var allWildCardPositions = new List<(int Mapping, int Position)>();
 
-            var chosenMapping = mappings[0];
-            foreach (var item in mappings)
+            var allMappings = MutationExtensions.GetMappings();
+            for(int i = 0; i < allMappings.Length; i++)
             {
-                if(item.Method.Name.Contains("Add") && ChangeType.HasFlag(ChangeTypes.Create))
+                var mapping = allMappings[i];
+                var mapKey = mapping.Key.Split(':');
+                if(mapKey.Length != targetPath.Length)
                 {
-                    chosenMapping = item;
+                    continue;
                 }
-                else if(item.Method.Name.Contains("Remove") && ChangeType.HasFlag(ChangeTypes.Delete))
+
+                bool valid = true;
+                var wildcardPos = new List<int>();
+                for (int j = 0; j < mapKey.Length; j++)
                 {
-                    chosenMapping = item;
+                    if (!string.Equals(mapKey[j], targetPath[j], StringComparison.OrdinalIgnoreCase) && mapKey[j] != "$")
+                    {
+                        valid = false;
+                        break;
+                    }
+                    if (mapKey[j] == "$")
+                    {
+                        wildcardPos.Add(j);
+                    }
+                }
+                if(valid)
+                {
+                    allWildCardPositions.AddRange(wildcardPos.Select(p => (mappings.Count, p)));
+                    mappings.Add(mapping);
                 }
             }
 
-            chosenMapping.Target.DynamicInvoke(target, NewValue);
+            var chosenMapping = mappings[0];
+            int selected = 0;
+            for (int i = 0; i < mappings.Count; i++)
+            {
+                MutationMapping item = mappings[i];
+                if ((item.Method.Name.Contains("Add") || item.Method.Name.Contains("Set")) && ChangeType.HasFlag(ChangeTypes.Create))
+                {
+                    chosenMapping = item;
+                    selected = i;
+                }
+                else if ((item.Method.Name.Contains("Add") || item.Method.Name.Contains("Set")) && ChangeType.HasFlag(ChangeTypes.Update))
+                {
+                    chosenMapping = item;
+                    selected = i;
+                }
+                else if((item.Method.Name.Contains("Remove") || item.Method.Name.Contains("Delete")) && ChangeType.HasFlag(ChangeTypes.Delete))
+                {
+                    chosenMapping = item;
+                    selected = i;
+                }
+            }
+            var wildCardPositions = new List<int>(allWildCardPositions.Where(i => i.Mapping == selected).Select(i => i.Position));
+
+
+            var args = new List<object>();
+            args.Add(target);
+
+            if(chosenMapping.Method.GetParameters().Length > 2 && wildCardPositions.Count > 0)
+            {
+                args.AddRange(wildCardPositions.Select(i => targetPath[i]));
+            }
+
+            if (NewValue is string s && s.Contains(":") && chosenMapping.Method.GetParameters().Length > args.Count() + 1)
+            {
+                var splitValues = s.Split(':');
+                if(chosenMapping.Method.GetParameters().Length == 2 + splitValues.Length)
+                {
+                    args.AddRange(splitValues);
+                }
+            }
+            else
+            {
+                args.Add(NewValue);
+            }
+            chosenMapping.Target.Method.Invoke(null, args.ToArray());
 
             return true;
         }

@@ -267,7 +267,7 @@ namespace Wallop.DSLExtension.Modules
             return subElements.Select(e => e.Value);
         }
 
-        private static (string Name, string Version, string Description, IEnumerable<(string Key, string Value)> Variables) GetCommonMetadataValues(XElement? metadataRoot)
+        private static (string Name, string Version, string Description, IEnumerable<KeyValuePair<string, string>> Variables) GetCommonMetadataValues(XElement? metadataRoot)
         {
             if(metadataRoot == null)
             {
@@ -295,33 +295,33 @@ namespace Wallop.DSLExtension.Modules
             return (name, version, description, variables);
         }
 
-        private static IEnumerable<(string Key, string Value)> GetVariableDeclarations(XElement metadataRoot)
+        private static IEnumerable<KeyValuePair<string, string>> GetVariableDeclarations(XElement metadataRoot)
         {
             var variablesElement = metadataRoot.XPathSelectElement("./variables");
 
             if(variablesElement == null)
             {
-                return Array.Empty<(string, string)>();
+                return Array.Empty<KeyValuePair<string, string>>();
             }
             var ele = variablesElement.Elements();
             return ele.Select(e => GetVariableDeclaration(e));
         }
 
-        private static (string Key, string Value) GetVariableDeclaration(XElement? variableDeclElement)
+        private static KeyValuePair<string, string> GetVariableDeclaration(XElement? variableDeclElement)
         {
             if(variableDeclElement == null)
             {
                 throw new XmlException("Failed to load package variable declaration.");
             }
 
-            return (variableDeclElement.Name.ToString(), variableDeclElement.Value);
+            return new KeyValuePair<string, string>(variableDeclElement.Name.ToString(), variableDeclElement.Value);
         }
 
 
         private static string ApplyVariables(string input, PackageInfo packageInfo, ModuleInfo? moduleInfo)
             => ApplyVariables(input, packageInfo.PackageVariables, moduleInfo?.Variables);
 
-        private static string ApplyVariables(string input, IEnumerable<(string Key, string Value)> packageVariables, IEnumerable<(string Key, string Value)>? moduleVariables)
+        private static string ApplyVariables(string input, IEnumerable<KeyValuePair<string, string>> packageVariables, IEnumerable<KeyValuePair<string, string>>? moduleVariables)
         {
             if(moduleVariables != null)
             {

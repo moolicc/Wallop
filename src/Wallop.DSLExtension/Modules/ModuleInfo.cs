@@ -13,7 +13,7 @@ namespace Wallop.DSLExtension.Modules
     }
     
     // TODO: ModuleSettings
-    public record ModuleInfo(string PackageFile, string BaseDirectory, string SourcePath, string ScriptName, string ScriptVersion, string ScriptDescription, string ScriptEngineId, IEnumerable<KeyValuePair<string, string>> ScriptEngineArgs, ModuleTypes ScriptType, IEnumerable<string> HostApis, IEnumerable<(string Key, string Value)> Variables)
+    public record ModuleInfo(string PackageFile, string BaseDirectory, string SourcePath, string ScriptName, string ScriptVersion, string ScriptDescription, string ScriptEngineId, IEnumerable<KeyValuePair<string, string>> ScriptEngineArgs, ModuleTypes ScriptType, IEnumerable<string> HostApis, IEnumerable<KeyValuePair<string, string>> Variables)
     {
         public string Id => $"{ScriptName.Replace(' ', '.')}{ScriptVersion}";
     }
