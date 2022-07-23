@@ -307,7 +307,7 @@ namespace PackageGen
             });
 
 
-            var saveCommand = new Command("save", "Saves all changes to disk.");
+            var saveCommand = new Command("save", "Applies and saves all changes to disk.");
             saveCommand.SetHandler(_ =>
             {
                 ApplyChanges();
@@ -325,6 +325,7 @@ namespace PackageGen
                 GetRemoveCommand(),
                 changesCommand,
                 changesUndoCommand,
+                applyChanges,
                 saveCommand,
                 exitCommand,
             };
@@ -501,7 +502,7 @@ namespace PackageGen
                 setFileCommand,
                 setVarCommand,
             };
-
+            setPackageCommand.AddAlias("pkg");
 
 
             return setPackageCommand;
@@ -842,6 +843,7 @@ namespace PackageGen
                 setEngineVarCommand,
                 setSettingCommand
             };
+            setModuleCommand.AddAlias("mod");
 
 
 
@@ -961,6 +963,7 @@ namespace PackageGen
                 addBindingCommand,
                 addToPackageCommand
             };
+            addModuleCommand.AddAlias("mod");
 
             return addModuleCommand;
         }
@@ -1003,6 +1006,7 @@ namespace PackageGen
             {
                 rmVarCommand
             };
+            packageCommand.AddAlias("pkg");
 
             return packageCommand;
         }
