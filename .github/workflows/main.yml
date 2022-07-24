@@ -21,11 +21,17 @@ jobs:
     steps:
     
     - uses: actions/checkout@v3
+    
+    - name: Pull & update submodules
+      run: |
+        git submodule update --init --recursive
+        git submodule update --recursive --remote
+    
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v2.1.0
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
-        
+    
     - name: Install dependencies
       run: dotnet restore ./src/
       
