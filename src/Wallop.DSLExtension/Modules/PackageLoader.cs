@@ -11,6 +11,13 @@ namespace Wallop.DSLExtension.Modules
 {
     public static class PackageLoader
     {
+        public static bool PreserveVariables { get; set; }
+
+        static PackageLoader()
+        {
+            PreserveVariables = false;
+        }
+
         public static IEnumerable<Package> LoadPackages(string directory)
         {
             foreach (var filePath in Directory.GetFiles(directory, "package.xml", SearchOption.AllDirectories))
@@ -156,13 +163,15 @@ namespace Wallop.DSLExtension.Modules
             var name = settingElement.XPathSelectElement("name")?.Value;
             var description = settingElement.XPathSelectElement("description")?.Value ?? "";
             var typeElement = settingElement.XPathSelectElement("type");
+            var typeArgsElement = settingElement.XPathSelectElement("typeArgs");
             var required = settingElement.XPathSelectElement("required")?.Value ?? "false";
             var tracked = settingElement.XPathSelectElement("tracked")?.Value ?? "false";
             var defaultValue = settingElement.XPathSelectElement("defaultValue")?.Value;
-            var bindingElements = settingElement.XPathSelectElements("binding");
+            var bindingsElement = settingElement.XPathSelectElement("bindings");
             IEnumerable<ModuleSettingBinding> bindings = Array.Empty<ModuleSettingBinding>();
+            IEnumerable<KeyValuePair<string, string>> typeArgs = Array.Empty<KeyValuePair<string, string>>();
 
-            if(name == null)
+            if (name == null)
             {
                 throw new XmlException("Failed to load module setting name.");
             }
@@ -189,16 +198,17 @@ namespace Wallop.DSLExtension.Modules
             {
                 defaultValue = ApplyVariables(defaultValue, packageInfo, moduleInfo);
             }
-            if(bindingElements != null)
+            if(bindingsElement != null)
             {
-                bindings = LoadBindings(packageInfo, moduleInfo, bindingElements);
+                bindings = LoadBindings(packageInfo, moduleInfo, bindingsElement);
+            }
+            if (typeArgsElement != null)
+            {
+                typeArgs = typeArgsElement.Elements().Select(e => new KeyValuePair<string, string>(e.Name.ToString(), ApplyVariables(e.Value, packageInfo, moduleInfo)));
             }
 
             var type = ApplyVariables(typeElement.Value, packageInfo, moduleInfo);
-            var typeArgs = typeElement.Attributes().Select(a
-                => new KeyValuePair<string, string>(
-                    ApplyVariables(a.Name.ToString(), packageInfo, moduleInfo),
-                    ApplyVariables(a.Value, packageInfo, moduleInfo)));
+
 
             return new ModuleSetting(ApplyVariables(name, packageInfo, moduleInfo),
                 ApplyVariables(description, packageInfo, moduleInfo),
@@ -210,19 +220,13 @@ namespace Wallop.DSLExtension.Modules
                 typeArgs);
         }
 
-        private static IEnumerable<ModuleSettingBinding> LoadBindings(PackageInfo packageInfo, ModuleInfo moduleInfo, IEnumerable<XElement> bindingElements)
+        private static IEnumerable<ModuleSettingBinding> LoadBindings(PackageInfo packageInfo, ModuleInfo moduleInfo, XElement bindingsElement)
         {
-            const string TYPE_PROPERTY_DELIMITER = ":";
 
-            foreach (var element in bindingElements)
+            foreach (var element in bindingsElement.Elements())
             {
-                if(!element.Value.Contains(TYPE_PROPERTY_DELIMITER))
-                {
-                    throw new XmlException("Module setting binding is not in a proper format.");
-                }
-                var delimiterIndex = element.Value.IndexOf(TYPE_PROPERTY_DELIMITER);
-                var type = element.Value.Substring(0, delimiterIndex);
-                var property = element.Value.Substring(delimiterIndex + 1);
+                var type = element.Name.ToString();
+                var property = element.Value;
                 yield return new ModuleSettingBinding(
                     ApplyVariables(type, packageInfo, moduleInfo),
                     ApplyVariables(property, packageInfo, moduleInfo));
@@ -251,7 +255,7 @@ namespace Wallop.DSLExtension.Modules
             var args = new Dictionary<string, string>();
             if(argsElement != null)
             {
-                args = argsElement.Attributes().ToDictionary(a => a.Name.ToString(), a => a.Value);
+                args = argsElement.Elements().ToDictionary(a => a.Name.ToString(), a => a.Value);
             }
             return (name, args);
         }
@@ -323,17 +327,20 @@ namespace Wallop.DSLExtension.Modules
 
         private static string ApplyVariables(string input, IEnumerable<KeyValuePair<string, string>> packageVariables, IEnumerable<KeyValuePair<string, string>>? moduleVariables)
         {
-            if(moduleVariables != null)
+            if(!PreserveVariables)
             {
-                foreach (var item in moduleVariables)
+                if (moduleVariables != null)
+                {
+                    foreach (var item in moduleVariables)
+                    {
+                        input = input.Replace($"${item.Key}", item.Value);
+                    }
+                }
+
+                foreach (var item in packageVariables)
                 {
                     input = input.Replace($"${item.Key}", item.Value);
                 }
-            }
-
-            foreach (var item in packageVariables)
-            {
-                input = input.Replace($"${item.Key}", item.Value);
             }
 
             return input;

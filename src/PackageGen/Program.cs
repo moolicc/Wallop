@@ -10,6 +10,7 @@ namespace PackageGen
     static class Program
     {
         private static List<Package> _packages = new List<Package>();
+        private static List<Module> _modules = new List<Module>();
         private static Package? _selectedPackage;
         private static Module? _selectedModule;
         private static bool _repl = true;
@@ -19,7 +20,9 @@ namespace PackageGen
 
         static int Main(string[] args)
         {
+            PackageLoader.PreserveVariables = true;
             _packages = PackageLoader.LoadPackages(Environment.CurrentDirectory).ToList();
+            _modules = new List<Module>();
 
             if (!_packages.Any())
             {
@@ -32,6 +35,7 @@ namespace PackageGen
                 IDHelper.Register(pkg);
                 foreach (var mod in pkg.DeclaredModules)
                 {
+                    _modules.Add(mod);
                     IDHelper.Register(mod);
                 }
             }
@@ -89,7 +93,7 @@ namespace PackageGen
 
 
 
-            var allModsOption = new Option<bool>(new[] { "--all", "-a" }, _ => false, description: "Optionally show all modules (also those not in the currently selected package).");
+            var allModsOption = new Option<bool>(new[] { "--all", "-a" }, "Optionally show all modules (also those not in the currently selected package).");
 
             var listModCommand = new Command("modules", "Lists loaded modules.")
             {
@@ -101,7 +105,6 @@ namespace PackageGen
 
                 if (_selectedPackage == null || a)
                 {
-                    int moduleCount = 0;
                     foreach (var pkg in _packages)
                     {
                         Console.WriteLine($"Modules from {pkg.Info.PackageName}");
@@ -111,26 +114,69 @@ namespace PackageGen
                             {
                                 Console.ForegroundColor = ConsoleColor.Green;
                             }
-                            Console.WriteLine("{0}: {1}", moduleCount, module.ModuleInfo.ScriptName);
-                            Console.ForegroundColor = curColor;
+                            int index = _modules.IndexOf(module);
 
-                            moduleCount++;
+                            Console.WriteLine("{0}: {1}", index, module.ModuleInfo.ScriptName);
+                            Console.ForegroundColor = curColor;
                         }
                         Console.WriteLine();
+                    }
+
+                    bool printedHeader = false;
+                    for (int i = 0; i < _modules.Count; i++)
+                    {
+                        Module mod = _modules[i];
+                        bool orphan = true;
+                        foreach (var pkg in _packages)
+                        {
+                            if(pkg.DeclaredModules.Contains(mod))
+                            {
+                                orphan = false;
+                                break;
+                            }
+                        }
+                        if(!orphan)
+                        {
+                            continue;
+                        }
+
+                        if(!printedHeader)
+                        {
+                            Console.WriteLine($"Orhpaned modules");
+                        }
+                        if (mod == _selectedModule)
+                        {
+                            Console.ForegroundColor = ConsoleColor.Green;
+                        }
+                        Console.WriteLine("{0}: {1}", i, mod.ModuleInfo.ScriptName);
+                        Console.ForegroundColor = curColor;
                     }
                 }
                 else
                 {
-                    var modules = _selectedPackage.DeclaredModules;
-                    for (int i = 0; i < modules.Length; i++)
+                    Console.WriteLine("Modules in current package");
+                    var pkgModules = _selectedPackage.DeclaredModules;
+
+                    foreach (var mod in pkgModules)
                     {
-                        if (modules[i] == _selectedModule)
+                        for (int i = 0; i < _modules.Count; i++)
                         {
-                            Console.ForegroundColor = ConsoleColor.Green;
+                            if (_modules[i] != mod)
+                            {
+                                continue;
+                            }
+
+                            if (mod == _selectedModule)
+                            {
+                                Console.ForegroundColor = ConsoleColor.Green;
+                            }
+                            Console.WriteLine("{0}: {1}", i, mod.ModuleInfo.ScriptName);
+                            Console.ForegroundColor = curColor;
+                            break;
                         }
-                        Console.WriteLine("{0}: {1}", i, modules[i].ModuleInfo.ScriptName);
-                        Console.ForegroundColor = curColor;
                     }
+
+                    
                 }
 
                 Console.WriteLine("Run 'use module (#/[name])' to select an active module.");
@@ -192,42 +238,41 @@ namespace PackageGen
             {
                 if (int.TryParse(s, out var i))
                 {
-                    if (i < 0 || i > _packages.Count)
+                    if (i < 0 || i > _modules.Count)
                     {
                         Console.WriteLine("Invalid module number.");
                         return;
                     }
 
-                    if(_selectedPackage != null)
+                    //if(_selectedPackage != null)
+                    //{
+                    //    _selectedModule = _selectedPackage.DeclaredModules.ElementAt(i);
+                    //}
+                    //else
+                    //{
+                    _selectedModule = _modules[i];
+
+                    bool found = false;
+                    foreach (var pkg in _packages)
                     {
-                        _selectedModule = _selectedPackage.DeclaredModules.ElementAt(i);
-                    }
-                    else
-                    {
-                        int moduleCount = 0;
-                        foreach (var pkg in _packages)
+                        foreach (var module in pkg.DeclaredModules)
                         {
-                            bool found = false;
-                            foreach (var module in pkg.DeclaredModules)
+                            if(module == _selectedModule)
                             {
-                                if(moduleCount == i)
-                                {
-                                    _selectedPackage = pkg;
-                                    Console.WriteLine($"Using package '{pkg.Info.PackageName}'.");
+                                _selectedPackage = pkg;
+                                Console.WriteLine($"Using package '{pkg.Info.PackageName}'.");
 
-                                    _selectedModule = module;
-                                    found = true;
-                                    break;
-                                }
-                                moduleCount++;
-                            }
-
-                            if(found)
-                            {
+                                found = true;
                                 break;
                             }
                         }
+
+                        if(found)
+                        {
+                            break;
+                        }
                     }
+                    //}
                     if(_selectedModule == null)
                     {
                         Console.WriteLine($"Module not found.");
@@ -239,25 +284,18 @@ namespace PackageGen
                 else
                 {
                     _selectedModule = _selectedPackage?.DeclaredModules.FirstOrDefault(m => m.ModuleInfo.ScriptName == s);
+
+
                     if (_selectedModule == null)
                     {
                         _selectedModule = MutationExtensions.CreateEmptyModule(_selectedPackage, s);
                         int modId = IDHelper.Register(_selectedModule);
-
-                        if (_selectedPackage == null)
-                        {
-                            //_changes.AddChange(new Change(ChangeTypes.Create, $"(M {modId}) {nameof(Module)}", "", s));
-                        }
-                        else
-                        {
-                            //_changes.AddChange(new Change(ChangeTypes.Create, nameof(Package.DeclaredModules), "", s));
-                        }
+                        _modules.Add(_selectedModule);
 
                         Console.WriteLine($"New module '{s}' created.");
                         AddKeyword(s);
                     }
                 }
-
                 SetPrompt();
             }, moduleArg);
 
@@ -978,9 +1016,10 @@ namespace PackageGen
                 var curPkgId = IDHelper.FindPackageId(targetPackage);
                 _changes.AddChange(new Change(ChangeTypes.Update, $"(P {curPkgId}) {targetPackage.Info.PackageName}:{nameof(Package.DeclaredModules)}", "", _selectedModule));
 
+                _packages.Add(targetPackage);
                 _selectedPackage = targetPackage;
-                SetPrompt();
 
+                SetPrompt();
                 Console.WriteLine("Module added to package changeset.");
             }, packageOpt);
 
@@ -1247,7 +1286,16 @@ namespace PackageGen
 
         private static void SavePackages()
         {
+            if(_changes.Changes.Length > 0)
+            {
+                Console.WriteLine("You must apply all changes before saving!");
+                return;
+            }
 
+            foreach (var pkg in _packages)
+            {
+                PackageSaver.SavePackage(pkg, pkg.Info.ManifestPath);
+            }
         }
 
         private static bool CheckActivePackage()
