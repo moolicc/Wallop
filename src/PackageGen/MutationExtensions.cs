@@ -157,7 +157,7 @@ namespace PackageGen
             package.DeclaredModules = mods.ToArray();
         }
 
-        [MutationMap(nameof(Package.DeclaredModules), typeof(Action<Package, string>))]
+        [MutationMap(nameof(Package.DeclaredModules) + ":$", typeof(Action<Package, string>))]
         public static void RemoveModule(this Package package, string moduleName)
         {
             var mods = new List<Module>(package.DeclaredModules);
@@ -577,7 +577,7 @@ namespace PackageGen
             module.ModuleSettings = settings;
         }
 
-        [MutationMap(nameof(Module.ModuleSettings) + ":$:" + nameof(ModuleSetting.Bindings), typeof(Action<Module, string, string, string>))]
+        [MutationMap(nameof(Module.ModuleSettings) + ":$:" + nameof(ModuleSetting.Bindings) + ":$,$", typeof(Action<Module, string, string, string>))]
         public static void RemoveSettingBinding(this Module module, string key, string typeName, string propertyName)
         {
             var settings = new List<ModuleSetting>(module.ModuleSettings);

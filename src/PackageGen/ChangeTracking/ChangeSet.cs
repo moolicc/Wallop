@@ -69,6 +69,12 @@ namespace PackageGen.ChangeTracking
             Console.ForegroundColor = originalForeColor;
         }
 
+        public Change? FindLastChange(string field)
+            => _changes.FirstOrDefault(c => c.TargetField == field);
+
+        public Change? FindLastChange(string field, ChangeTypes typeFilter)
+            => _changes.FirstOrDefault(c => c.TargetField == field && c.ChangeType == typeFilter);
+
         public IEnumerator<Change> GetEnumerator()
         {
             return _changes.GetEnumerator();

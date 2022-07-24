@@ -55,11 +55,11 @@ namespace PackageGen.ChangeTracking
             object? root;
             if(parsed.IsModule)
             {
-                root = modules.FirstOrDefault(m => m.ModuleInfo.ScriptName == parsed.RootName);
+                root = IDHelper.GetModuleById(parsed.RootId);
             }
             else
             {
-                root = packages.FirstOrDefault(p => p.Info.PackageName== parsed.RootName);
+                root = IDHelper.GetPackageById(parsed.RootId);
             }
             if(root == null)
             {
@@ -360,18 +360,36 @@ namespace PackageGen.ChangeTracking
             return true;
         }
 
-        private (bool IsModule, string RootName, string[] Path) ParseChangeTarget()
+        private (bool IsModule, int RootId, string RootName, string[] Path) ParseChangeTarget()
         {
-            var target = TargetField;
-            var isModule = target.StartsWith("(M)");
+            //Prefix format: (M <number>) field:field:field:
+            //Prefix format: (P <number>) field:field:field:
 
-            target = target.Remove(0, 4);
+            var target = TargetField;
+            var isModule = target.StartsWith("(M");
+
+            // Remove the beginning "(M "
+            target = target.Remove(0, 3);
+
+
+            var spaceIndex = target.IndexOf(' ');
+
+            // Remove the prefix's trailing paren.
+            target = target.Remove(spaceIndex - 1, 1);
+            spaceIndex = target.IndexOf(' ');
+
+            // Parse the ID.
+            var id = int.Parse(target.Substring(0, spaceIndex));
+
+            // Remove the remaining of the prefix.
+            target = target.Remove(0, spaceIndex + 1);
+
             var parts = target.Split(":", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
             var path = new string[parts.Length - 1];
 
             Array.Copy(parts, 1, path, 0, path.Length);
 
-            return (isModule, parts[0], path);
+            return (isModule, id, parts[0], path);
         }
     }
 }
