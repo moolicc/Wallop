@@ -1272,16 +1272,20 @@ namespace PackageGen
 
         private static void AddCompletions(Command command, List<CompletionTree> collection)
         {
-            var completionItem = new CompletionTree(command.Name);
+            var completionItem = new CompletionTree(command.Name, command.Aliases.ToArray());
             foreach (var item in command)
             {
                 if (item is Command c)
                 {
                     AddCompletions(c, completionItem.Completions);
                 }
+                else if(item is Option o)
+                {
+                    completionItem.Completions.Add(new CompletionTree(item.Name, o.Aliases.ToArray()));
+                }
                 else
                 {
-                    completionItem.Completions.Add(new CompletionTree(item.Name));
+                    completionItem.Completions.Add(new CompletionTree(item.Name, Array.Empty<string>()));
                 }
             }
             collection.Add(completionItem);

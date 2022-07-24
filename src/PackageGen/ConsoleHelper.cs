@@ -69,11 +69,13 @@ namespace PackageGen
     public class CompletionTree
     {
         public string TriggerWord { get; set; }
+        public string[] Aliases { get; set; }
         public List<CompletionTree> Completions { get; private set; }
 
-        public CompletionTree(string word)
+        public CompletionTree(string word, string[] aliases)
         {
             TriggerWord = word;
+            Aliases = aliases;
             Completions = new List<CompletionTree>();
         }
 
@@ -83,7 +85,7 @@ namespace PackageGen
 
             int found = 0;
             string? first = null;
-            for (int i = 0;  i < Completions.Count; i++)
+            for (int i = 0; i < Completions.Count; i++)
             {
                 if (Completions[i].TriggerWord.StartsWith(start, StringComparison.OrdinalIgnoreCase))
                 {
@@ -99,6 +101,28 @@ namespace PackageGen
                             first = Completions[i].TriggerWord;
                         }
                         found++;
+                    }
+                }
+                else
+                {
+                    foreach (var item in Completions[i].Aliases)
+                    {
+                        if(item.StartsWith(start, StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (found == startingIndex)
+                            {
+                                wrapped = false;
+                                return item;
+                            }
+                            else
+                            {
+                                if (first == null)
+                                {
+                                    first = item;
+                                }
+                                found++;
+                            }
+                        }
                     }
                 }
             }
@@ -128,7 +152,7 @@ namespace PackageGen
 
         public ConsoleHelper()
         {
-            _completionRoot = new CompletionTree("");
+            _completionRoot = new CompletionTree("", Array.Empty<string>());
 
             _completionNode = null;
             _completionIndex = 0;
@@ -384,6 +408,13 @@ namespace PackageGen
                 foreach (var node in result.Completions)
                 {
                     if (string.Equals(split[i], node.TriggerWord, StringComparison.OrdinalIgnoreCase))
+                    {
+                        found = true;
+                        result = node;
+                        break;
+                    }
+
+                    if(node.Aliases.Any(a => string.Equals(split[i], a, StringComparison.OrdinalIgnoreCase)))
                     {
                         found = true;
                         result = node;
