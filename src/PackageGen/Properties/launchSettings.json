@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "PackageGen": {
+      "commandName": "Project",
+      "workingDirectory": "C:\\Users\\joel\\source\\repos\\Wallop\\modules"
+    }
+  }
+}
