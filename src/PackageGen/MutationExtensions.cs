@@ -245,7 +245,7 @@ namespace PackageGen
             };
         }
 
-        [MutationMap(nameof(Module.ModuleInfo.ScriptEngineArgs), typeof(Action<Module, string, string>))]
+        [MutationMap(nameof(Module.ModuleInfo.ScriptEngineArgs) + ":$", typeof(Action<Module, string, string>))]
         public static void SetModuleScriptEngineArg(this Module module, string arg, string value)
         {
             var args = new List<KeyValuePair<string, string>>(module.ModuleInfo.ScriptEngineArgs);
@@ -272,7 +272,7 @@ namespace PackageGen
             };
         }
 
-        [MutationMap(nameof(Module.ModuleInfo.ScriptEngineArgs), typeof(Action<Module, string>))]
+        [MutationMap(nameof(Module.ModuleInfo.ScriptEngineArgs) + ":$", typeof(Action<Module, string>))]
         public static void RemoveModuleScriptEngineArg(this Module module, string arg)
         {
             var args = new List<KeyValuePair<string, string>>(module.ModuleInfo.ScriptEngineArgs);
@@ -303,7 +303,7 @@ namespace PackageGen
             };
         }
 
-        [MutationMap(nameof(Module.ModuleInfo.HostApis), typeof(Action<Module, string>))]
+        [MutationMap(nameof(Module.ModuleInfo.HostApis) + ":$", typeof(Action<Module, string>))]
         public static void RemoveModuleHostApi(this Module module, string api)
         {
             var apis = new List<string>(module.ModuleInfo.HostApis);
@@ -349,7 +349,7 @@ namespace PackageGen
             module.ModuleSettings = settings;
         }
 
-        [MutationMap(nameof(Module.ModuleSettings), typeof(Action<Module, string>))]
+        [MutationMap(nameof(Module.ModuleSettings) + ":$", typeof(Action<Module, string>))]
         public static void RemoveModuleSetting(this Module module, string key)
         {
             var settings = new List<ModuleSetting>(module.ModuleSettings);
@@ -577,7 +577,22 @@ namespace PackageGen
             module.ModuleSettings = settings;
         }
 
-        [MutationMap(nameof(Module.ModuleSettings) + ":$:" + nameof(ModuleSetting.Bindings) + ":$,$", typeof(Action<Module, string, string, string>))]
+
+        [MutationMap(nameof(Module.ModuleSettings) + ":$:" + nameof(ModuleSetting.Bindings) + ":$", typeof(Action<Module, string, string>))]
+        public static void RemoveSettingBinding(this Module module, string key, string propTypeName)
+        {
+            if(!propTypeName.Contains(','))
+            {
+                throw new ArgumentException("Parameter must be of the format: property,type.", nameof(propTypeName));
+            }
+
+            int commaIndex = propTypeName.IndexOf(',');
+            var propName = propTypeName.Substring(0, commaIndex);
+            var typeName = propTypeName.Substring(commaIndex + 1);
+            RemoveSettingBinding(module, key, propName, typeName);
+        }
+
+        //[MutationMap(nameof(Module.ModuleSettings) + ":$:" + nameof(ModuleSetting.Bindings) + ":$", typeof(Action<Module, string, string, string>))]
         public static void RemoveSettingBinding(this Module module, string key, string typeName, string propertyName)
         {
             var settings = new List<ModuleSetting>(module.ModuleSettings);

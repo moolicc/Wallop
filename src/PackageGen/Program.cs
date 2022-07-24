@@ -97,6 +97,8 @@ namespace PackageGen
             };
             listModCommand.SetHandler(a =>
             {
+                var curColor = Console.ForegroundColor;
+
                 if (_selectedPackage == null || a)
                 {
                     int moduleCount = 0;
@@ -105,7 +107,13 @@ namespace PackageGen
                         Console.WriteLine($"Modules from {pkg.Info.PackageName}");
                         foreach (var module in pkg.DeclaredModules)
                         {
-                            Console.WriteLine("{0}: {1}{2}", moduleCount, module.ModuleInfo.ScriptName, module == _selectedModule ? "*" : "");
+                            if(module == _selectedModule)
+                            {
+                                Console.ForegroundColor = ConsoleColor.Green;
+                            }
+                            Console.WriteLine("{0}: {1}", moduleCount, module.ModuleInfo.ScriptName);
+                            Console.ForegroundColor = curColor;
+
                             moduleCount++;
                         }
                         Console.WriteLine();
@@ -116,7 +124,12 @@ namespace PackageGen
                     var modules = _selectedPackage.DeclaredModules;
                     for (int i = 0; i < modules.Length; i++)
                     {
-                        Console.WriteLine("{0}: {1}{2}", i, modules[i].ModuleInfo.ScriptName, modules[i] == _selectedModule ? "*" : "");
+                        if (modules[i] == _selectedModule)
+                        {
+                            Console.ForegroundColor = ConsoleColor.Green;
+                        }
+                        Console.WriteLine("{0}: {1}", i, modules[i].ModuleInfo.ScriptName);
+                        Console.ForegroundColor = curColor;
                     }
                 }
 
@@ -157,9 +170,11 @@ namespace PackageGen
                     if (_selectedPackage == null)
                     {
                         _selectedPackage = MutationExtensions.CreateEmptyPackage(s);
-                        _changes.AddChange(new Change(ChangeTypes.Create, nameof(Package), "", s));
+                        int pkgId = IDHelper.Register(_selectedPackage);
+
+                        //_changes.AddChange(new Change(ChangeTypes.Create, $"(P {pkgId}) {nameof(Package)}", "", s));
                         _packages.Add(_selectedPackage);
-                        Console.WriteLine($"New package '{s}' added to changeset.");
+                        Console.WriteLine($"New package '{s}' created.");
 
                         AddKeyword(s);
                     }
@@ -226,19 +241,19 @@ namespace PackageGen
                     _selectedModule = _selectedPackage?.DeclaredModules.FirstOrDefault(m => m.ModuleInfo.ScriptName == s);
                     if (_selectedModule == null)
                     {
-
                         _selectedModule = MutationExtensions.CreateEmptyModule(_selectedPackage, s);
+                        int modId = IDHelper.Register(_selectedModule);
 
-                        if(_selectedPackage == null)
+                        if (_selectedPackage == null)
                         {
-                            _changes.AddChange(new Change(ChangeTypes.Create, nameof(Module), "", s));
+                            //_changes.AddChange(new Change(ChangeTypes.Create, $"(M {modId}) {nameof(Module)}", "", s));
                         }
                         else
                         {
-                            _changes.AddChange(new Change(ChangeTypes.Create, nameof(Package.DeclaredModules), "", s));
+                            //_changes.AddChange(new Change(ChangeTypes.Create, nameof(Package.DeclaredModules), "", s));
                         }
 
-                        Console.WriteLine($"New module '{s}' added to changeset.");
+                        Console.WriteLine($"New module '{s}' created.");
                         AddKeyword(s);
                     }
                 }
@@ -251,7 +266,7 @@ namespace PackageGen
                 usePkgCommand,
                 useModuleCommand
             };
-
+            useCommand.AddAlias("select");
 
             var exitCommand = new Command("exit", "Exists the program.");
             exitCommand.SetHandler(_ => _repl = false);
@@ -268,31 +283,38 @@ namespace PackageGen
 
 
 
-            var changeIndex = new Argument<int>("change", "The index of the change to undo.");
+            var changeIndex = new Argument<int>("change", "The ID of the change to undo.");
             var recursiveOpt = new Option<bool>(new[] {"--recursive", "-r"}, () => false, "Whether or not to recursively undo back to the target change.");
             var changesUndoCommand = new Command("undo", "Reverts the specified change.")
             {
                 changeIndex,
                 recursiveOpt
             };
-            changesUndoCommand.SetHandler((c, r) =>
+            changesUndoCommand.AddAlias("revert");
+            changesUndoCommand.SetHandler((id, r) =>
             {
-                int start = c;
+                int changeIndex = _changes.FirstOrDefault(cg => cg.ID == id)?.ID ?? int.MaxValue;
+                int startIndex = changeIndex;
                 if(r)
                 {
-                    start = 0;
+                    startIndex = 0;
                 }
 
-
-                for (int i = c; i <= c; i++)
+                for (int i = startIndex; i <= changeIndex; i++)
                 {
                     if (!_changes[i].CanRevert)
                     {
-                        Console.WriteLine("Change {0} could not be reverted! Reversion not supported for that change.", 0);
+                        Console.WriteLine("Change with ID {0} cannot be reverted!", _changes[i].ID);
                         break;
                     }
-                    _changes.AddChange(_changes[i].GetReversion());
+
+                    var revertChange = _changes[i].GetReversion();
+                    revertChange.RevertsID = _changes[i].ID;
+
+                    int newId = _changes.AddChange(revertChange);
+                    Console.WriteLine("Revert change added for change {0}. Revert change ID: {1}", _changes[i].ID, newId);
                 }
+                SetPrompt();
             }, changeIndex, recursiveOpt);
 
 
@@ -304,16 +326,25 @@ namespace PackageGen
             };
             changesCommand.SetHandler(f =>
             {
+                _changes.PrintChangeSet(f);
                 // _changes.PrintChangeSet(f);
             }, filterOption);
 
 
 
-            var applyChanges = new Command("apply", "Applies all current changes to memory.");
-            applyChanges.SetHandler(_ =>
+            var startArg = new Option<int>(new[] { "--startid", "-s" }, () => -1, "Specifies the ID of the change to start applying with.");
+            var endArg = new Option<int>(new[] { "--endid", "-e" }, () => int.MaxValue, "Specifies the final ID of the change to apply.");
+
+            var applyChanges = new Command("apply", "Applies all or some current changes to memory.")
             {
-                ApplyChanges();
-            });
+                startArg,
+                endArg
+            };
+            applyChanges.SetHandler((s, e) =>
+            {
+                ApplyChanges(s, e);
+                SetPrompt();
+            }, startArg, endArg);
 
 
             var saveCommand = new Command("save", "Applies and saves all changes to disk.");
@@ -321,6 +352,7 @@ namespace PackageGen
             {
                 ApplyChanges();
                 SavePackages();
+                SetPrompt();
             });
             
 
@@ -396,6 +428,7 @@ namespace PackageGen
                 _changes.AddChange(new Change(ChangeTypes.Update, $"(P {curPkgId}) {_selectedPackage.Info.PackageName}:{nameof(Package.Info.PackageName)}", _selectedPackage.Info.PackageName, s));
 
                 Console.WriteLine($"Package name update added to changeset.");
+                SetPrompt();
             }, nameArg);
 
 
@@ -538,6 +571,7 @@ namespace PackageGen
                     _selectedModule.ModuleInfo.ScriptName, s));
 
                 Console.WriteLine($"Module name update added to changeset.");
+                SetPrompt();
             }, nameArg);
 
 
@@ -698,7 +732,7 @@ namespace PackageGen
 
             var engineKeyArg = new Argument<string>("name", "The name of the engine argument to set or create.");
             var engineValueArg = new Argument<string>("value", "The argument's new value.");
-            var setEngineVarCommand = new Command("scriptarg", "Sets an argument on the ScriptEngine.")
+            var setEngineVarCommand = new Command("enginearg", "Sets an argument on the ScriptEngine.")
             {
                 engineKeyArg,
                 engineValueArg
@@ -727,11 +761,11 @@ namespace PackageGen
                 {
                     Console.WriteLine($"Script engine argument update added to changeset.");
                 }
-            }, keyArg, valueArg);
+            }, engineKeyArg, engineValueArg);
 
 
 
-
+            // UNTESTED
             var settingNameArg = new Argument<string>("name", "The name of the setting to manipulate.");
             var descriptionOption = new Option<string>(new[] { "--description", "-d" }, "The setting's description.");
             var defaultValueOption = new Option<string>(new[] { "--default-value", "-v" }, "The setting's default value.");
@@ -787,7 +821,7 @@ namespace PackageGen
                 if(defChanged)
                 {
                     _changes.AddChange(new Change(defType, $"(M {curModId}) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleSettings)}:{n}:{nameof(ModuleSetting.DefaultValue)}",
-                        curSetting.DefaultValue ?? "", d));
+                        curSetting.DefaultValue ?? "", v));
 
                     Console.WriteLine("Module setting's default value change added to changeset.");
                 }
@@ -795,7 +829,7 @@ namespace PackageGen
                 if(typeChanged)
                 {
                     _changes.AddChange(new Change(typeType, $"(M {curModId}) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleSettings)}:{n}:{nameof(ModuleSetting.SettingType)}",
-                        curSetting.SettingType, d));
+                        curSetting.SettingType, t));
 
                     Console.WriteLine("Module setting's type change added to changeset.");
                 }
@@ -804,7 +838,7 @@ namespace PackageGen
                 if(requiredChanged)
                 {
                     _changes.AddChange(new Change(requiredType, $"(M {curModId}) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleSettings)}:{n}:{nameof(ModuleSetting.Required)}",
-                        curSetting.Required, d));
+                        curSetting.Required, r));
 
                     Console.WriteLine("Module setting's required change added to changeset.");
                 }
@@ -813,7 +847,7 @@ namespace PackageGen
                 if(trackedChanged)
                 {
                     _changes.AddChange(new Change(trackedType, $"(M {curModId}) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleSettings)}:{n}:{nameof(ModuleSetting.Tracked)}",
-                        curSetting.Tracked, d));
+                        curSetting.Tracked, k));
 
                     Console.WriteLine("Module setting's tracked change added to changeset.");
                 }
@@ -943,7 +977,10 @@ namespace PackageGen
 
                 var curPkgId = IDHelper.FindPackageId(targetPackage);
                 _changes.AddChange(new Change(ChangeTypes.Update, $"(P {curPkgId}) {targetPackage.Info.PackageName}:{nameof(Package.DeclaredModules)}", "", _selectedModule));
-                
+
+                _selectedPackage = targetPackage;
+                SetPrompt();
+
                 Console.WriteLine("Module added to package changeset.");
             }, packageOpt);
 
@@ -1004,7 +1041,7 @@ namespace PackageGen
         {
 
             var engineKeyArg = new Argument<string>("name", "The name of the engine argument to remove.");
-            var rmEngineVarCommand = new Command("scriptarg", "Removes an argument from the ScriptEngine.")
+            var rmEngineVarCommand = new Command("enginearg", "Removes an argument from the ScriptEngine.")
             {
                 engineKeyArg,
             };
@@ -1131,6 +1168,9 @@ namespace PackageGen
                 var curPkgId = IDHelper.FindPackageId(targetPackage);
                 _changes.AddChange(new Change(ChangeTypes.Delete, $"(P {curPkgId}) {targetPackage.Info.PackageName}:{nameof(Package.DeclaredModules)}:{_selectedModule.ModuleInfo.ScriptName}", _selectedModule.ModuleInfo.ScriptName, ""));
 
+                _selectedPackage = null;
+                SetPrompt();
+
                 Console.WriteLine("Module removed from package changeset.");
             }, packageOpt);
 
@@ -1150,7 +1190,7 @@ namespace PackageGen
 
 
 
-        private static void ApplyChanges()
+        private static void ApplyChanges(int startId = -1, int endId = int.MaxValue)
         {
             var modules = new List<Module>();
             foreach (var pkg in _packages)
@@ -1158,9 +1198,50 @@ namespace PackageGen
                 modules.AddRange(pkg.DeclaredModules);
             }
 
-            foreach (var change in _changes)
+            for(int i = 0; i < _changes.Count(); i++)
             {
-                change.TryApply(_packages, modules);
+                var change = _changes[i];
+                if(change.ID < startId)
+                {
+                    continue;
+                }
+                if(change.ID > endId)
+                {
+                    break;
+                }
+
+                var applySucceed = false;
+                try
+                {
+                    applySucceed = change.TryApply(_packages, modules);
+                    Console.Write($"Applying change #{change.ID}... ");
+                }
+                catch (Exception)
+                {
+                    applySucceed = false;
+                }
+
+                if(applySucceed)
+                {
+                    Console.WriteLine();
+                    _changes.RemoveByIndex(i);
+                    i--;
+                }
+                else
+                {
+                    Console.WriteLine($"Failed!");
+                    Console.Write("Change ");
+                    _changes.PrintChange(change.ID);
+                    Console.WriteLine();
+                    Console.Write("Continue applying changes? (y/n) ");
+
+                    var result = Console.ReadKey();
+                    Console.WriteLine();
+                    if(result.Key != ConsoleKey.Y)
+                    {
+                        break;
+                    }
+                }
             }
         }
 
@@ -1227,10 +1308,75 @@ namespace PackageGen
 
         private static void SetPrompt()
         {
-            var pkgRun = new PromptRun(_selectedPackage?.Info.PackageName ?? "_", ConsoleColor.Yellow);
-            var modRun = new PromptRun(_selectedModule?.ModuleInfo.ScriptName ?? "_", ConsoleColor.Yellow);
+            var runs = new List<PromptRun>();
 
-            _helper.Prompt = new Prompt(pkgRun, " / ", modRun, " >> ");
+            if(_selectedPackage != null)
+            {
+                var curPkgId = IDHelper.FindPackageId(_selectedPackage);
+                var pkgChange = _changes.FindLastChange($"(P {curPkgId}) {_selectedPackage.Info.PackageName}:{nameof(Package.Info.PackageName)}");
+                if (pkgChange == null)
+                {
+                    pkgChange = _changes.FindLastChange($"(P {curPkgId}) Package");
+                }
+
+                runs.Add(new PromptRun(_selectedPackage.Info.PackageName, ConsoleColor.Yellow));
+                if (pkgChange != null)
+                {
+                    if (pkgChange.ChangeType.HasFlag(ChangeTypes.Update))
+                    {
+                        runs.Add(new PromptRun($" (-> {pkgChange.NewValue})", ConsoleColor.DarkCyan));
+                    }
+                    else if (pkgChange.ChangeType.HasFlag(ChangeTypes.Create))
+                    {
+                        runs.Add(new PromptRun($" (New package)", ConsoleColor.Green));
+                    }
+                    else if (pkgChange.ChangeType.HasFlag(ChangeTypes.Delete))
+                    {
+                        runs.Add(new PromptRun($" (Deleted package)", ConsoleColor.Red));
+                    }
+                }
+            }
+            else
+            {
+                runs.Add(new PromptRun("_", ConsoleColor.Yellow));
+            }
+
+            runs.Add(" / ");
+
+            if (_selectedModule != null)
+            {
+                var curModId = IDHelper.FindModuleId(_selectedModule);
+                var modChange = _changes.FindLastChange($"(M {curModId}) {_selectedModule.ModuleInfo.ScriptName}:{nameof(Module.ModuleInfo.ScriptName)}");
+                if(modChange == null)
+                {
+                    modChange = _changes.FindLastChange($"(M {curModId}) Module");
+                }
+
+                runs.Add(new PromptRun(_selectedModule.ModuleInfo.ScriptName, ConsoleColor.Yellow));
+                if (modChange != null)
+                {
+                    if(modChange.ChangeType.HasFlag(ChangeTypes.Update))
+                    {
+                        runs.Add(new PromptRun($" (-> {modChange.NewValue})", ConsoleColor.DarkCyan));
+                    }
+                    else if(modChange.ChangeType.HasFlag(ChangeTypes.Create))
+                    {
+                        runs.Add(new PromptRun($" (New module)", ConsoleColor.Green));
+                    }
+                    else if (modChange.ChangeType.HasFlag(ChangeTypes.Delete))
+                    {
+                        runs.Add(new PromptRun($" (Deleted module)", ConsoleColor.Red));
+                    }
+                }
+            }
+            else
+            {
+                runs.Add(new PromptRun("_", ConsoleColor.Yellow));
+            }
+
+            runs.Add(" >> ");
+
+            _helper.Prompt = new Prompt(runs.ToArray());
         }
     }
 }

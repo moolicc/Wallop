@@ -11,6 +11,9 @@ namespace PackageGen.ChangeTracking
 {
     public class Change
     {
+        public int ID { get; set; }
+        public int RevertsID { get; set; }
+
         public ChangeTypes ChangeType { get; init; }
 
         public string TargetField { get; init; }
@@ -179,7 +182,11 @@ namespace PackageGen.ChangeTracking
                         if(result == null)
                         {
                             result = propValue;
-                            memberName = $"{path[0]}:{path[1]}";
+                            memberName = $"{path[0]}";
+                            if (path.Length > 1)
+                            {
+                                memberName += $":{path[1]}";
+                            }
                             return result;
                         }
                     }
@@ -198,7 +205,11 @@ namespace PackageGen.ChangeTracking
                         if (result == null)
                         {
                             result = propValue;
-                            memberName = $"{path[0]}:{path[1]}";
+                            memberName = $"{path[0]}";
+                            if (path.Length > 1)
+                            {
+                                memberName += $":{path[1]}";
+                            }
                             return result;
                         }
                     }
@@ -338,7 +349,7 @@ namespace PackageGen.ChangeTracking
             var args = new List<object>();
             args.Add(target);
 
-            if(chosenMapping.Method.GetParameters().Length > 2 && wildCardPositions.Count > 0)
+            if(chosenMapping.Method.GetParameters().Length > 1 && wildCardPositions.Count > 0)
             {
                 args.AddRange(wildCardPositions.Select(i => targetPath[i]));
             }
@@ -351,7 +362,7 @@ namespace PackageGen.ChangeTracking
                     args.AddRange(splitValues);
                 }
             }
-            else
+            else if(ChangeType != ChangeTypes.Delete || !string.IsNullOrEmpty(NewValue.ToString()))
             {
                 args.Add(NewValue);
             }
