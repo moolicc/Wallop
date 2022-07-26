@@ -15,6 +15,7 @@ namespace Wallop.DSLExtension.Modules.SettingTypes
             Types = new Dictionary<string, ISettingType>();
 
             Add(new RealNumberType());
+            Add(new FileType());
         }
 
         public T GetType<T>(string name) where T : ISettingType

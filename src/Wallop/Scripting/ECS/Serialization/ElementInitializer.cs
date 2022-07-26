@@ -64,7 +64,7 @@ namespace Wallop.Scripting.ECS.Serialization
 
             try
             {
-                string sourceFullpath = component.ModuleDeclaration.ModuleInfo.SourcePath;
+                string sourceFullpath = Path.Combine(component.ModuleDeclaration.ModuleInfo.BaseDirectory, component.ModuleDeclaration.ModuleInfo.SourcePath);
 
                 EngineLog.For<ElementInitializer>().Info("Creating module script resources for {element} from source {filepath}...", component.Name, sourceFullpath);
                 var source = File.ReadAllText(sourceFullpath);
@@ -197,6 +197,32 @@ namespace Wallop.Scripting.ECS.Serialization
 
         private void AddSettingsToContext(IScriptContext context, ScriptedElement component)
         {
+            // Verify the required settings have been met.
+
+            foreach (var setting in component.ModuleDeclaration.ModuleSettings)
+            {
+                if(!setting.Required)
+                {
+                    continue;
+                }
+                var found = false;
+                foreach (var provided in component.StoredDefinition.Settings)
+                {
+                    if(string.Equals(provided.Name, setting.SettingName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if(!found)
+                {
+                    EngineLog.For<ElementInitializer>().Error("Required setting not provided. Component: {component}, Module {module}, Setting {setting}", component.Name, component.ModuleDeclaration.ModuleInfo.ScriptName, setting.SettingName);
+                    throw new InvalidOperationException("Required setting was not provided.");
+                }
+            }
+
+
             // Add defined setting values.
             foreach (var setting in component.StoredDefinition.Settings)
             {

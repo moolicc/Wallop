@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package>
+  <metadata>
+    <name>default_package</name>
+    <version>1.0</version>
+    <description>Contains all default modules.</description>
+    <variables />
+  </metadata>
+  <modules>
+    <module>
+      <metadata>
+        <type>Actor</type>
+        <source>sources/image.py</source>
+        <name>Image</name>
+        <version>1.0</version>
+        <description>Displays a static image.</description>
+        <variables />
+        <scriptEngine>
+          <name>Iron Python</name>
+          <args>
+            <verbose>True</verbose>
+          </args>
+        </scriptEngine>
+        <apis>
+          <api>EzRender</api>
+        </apis>
+      </metadata>
+      <settings>
+        <setting>
+          <name>X</name>
+          <description>The image's X position.</description>
+          <defaultValue>0</defaultValue>
+          <type>real</type>
+          <required>false</required>
+          <tracker>false</tracker>
+          <bindings />
+          <typeArgs />
+        </setting>
+        <setting>
+          <name>Y</name>
+          <description>The image's Y position.</description>
+          <defaultValue>0</defaultValue>
+          <type>real</type>
+          <required>false</required>
+          <tracker>false</tracker>
+          <bindings />
+          <typeArgs />
+        </setting>
+        <setting>
+          <name>Width</name>
+          <description>The image's width.</description>
+          <defaultValue>1</defaultValue>
+          <type>real</type>
+          <required>false</required>
+          <tracker>false</tracker>
+          <bindings />
+          <typeArgs />
+        </setting>
+        <setting>
+          <name>Height</name>
+          <description>The image's height.</description>
+          <defaultValue>1</defaultValue>
+          <type>real</type>
+          <required>false</required>
+          <tracker>false</tracker>
+          <bindings />
+          <typeArgs />
+        </setting>
+        <setting>
+          <name>file</name>
+          <description>The image file to display.</description>
+          <defaultValue></defaultValue>
+          <type>file</type>
+          <required>true</required>
+          <tracker>false</tracker>
+          <bindings />
+          <typeArgs />
+        </setting>
+      </settings>
+    </module>
+  </modules>
+</package>

@@ -87,6 +87,46 @@ namespace Wallop.Messaging
             return buffer;
         }
 
+        public uint Put(object message, Type messageType)
+        {
+            var constructedType = typeof(MessageQueue<>).MakeGenericType(messageType);
+            if (!_queues.TryGetValue(messageType, out var queue))
+            {
+                var newInstance = Activator.CreateInstance(constructedType);
+
+                if (newInstance == null)
+                {
+                    throw new InvalidCastException("Specified message type is invalid.");
+                }
+
+                queue = (IMessageQueue)newInstance;
+                _queues.Add(messageType, queue);
+            }
+
+            uint msgId;
+            ushort high;
+            unchecked
+            {
+                high = _nextMessageId++;
+            }
+
+            try
+            {
+                var method = constructedType.GetMethod("Enqueue");
+                if(method == null)
+                {
+                    return 0;
+                }
+                msgId = (uint)(method.Invoke(queue, new[] { message, high }) ?? 0);
+            }
+            catch (Exception)
+            {
+                return 0;
+            }
+
+            return msgId;
+        }
+
         public uint Put<T>(T message) where T : struct
         {
             if (!_queues.TryGetValue(typeof(T), out var queue))

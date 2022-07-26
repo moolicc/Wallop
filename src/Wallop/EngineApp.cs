@@ -99,6 +99,29 @@ namespace Wallop
                 engineConf,
             };
 
+
+            var jsonArg = new Argument<string>("source", "Json text or a path to a json file.");
+            var jsonCommand = new Command("json", "Pass messages to the app through json.")
+            {
+                jsonArg
+            };
+            jsonCommand.SetHandler<string>(j =>
+            {
+                if(File.Exists(j))
+                {
+                    j = File.ReadAllText(j);
+                }
+
+                var messages = Messaging.Messages.Json.Json.ParseMessages(j);
+
+                foreach (var item in messages)
+                {
+                    Messenger.Put(item.Value, item.MessageType);
+                }
+
+            }, jsonArg);
+
+
             foreach (var handler in _handlers)
             {
                 if (handler.GetCommandLineCommand(firstInstance) is Command cmd)

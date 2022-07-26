@@ -26,8 +26,7 @@ namespace PackageGen
 
             if (!_packages.Any())
             {
-                Console.WriteLine("No packages found in current directory. Exiting");
-                return 0;
+                Console.WriteLine("No packages found in current directory.");
             }
 
             foreach (var pkg in _packages)
@@ -803,7 +802,6 @@ namespace PackageGen
 
 
 
-            // UNTESTED
             var settingNameArg = new Argument<string>("name", "The name of the setting to manipulate.");
             var descriptionOption = new Option<string>(new[] { "--description", "-d" }, "The setting's description.");
             var defaultValueOption = new Option<string>(new[] { "--default-value", "-v" }, "The setting's default value.");
@@ -827,13 +825,13 @@ namespace PackageGen
                     return;
                 }
 
-                var curSetting = _selectedModule.ModuleSettings.FirstOrDefault(s => s.SettingName == n);
+                var curSetting = _selectedModule.ModuleSettings.FirstOrDefault(s => s.SettingName.Equals(n, StringComparison.OrdinalIgnoreCase));
 
-                if(curSetting == null)
-                {
-                    Console.WriteLine("That setting does not exist. First add it with 'add module setting'.");
-                    return;
-                }
+                //if(curSetting == null)
+                //{
+                //    Console.WriteLine("That setting does not exist. First add it with 'add module setting'.");
+                //    return;
+                //}
 
                 bool descChanged = !string.IsNullOrEmpty(d);
                 bool defChanged = !string.IsNullOrEmpty(v);
@@ -911,7 +909,7 @@ namespace PackageGen
             return setModuleCommand;
         }
 
-
+        
 
         private static Command GetAddModuleCommand()
         {
@@ -1294,6 +1292,11 @@ namespace PackageGen
 
             foreach (var pkg in _packages)
             {
+                if(string.IsNullOrEmpty(pkg.Info.ManifestPath))
+                {
+                    Console.WriteLine("Package {0} does not have file specified. Skipping.", IDHelper.FindPackageId(pkg));
+                    continue;
+                }
                 PackageSaver.SavePackage(pkg, pkg.Info.ManifestPath);
             }
         }

@@ -75,9 +75,23 @@ namespace Wallop.Scripting
             {
                 foreach (var module in package.DeclaredModules)
                 {
+                    bool typeNotFound = false;
+
                     foreach (var setting in module.ModuleSettings)
                     {
+                        if(!Types.Types.ContainsKey(setting.SettingType))
+                        {
+                            EngineLog.For<PackageCache>().Error("Failed to resolve module setting type {type} for setting {setting} on module {module}.",
+                                setting.SettingType, setting.SettingName, module.ModuleInfo.ScriptName);
+
+                            typeNotFound = true;
+                            break;
+                        }
                         setting.CachedType = Types.Types[setting.SettingType];
+                    }
+                    if(typeNotFound)
+                    {
+                        continue;
                     }
                     EngineLog.For<PackageCache>().Info("Resolving module {module}...", module.ModuleInfo);
                     moduleCount++;

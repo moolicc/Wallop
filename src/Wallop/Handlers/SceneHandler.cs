@@ -129,10 +129,40 @@ namespace Wallop.Handlers
                 new[] { "--layout", "-l" },
                 () => _activeScene.ActiveLayout?.Name ?? "",
                 "The layout upon-which to place this Actor");
-            var elementSettingsOpts = new Option<Dictionary<string, string>>(
-                new[] { "--settings", "-s" },
-                () => new Dictionary<string, string>(),
-                "A list of key/value pairs representing the actor's settings.");
+            var elementSettingsOpts = new Option<Dictionary<string, string>?>(
+                aliases: new[] { "--settings", "-s" },
+                description: "A list of key/value pairs representing the actor's settings.",
+                parseArgument: result =>
+                {
+                    if(result.Tokens.Count > 0 && result.Tokens.Count % 2 == 0)
+                    {
+                        result.ErrorMessage = "--settings command must contain values of the format key=value";
+                        return null;
+                    }
+
+                    var results = new Dictionary<string, string>();
+                    for (int i = 0; i < result.Tokens.Count; i++)
+                    {
+                        var value = result.Tokens[i].Value;
+                        if(!value.Contains('='))
+                        {
+                            result.ErrorMessage = "--settings command must contain values of the format key=value";
+                            return null;
+                        }
+
+                        var split = value.Split('=', StringSplitOptions.RemoveEmptyEntries);
+                        if(split.Length != 2)
+                        {
+                            result.ErrorMessage = "--settings command must contain values of the format key=value";
+                            return null;
+                        }
+
+                        results.Add(split[0], split[1]);
+                    }
+                    return results;
+                });
+            elementSettingsOpts.AllowMultipleArgumentsPerToken = true;
+            elementSettingsOpts.Arity = ArgumentArity.OneOrMore;
 
 
 
@@ -200,23 +230,30 @@ namespace Wallop.Handlers
                 }), newActorNameOpts, newActorModuleOpts, basedOnActorOpts, owningLayoutOpts, elementSettingsOpts);
 
 
-            // EngineApp.exe scene create ...
-            var sceneCreateCommand = new Command("create", "Creates a new scene")
+            // EngineApp.exe scene create scene ...
+            var sceneCreateSceneCommand = new Command("scene", "Creates a new scene")
             {
-                sceneCreateLayoutCommand,
-                sceneCreateActor,
-
                 basedOnSceneOpts,
                 newSceneNameOpts
             };
 
-
-            sceneCreateCommand.SetHandler(new Action<string, string>(
+            sceneCreateSceneCommand.SetHandler(new Action<string, string>(
                 (string newSceneName, string basedOnScene) =>
                 {
                     var message = new CreateSceneMessage(newSceneName, basedOnScene);
                     App.Messenger.Put(message);
                 }), newSceneNameOpts, basedOnSceneOpts);
+
+
+            // EngineApp.exe scene create ...
+            var sceneCreateCommand = new Command("create", "Creates new scene resources")
+            {
+                sceneCreateSceneCommand,
+                sceneCreateLayoutCommand,
+                sceneCreateActor,
+            };
+
+
 
 
             // EngineApp.exe scene import ...
@@ -361,57 +398,13 @@ namespace Wallop.Handlers
                 Name = _sceneSettings.DefaultSceneName,
                 DirectorModules = new List<StoredModule>()
                 {
-                    //new StoredModule()
-                    //{
-                    //    InstanceName = "DirectorTest",
-                    //    ModuleId = "Director.Test1.0",
-                    //    Settings = new List<StoredSetting>()
-                    //    {
-                    //        new StoredSetting("height", "100"),
-                    //        new StoredSetting("width", "100"),
-                    //    },
-                    //    //Settings = new Dictionary<string, string>()
-                    //    //{
-                    //    //    { "height", "100" },
-                    //    //    { "width", "100" }
-                    //    //},
-                    //},
                 },
                 Layouts = new List<StoredLayout>()
                 {
                     new StoredLayout()
                     {
-                        Active = true,
                         Name = "layout1",
-                        ActorModules = new List<StoredModule>()
-                        {
-                            new StoredModule()
-                            {
-                                InstanceName = "Square",
-                                ModuleId = "Square.Test1.0",
-                                Settings = new List<StoredSetting>()
-                                {
-                                    new StoredSetting("height", "100"),
-                                    new StoredSetting("width", "100"),
-                                },
-                            },
-                            new StoredModule()
-                            {
-                                InstanceName = "Square1",
-                                ModuleId = "Square.Test1.0",
-                                Settings = new List<StoredSetting>()
-                                {
-                                    new StoredSetting("height", "100"),
-                                    new StoredSetting("width", "100"),
-                                    new StoredSetting("y", "200"),
-                                },
-                                StoredBindings = new List<StoredBinding>()
-                                {
-                                    new StoredBinding("PositionComponent", "X", "x"),
-                                    new StoredBinding("PositionComponent", "Y", "y"),
-                                }
-                            }
-                        }
+                        Active = true,
                     }
                 }
             };
@@ -704,7 +697,7 @@ namespace Wallop.Handlers
                 }
 
                 Layout? layout = null;
-                if (message.Layout == null)
+                if (string.IsNullOrEmpty(message.Layout))
                 {
                     layout = _activeScene.ActiveLayout;
                 }

@@ -48,21 +48,38 @@ namespace Wallop.Scripting.ECS.Serialization
 
 
             // Find the module that handles this actor.
-            var associatedModule = _packageCache.Modules.FirstOrDefault(
-                m => m.ModuleInfo.ScriptType == type
-                && m.ModuleInfo.Id == storedElement.ModuleId);
 
-            if (associatedModule == null)
+            Module? bestCandidate = null;
+            foreach (var item in _packageCache.Modules)
+            {
+                if(item.ModuleInfo.ScriptType != type)
+                {
+                    continue;
+                }
+
+                if(bestCandidate == null && item.ModuleInfo.ScriptName == storedElement.ModuleId)
+                {
+                    bestCandidate = item;
+                }
+                else if(item.ModuleInfo.Id == storedElement.ModuleId)
+                {
+                    bestCandidate = item;
+                }
+            }
+
+            if (bestCandidate == null)
             {
                 EngineLog.For(nameof(ElementLoader)).Error("Module {module} for actor definition {actor} not found!", storedElement.ModuleId, storedElement.InstanceName);
                 throw new ElementLoadException("Failed to resolve module from package cache.");
             }
+            
+            // Adjust paths to reflect the relative nature of the package.
 
             if(type == ModuleTypes.Director)
             {
-                return (T)(ScriptedElement)new ScriptedDirector(associatedModule, storedElement);
+                return (T)(ScriptedElement)new ScriptedDirector(bestCandidate, storedElement);
             }
-            return (T)(ScriptedElement)new ScriptedActor(associatedModule, storedElement);
+            return (T)(ScriptedElement)new ScriptedActor(bestCandidate, storedElement);
         }
 
         public IEnumerable<T> LoadAll<T>(params SceneManagement.StoredModule[] storedElements) where T : ScriptedElement

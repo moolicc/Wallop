@@ -113,11 +113,11 @@ namespace Wallop.DSLExtension.Modules
                 // What if potentially a module has its source created dynamically?
                 // Well I guess that's an edge-case that has to be dealt with on a case-by-case basis.
 
-                moduleSourceFile = Path.Combine(baseDir, moduleSourceFile);
+                //moduleSourceFile = Path.Combine(baseDir, moduleSourceFile);
                 if (!File.Exists(moduleSourceFile))
                 {
                     // TODO: Error.
-                    throw new XmlException($"Module source file not found. File: {moduleSourceFile}");
+                    //throw new XmlException($"Module source file not found. File: {moduleSourceFile}");
                 }
             }
 

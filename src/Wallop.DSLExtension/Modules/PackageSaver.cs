@@ -73,7 +73,7 @@ namespace Wallop.DSLExtension.Modules
             root.Add(new XElement("defaultValue", setting.DefaultValue));
             root.Add(new XElement("type", setting.SettingType));
             root.Add(new XElement("required", setting.Required));
-            root.Add(new XElement("tracker", setting.Tracked));
+            root.Add(new XElement("tracked", setting.Tracked));
             root.Add(SaveSettingBindings(setting));
             root.Add(SaveSettingTypeArgs(setting));
 
