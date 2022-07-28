@@ -22,7 +22,7 @@ namespace EnginePlugins
 
         public void HandleCommandLine(Wallop.Types.Plugins.EndPoints.EngineStartupEndPoint context)
         {
-            var sourceArg = new Argument<string>("source", description: "The source or filepath to the source of the json.");
+            var sourceArg = new Argument<string>("source", description: "The source or filepath to the source of the json. NOTE (if providing raw json): You may escape double quotes around json values with single quotes.");
             var command = new Command("json", "Executes commands contained in a json string or file.")
             {
                 sourceArg
