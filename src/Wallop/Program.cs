@@ -30,7 +30,8 @@ namespace Wallop
 
                         using (var client = PipedCommunication.CreateClient())
                         {
-                            client.SendMessageToServer(Environment.CommandLine);//args.Aggregate((s1, s2) => s1 + ' ' + s2));
+                            //client.SendMessageToServer(Environment.CommandLine);
+                            client.SendMessageToServer(args.Aggregate((s1, s2) => s1 + ' ' + s2));
                         }
                         return 0;
                     }
@@ -58,6 +59,8 @@ namespace Wallop
 
         private static void RunProgram()
         {
+            AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(LoadDep);
+
             EngineLog.For<Program>().Info("Loading configuration...");
             var engineConfig = LoadSettings();
             EngineLog.For<Program>().Info("Configuration loaded");
@@ -92,15 +95,13 @@ namespace Wallop
             EngineLog.For<Program>().Info("Running plugin entry points...");
             context.BeginPluginExecution(new Types.Plugins.EndPoints.EntryPointContext());
 
-            AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(LoadDep);
 
             using(_app = new EngineApp(engineConfig, context))
             {
                 EngineLog.For<Program>().Info("Setting up Engine...");
 
-                var startupEndPoint = new Types.Plugins.EndPoints.EngineStartupEndPoint(_app.Messenger);
-                context.ExecuteEndPoint(startupEndPoint);
-                _app.ProcessCommandLine(true, Environment.CommandLine, startupEndPoint.CommandLineVerbs);
+
+                _app.ProcessCommandLine(true, Environment.CommandLine);
 
                 EngineLog.For<Program>().Info("Running Engine...");
                 _app.Run();
@@ -130,6 +131,7 @@ namespace Wallop
             {
                 @"C:\Users\joel\source\repos\Wallop\src\Plugins\Scripting.IronPython\bin\Debug\net6.0",
                 @"C:\Users\joel\source\repos\Wallop\src\Plugins\HostApis\bin\Debug\net6.0",
+                @"C:\Users\joel\source\repos\Wallop\src\Plugins\EnginePlugins\bin\Debug\net6.0",
             };
 
             EngineLog.For<Program>().Debug("Searching in {numDir} directories.", searchDirectories.Length);

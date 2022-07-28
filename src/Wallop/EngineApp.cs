@@ -84,11 +84,16 @@ namespace Wallop
         public void Run()
         {
             EngineLog.For<EngineApp>().Info("Beginning Engine Execution!");
+
             _graphicsHandler.RunWindow();
         }
 
-        public void ProcessCommandLine(bool firstInstance, string commands, IEnumerable<Command>? additionalCommands = null)
+        public void ProcessCommandLine(bool firstInstance, string commands)
         {
+            var startupEndPoint = new Types.Plugins.EndPoints.EngineStartupEndPoint(Messenger);
+            _pluginContext.ExecuteEndPoint(startupEndPoint);
+            _pluginContext.WaitForEndPointExecutionAsync<EngineStartupEndPoint>().Wait();
+
             var engineConf = new Option<string>(
                 new[] { "--conf", "-c" },
                 () => "engineconf.json",
@@ -130,12 +135,9 @@ namespace Wallop
                 }
             }
 
-            if(additionalCommands != null)
+            foreach (var item in startupEndPoint.CommandLineVerbs)
             {
-                foreach (var item in additionalCommands)
-                {
-                    root.Add(item);
-                }
+                root.Add(item);
             }
 
             root.Invoke(commands.Trim());

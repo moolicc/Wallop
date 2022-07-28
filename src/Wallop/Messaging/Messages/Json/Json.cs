@@ -38,6 +38,7 @@ namespace Wallop.Messaging.Messages.Json
             return _typeMap.First(kvp => kvp.Value == type).Key;
         }
 
+        
         public static IEnumerable<(object Value, Type MessageType)> ParseMessages(string jsonSource)
         {
             var root = System.Text.Json.JsonSerializer.Deserialize<JsonMessages>(jsonSource);
