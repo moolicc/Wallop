@@ -9,9 +9,43 @@ namespace Wallop.Messaging
 {
     public static class MessagingExtensions
     {
-        public static void Reply<T>(this Messenger messenger, uint messageId, T data)
+        public static void ReplySuccess(this Messenger messenger, uint messageId, object? replyPayload = null)
         {
-            var reply = new MessageReply(messageId, typeof(T), data);
+            Type? payloadType = null;
+            if (replyPayload != null)
+            {
+                payloadType = replyPayload.GetType();
+            }
+
+            var reply = new MessageReply(messageId, ReplyStatus.Successful, "Operation successful.", payloadType, replyPayload);
+            messenger.Put(reply);
+        }
+
+        public static void ReplyInvalid(this Messenger messenger, uint messageId, string details)
+        {
+            var reply = new MessageReply(messageId, ReplyStatus.Failed, "Operation invalid.", typeof(string), details);
+            messenger.Put(reply);
+        }
+
+        public static void ReplyFailed(this Messenger messenger, uint messageId, string? statusMessage = null, Exception? errorPayload = null)
+        {
+            Type? payloadType = null;
+            if(errorPayload != null)
+            {
+                payloadType = errorPayload.GetType();
+            }
+            var reply = new MessageReply(messageId, ReplyStatus.Failed, statusMessage ?? "Operation failed.", payloadType, errorPayload);
+            messenger.Put(reply);
+        }
+
+        public static void Reply<T>(this Messenger messenger, uint messageId, ReplyStatus status, string statusMessage, T data)
+        {
+            var reply = new MessageReply(messageId, status, statusMessage, typeof(T), data);
+            messenger.Put(reply);
+        }
+
+        public static void Reply<T>(this Messenger messenger, MessageReply reply)
+        {
             messenger.Put(reply);
         }
 
@@ -60,13 +94,13 @@ namespace Wallop.Messaging
             }
 
             // Return the data cast to the correct Type.
-            if(incomingReply.Data is null)
+            if(incomingReply.Content is null)
             {
                 reply = default(T);
             }
             else
             {
-                reply = (T)incomingReply.Data;
+                reply = (T)incomingReply.Content;
             }
             return true;
         }
@@ -95,9 +129,9 @@ namespace Wallop.Messaging
             }
 
             // Return the data cast to the correct Type.
-            if (incomingReply.Data is not null)
+            if (incomingReply.Content is not null)
             {
-                return (T)incomingReply.Data;
+                return (T)incomingReply.Content;
             }
             return default(T);
         }

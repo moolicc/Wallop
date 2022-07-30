@@ -549,62 +549,81 @@ namespace Wallop.Handlers
                     catch (Exception ex)
                     {
                         EngineLog.For<SceneHandler>().Error(ex, "Failed to load or initialize actor '{actor}' with module '{module}'!", savedActor.InstanceName, savedActor.ModuleId);
+                        throw;
                     }
                 }
             }
         }
 
 
-        private void HandleSceneSettings(SceneSettingsMessage message, uint messageId)
+        private object HandleSceneSettings(SceneSettingsMessage message, uint messageId)
         {
             // Handled within the below call to SwitchScene()
             //_sceneSettings.SelectedScene = message.Settings.SelectedScene;
-            _sceneSettings.DefaultSceneName = message.Settings.DefaultSceneName;
 
-            if (_sceneSettings.PackageSearchDirectory != message.Settings.PackageSearchDirectory)
+            try
             {
-                _sceneSettings.PackageSearchDirectory = message.Settings.PackageSearchDirectory;
-                PackageCache.ReloadAll(message.Settings.PackageSearchDirectory);
-            }
+                _sceneSettings.DefaultSceneName = message.Settings.DefaultSceneName;
 
-            if (_sceneSettings.DrawThreadingPolicy != message.Settings.DrawThreadingPolicy)
-            {
-                _sceneSettings.DrawThreadingPolicy = message.Settings.DrawThreadingPolicy;
-                _taskHandler.DrawPolicy = message.Settings.DrawThreadingPolicy;
-            }
-            if (_sceneSettings.UpdateThreadingPolicy != message.Settings.UpdateThreadingPolicy)
-            {
-                _sceneSettings.UpdateThreadingPolicy = message.Settings.UpdateThreadingPolicy;
-                _taskHandler.UpdatePolicy = message.Settings.UpdateThreadingPolicy;
-            }
-
-
-            foreach (var item in message.Settings.ScenePreloadList)
-            {
-                if (item == message.Settings.SelectedScene || item == message.Settings.DefaultSceneName)
+                if (_sceneSettings.PackageSearchDirectory != message.Settings.PackageSearchDirectory)
                 {
-                    continue;
+                    _sceneSettings.PackageSearchDirectory = message.Settings.PackageSearchDirectory;
+                    PackageCache.ReloadAll(message.Settings.PackageSearchDirectory);
                 }
-                if (_sceneSettings.ScenePreloadList.Contains(item))
+
+                if (_sceneSettings.DrawThreadingPolicy != message.Settings.DrawThreadingPolicy)
                 {
-                    continue;
+                    _sceneSettings.DrawThreadingPolicy = message.Settings.DrawThreadingPolicy;
+                    _taskHandler.DrawPolicy = message.Settings.DrawThreadingPolicy;
                 }
-                _sceneSettings.ScenePreloadList.Add(item);
-                _sceneStore.Load(item);
+                if (_sceneSettings.UpdateThreadingPolicy != message.Settings.UpdateThreadingPolicy)
+                {
+                    _sceneSettings.UpdateThreadingPolicy = message.Settings.UpdateThreadingPolicy;
+                    _taskHandler.UpdatePolicy = message.Settings.UpdateThreadingPolicy;
+                }
+
+
+                foreach (var item in message.Settings.ScenePreloadList)
+                {
+                    if (item == message.Settings.SelectedScene || item == message.Settings.DefaultSceneName)
+                    {
+                        continue;
+                    }
+                    if (_sceneSettings.ScenePreloadList.Contains(item))
+                    {
+                        continue;
+                    }
+                    _sceneSettings.ScenePreloadList.Add(item);
+                    _sceneStore.Load(item);
+                }
+
+                if(message.Settings.SelectedScene != _sceneSettings.SelectedScene)
+                {
+                    SwitchScene(message.Settings.SelectedScene);
+                }
+            }
+            catch (Exception ex)
+            {
+                return Fail(messageId, ex);
             }
 
-            if(message.Settings.SelectedScene != _sceneSettings.SelectedScene)
-            {
-                SwitchScene(message.Settings.SelectedScene);
-            }
+            return Success(messageId, _sceneSettings.Clone());
         }
 
-        private void HandleSceneChange(SceneChangeMessage message, uint messageId)
+        private object HandleSceneChange(SceneChangeMessage message, uint messageId)
         {
-            SwitchScene(message.NewScene);
+            try
+            {
+                SwitchScene(message.NewScene);
+            }
+            catch (Exception ex)
+            {
+                return Fail(messageId, ex);
+            }
+            return Success(messageId);
         }
 
-        private void HandleAddLayout(AddLayoutMessage message, uint messageId)
+        private object HandleAddLayout(AddLayoutMessage message, uint messageId)
         {
             // TODO: Handle cloning layouts.
 
@@ -623,15 +642,14 @@ namespace Wallop.Handlers
             }
             else
             {
-                var newLayout = new SceneManagement.StoredLayout();
+                var newLayout = new StoredLayout();
                 newLayout.Name = message.Name;
                 newLayout.Active = message.MakeActive;
 
                 var scene = _sceneStore.Get(message.TargetScene);
                 if (scene == null)
                 {
-                    // TODO: Error.
-                    return;
+                    return Invalid(messageId, "The target scene does not exist.");
                 }
 
                 if (newLayout.Active)
@@ -647,21 +665,23 @@ namespace Wallop.Handlers
                 scene.Layouts.Add(newLayout);
             }
 
+            return Success(messageId);
         }
 
-        private void HandleSetActiveLayout(SetActiveLayoutMessage message, uint messageId)
+        private object HandleSetActiveLayout(SetActiveLayoutMessage message, uint messageId)
         {
             var layout = _activeScene.Layouts.FirstOrDefault(l => l.Name == message.LayoutName);
             if (layout == null)
             {
                 // TODO: error.
-                return;
+                return Invalid(messageId, "The target layout does not exist.");
             }
 
             _activeScene.ActiveLayout = layout;
+            return Success(messageId);
         }
 
-        private void HandleAddActor(AddActorMessage message, uint messageId)
+        private object HandleAddActor(AddActorMessage message, uint messageId)
         {
             // TODO: Stored bindings
 
@@ -693,7 +713,7 @@ namespace Wallop.Handlers
                 catch (Exception ex)
                 {
                     EngineLog.For<SceneHandler>().Error(ex, "Failed to load or initialize actor '{actor}' with module '{module}'!", actorDefinition.InstanceName, actorDefinition.ModuleId);
-                    return;
+                    return Fail(messageId, ex);
                 }
 
                 Layout? layout = null;
@@ -714,7 +734,7 @@ namespace Wallop.Handlers
                 }
                 if (layout == null)
                 {
-                    throw new InvalidOperationException($"Failed to add actor. Specified layout ({message.Layout}) does not exist.");
+                    return Invalid(messageId, "The target layout does not exist.");
                 }
 
                 layout.EcsRoot.AddActor(actor);
@@ -726,8 +746,7 @@ namespace Wallop.Handlers
                 var scene = _sceneStore.Get(message.Scene);
                 if (scene == null)
                 {
-                    // TODO: Error
-                    return;
+                    return Invalid(messageId, "The target scene does not exist.");
                 }
 
                 StoredLayout? layout = null;
@@ -747,28 +766,45 @@ namespace Wallop.Handlers
 
                 if (layout == null)
                 {
-                    // TODO: Error
-                    return;
+                    return Invalid(messageId, "The target layout does not exist.");
                 }
                 layout.ActorModules.Add(actorDefinition);
             }
+
+            return Success(messageId);
         }
 
-        private void HandleCreateScene(CreateSceneMessage message, uint messageId)
+        private object HandleCreateScene(CreateSceneMessage message, uint messageId)
         {
-            var scene = new StoredScene();
-            scene.Name = message.NewSceneName;
-            _sceneStore.Add(scene);
+            try
+            {
+                var scene = new StoredScene();
+                scene.Name = message.NewSceneName;
+                _sceneStore.Add(scene);
 
-            SwitchScene(message.NewSceneName);
+                SwitchScene(message.NewSceneName);
+            }
+            catch (Exception ex)
+            {
+                return Fail(messageId, ex);
+            }
+            return Success(messageId);
         }
 
-        private void HandleSceneSave(SceneSaveMessage message, uint messageId)
+        private object HandleSceneSave(SceneSaveMessage message, uint messageId)
         {
-            SaveCurrentSceneConfig(message.Options, message.Location);
+            try
+            {
+                SaveCurrentSceneConfig(message.Options, message.Location);
+            }
+            catch (Exception ex)
+            {
+                return Fail(messageId, ex);
+            }
+            return Success(messageId);
         }
 
-        private void HandleAddDirector(AddDirectorMessage message, uint messageId)
+        private object HandleAddDirector(AddDirectorMessage message, uint messageId)
         {
             // TODO: Stored bindings
 
@@ -800,7 +836,7 @@ namespace Wallop.Handlers
                 catch (Exception ex)
                 {
                     EngineLog.For<SceneHandler>().Error(ex, "Failed to load or initialize director '{director}' with module '{module}'!", directorDefinition.InstanceName, directorDefinition.ModuleId);
-                    return;
+                    return Fail(messageId, ex);
                 }
 
 
@@ -815,18 +851,26 @@ namespace Wallop.Handlers
                 var scene = _sceneStore.Get(message.Scene);
                 if (scene == null)
                 {
-                    // TODO: Error
-                    return;
+                    return Invalid(messageId, "The target scene does not exist.");
                 }
 
                 // Add the director definition to the stored scene.
                 scene.DirectorModules.Add(directorDefinition);
             }
+            return Success(messageId);
         }
 
-        public void HandleReloadModule(ReloadModuleMessage message, uint messageId)
+        public object HandleReloadModule(ReloadModuleMessage message, uint messageId)
         {
-            ReloadModule(message.ModuleId, message.keepState);
+            try
+            {
+                ReloadModule(message.ModuleId, message.keepState);
+            }
+            catch (Exception ex)
+            {
+                return Fail(messageId, ex);
+            }
+            return Success(messageId);
         }
 
 

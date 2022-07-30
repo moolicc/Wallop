@@ -94,21 +94,30 @@ namespace Wallop.Handlers
             return graphicsCommand;
         }
 
-        public void HandleGraphicsMessage(GraphicsMessage msg, uint messageId)
+        public object HandleGraphicsMessage(GraphicsMessage msg, uint messageId)
         {
-            var newSize = new Vector2D<int>(msg.ChangeSet.WindowWidth, msg.ChangeSet.WindowHeight);
-            var newBorder = msg.ChangeSet.WindowBorder;
-            var newRefreshRate = msg.ChangeSet.RefreshRate;
-            var newVsync = msg.ChangeSet.VSync;
-
-
-            bool? overlayUpdate = null;
-            if (_graphicsSettings.Overlay != msg.ChangeSet.Overlay)
+            try
             {
-                overlayUpdate = msg.ChangeSet.Overlay;
+                var newSize = new Vector2D<int>(msg.ChangeSet.WindowWidth, msg.ChangeSet.WindowHeight);
+                var newBorder = msg.ChangeSet.WindowBorder;
+                var newRefreshRate = msg.ChangeSet.RefreshRate;
+                var newVsync = msg.ChangeSet.VSync;
+
+
+                bool? overlayUpdate = null;
+                if (_graphicsSettings.Overlay != msg.ChangeSet.Overlay)
+                {
+                    overlayUpdate = msg.ChangeSet.Overlay;
+                }
+
+                UpdateGraphics(newSize, newBorder, newRefreshRate, newVsync, overlayUpdate);
+            }
+            catch (Exception ex)
+            {
+                return Fail(messageId, ex);
             }
 
-            UpdateGraphics(newSize, newBorder, newRefreshRate, newVsync, overlayUpdate);
+            return Success(messageId, _graphicsSettings);
         }
 
         public void ShowWindow()
@@ -226,23 +235,20 @@ namespace Wallop.Handlers
             }
 
 
-            if (overlay.HasValue)
+            if (overlay.GetValueOrDefault(false))
             {
-                if(overlay.Value)
+                _graphicsSettings.Overlay = true;
+                _graphicsSettings.WindowBorder = WindowBorder.Hidden;
+                _window.WindowBorder = WindowBorder.Hidden;
+
+                var pluginContext = App.GetService<PluginPantry.PluginContext>().OrThrow();
+                EngineLog.For<GraphicsHandler>().Info("Running execution of Engine Overlay plugin...");
+
+                pluginContext.ExecuteEndPoint(new OverlayerEndPoint(App.Messenger, _window));
+                pluginContext.WaitForEndPointExecutionAsync<OverlayerEndPoint>().ContinueWith(_ =>
                 {
-                    _graphicsSettings.Overlay = true;
-                    _graphicsSettings.WindowBorder = WindowBorder.Hidden;
-                    _window.WindowBorder = WindowBorder.Hidden;
-
-                    var pluginContext = App.GetService<PluginPantry.PluginContext>().OrThrow();
-                    EngineLog.For<GraphicsHandler>().Info("Running execution of Engine Overlay plugin...");
-
-                    pluginContext.ExecuteEndPoint(new OverlayerEndPoint(App.Messenger, _window));
-                    pluginContext.WaitForEndPointExecutionAsync<OverlayerEndPoint>().ContinueWith(_ =>
-                    {
-                        _window.IsVisible = true;
-                    });
-                }
+                    _window.IsVisible = true;
+                });
             }
         }
 
