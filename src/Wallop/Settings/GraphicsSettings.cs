@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Wallop.Settings
 {
-    public class GraphicsSettings : Cog.Settings
+    public class GraphicsSettings : Cog.Settings, ICloneable
     {
        // public Veldrid.GraphicsBackend Backend { get; set; }
         public int WindowWidth { get; set; } = 540;
@@ -20,5 +20,19 @@ namespace Wallop.Settings
 
         public double RefreshRate { get; set; } = 60.0;
         public bool VSync { get; set; } = true;
+
+        public object Clone()
+            => CloneInstance();
+
+        public GraphicsSettings CloneInstance()
+            => new GraphicsSettings
+            {
+                Overlay = Overlay,
+                RefreshRate = RefreshRate,
+                VSync = VSync,
+                WindowBorder = WindowBorder,
+                WindowHeight = WindowHeight,
+                WindowWidth = WindowWidth,
+            };
     }
 }

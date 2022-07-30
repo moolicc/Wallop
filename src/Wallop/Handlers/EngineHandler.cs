@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Wallop.Messaging;
+using Wallop.Messaging.Messages;
 
 namespace Wallop.Handlers
 {
@@ -20,7 +21,12 @@ namespace Wallop.Handlers
             MessageDispatchers = new List<IMessageDispatcher>(10);
         }
 
-        public void SubscribeToEngineMessages<T>(MessageHandler<T> handler) where T : struct
+        //public void SubscribeToEngineMessages<T>(MessageHandler<T> handler) where T : struct
+        //{
+        //    MessageDispatchers.Add(new MessageDelegateDispatcher<T>(handler));
+        //}
+
+        public void SubscribeToEngineMessages<T>(MessageHandlerReply<T> handler) where T : struct
         {
             MessageDispatchers.Add(new MessageDelegateDispatcher<T>(handler));
         }
@@ -40,5 +46,35 @@ namespace Wallop.Handlers
         public virtual void AfterDraw() { }
 
         public virtual void Shutdown() { }
+
+        protected virtual MessageReply Success(uint messageId, object? content = null)
+        {
+            Type? contentType = null;
+            if (content != null)
+            {
+                contentType = content.GetType();
+            }
+
+            return new MessageReply(messageId, ReplyStatus.Successful, "Operation was successful.", contentType, content);
+        }
+
+
+        protected virtual MessageReply Invalid(uint messageId, string? details = null)
+        {
+            Type contentType = typeof(string);
+            return new MessageReply(messageId, ReplyStatus.Invalid, "Invalid state.", contentType, details ?? string.Empty);
+        }
+
+
+        protected virtual MessageReply Fail(uint messageId, Exception? exception = null)
+        {
+            Type? contentType = null;
+            if (exception != null)
+            {
+                contentType = exception.GetType();
+            }
+
+            return new MessageReply(messageId, ReplyStatus.Successful, "Operation failed!", contentType, exception);
+        }
     }
 }
