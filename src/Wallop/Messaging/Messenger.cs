@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -112,10 +113,26 @@ namespace Wallop.Messaging
 
             try
             {
-                var method = constructedType.GetMethod("Enqueue");
+                var methods = constructedType.GetMethods().Where(m => m.Name == nameof(Queue<int>.Enqueue));
+                MethodInfo? method = null;
+
+                foreach (var item in methods)
+                {
+                    var param = item.GetParameters();
+                    if (param.Length == 2)
+                    {
+                        if (param[0].ParameterType == messageType
+                            && param[1].ParameterType == typeof(uint))
+                        {
+                            method = item;
+                            break;
+                        }
+                    }
+                }
+
                 if(method == null)
                 {
-                    return 0;
+                    throw new KeyNotFoundException("Failed to find expected Enqueue method.");
                 }
                 msgId = (uint)(method.Invoke(queue, new[] { message, high }) ?? 0);
             }

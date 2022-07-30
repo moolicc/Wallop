@@ -1,7 +1,8 @@
 {
   "profiles": {
     "Wallop": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "nativeDebugging": true
     },
     "WSL": {
       "commandName": "WSL2",

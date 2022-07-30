@@ -25,10 +25,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="NLog" Version="5.0.0-rc2" />
+    <PackageReference Include="NLog" Version="5.0.1" />
     <PackageReference Include="Silk.NET" Version="2.15.0" />
     <PackageReference Include="Silk.NET.OpenGL" Version="2.15.0" />
-    <PackageReference Include="System.CommandLine" Version="2.0.0-beta3.22114.1" />
-    <PackageReference Include="System.CommandLine.NamingConventionBinder" Version="2.0.0-beta3.22114.1" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+    <PackageReference Include="System.CommandLine.NamingConventionBinder" Version="2.0.0-beta4.22272.1" />
   </ItemGroup>
 </Project>
