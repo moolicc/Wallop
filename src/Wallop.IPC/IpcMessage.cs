@@ -6,8 +6,5 @@ using System.Threading.Tasks;
 
 namespace Wallop.IPC
 {
-    public interface IIpcClient : IIpcEndpoint
-    {
-        void Connect(string instanceName);
-    }
+    public readonly record struct IpcMessage(string Content, string SourceApplication, string TargetApplication);
 }

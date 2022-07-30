@@ -9,11 +9,13 @@ namespace Wallop.IPC
     public interface IIpcEndpoint
     {
         bool IsConnected { get; }
-        string InstanceName { get; }
+        string ResourceName { get; }
+        string ApplicationId { get; }
 
-        void Lock();
-        void Write(byte[] buffer, int offset, int count);
-        void Read(byte[] buffer, int offset, int count);
+
+        bool Acquire(TimeSpan? timeout = null);
+        void QueueMessage(IpcMessage message);
+        bool DequeueMessage(out IpcMessage message);
         void Release();
     }
 }
