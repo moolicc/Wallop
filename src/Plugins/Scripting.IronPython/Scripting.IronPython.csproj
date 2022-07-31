@@ -21,4 +21,8 @@
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 	</PropertyGroup>
 	
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+	  <Exec Command="call ..\..\..\util\copy.bat .$(OutDir) $(Configuration) IronPython" />
+	</Target>
+	
 </Project>

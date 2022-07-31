@@ -1,0 +1,36 @@
+﻿{
+	"GraphicsSettings": {
+		"Backend": "OpenGL",
+		"WindowWidth": 800,
+		"WindowHeight": 800,
+		"Overlay": "false",
+		"WindowBorder": "Resizable"
+	},
+	"PluginSettings": {
+		"Plugins": [
+			{
+				"PluginDll": "Plugins\\EnginePlugins\\EnginePlugins.dll",
+				"PluginEnabled": true
+			},
+			{
+				"PluginDll": "Plugins\\HostApis\\HostApis.dll",
+				"PluginEnabled": true
+			},
+			{
+				"PluginDll": "Plugins\\IronPython\\Scripting.IronPython.dll",
+				"PluginEnabled": true
+			}
+		]
+	},
+	"AppSettings": {
+		"DependencyPaths": [
+			{
+				"Directory": "plugins\\",
+				"Recursive": true
+			}
+		]
+	},
+	"SceneSettings": {
+		"PackageSearchDirectory": "modulz"
+	}
+}

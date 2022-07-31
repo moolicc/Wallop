@@ -88,21 +88,14 @@ namespace Wallop
             _graphicsHandler.RunWindow();
         }
 
-        public void ProcessCommandLine(bool firstInstance, string commands, IConsole? console = null)
+        public RootCommand BuildCommandTree(bool firstInstance)
         {
-            var startupEndPoint = new Types.Plugins.EndPoints.EngineStartupEndPoint(Messenger);
+            var startupEndPoint = new EngineStartupEndPoint(Messenger);
             _pluginContext.ExecuteEndPoint(startupEndPoint);
             _pluginContext.WaitForEndPointExecutionAsync<EngineStartupEndPoint>().Wait();
 
-            var engineConf = new Option<string>(
-                new[] { "--conf", "-c" },
-                () => "engineconf.json",
-                "Specifies the engine configuratiun file");
 
-            RootCommand root = new RootCommand
-            {
-                engineConf,
-            };
+            RootCommand root = new RootCommand();
 
 
             var jsonArg = new Argument<string>("source", "Json text or a path to a json file.");
@@ -140,7 +133,7 @@ namespace Wallop
                 root.Add(item);
             }
 
-            root.Invoke(commands.Trim(), console);
+            return root;
         }
 
         public void WindowLoaded()
