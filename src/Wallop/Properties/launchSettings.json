@@ -2,6 +2,7 @@
   "profiles": {
     "Wallop": {
       "commandName": "Project",
+      "commandLineArgs": "--version",
       "nativeDebugging": true
     },
     "WSL": {
