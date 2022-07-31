@@ -15,7 +15,7 @@ namespace Wallop.IPC
 
         bool Acquire(TimeSpan? timeout = null);
         void QueueMessage(IpcMessage message);
-        bool DequeueMessage(out IpcMessage message);
+        bool DequeueMessage(out IpcMessage? message);
         void Release();
     }
 }

@@ -24,6 +24,8 @@ namespace Wallop.IPC
 
         private ConcurrentQueue<IpcMessage> _messages;
 
+        private bool _locked;
+
         public PipeHost(string applicationId, string resourceName)
         {
             ResourceName = resourceName;
@@ -33,74 +35,120 @@ namespace Wallop.IPC
 
         public void Begin()
         {
-            ServerCount++;
             _cancelSource = new CancellationTokenSource();
-            _serverStream = new NamedPipeServerStream(ResourceName, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances);
             Task.Factory.StartNew(ListenAsync, _cancelSource.Token);
         }
 
         public bool Acquire(TimeSpan? timeout = null)
         {
+            var start = DateTime.Now.Ticks;
+            var current = DateTime.Now.Ticks;
+
+            if (!timeout.HasValue)
+            {
+                timeout = TimeSpan.MaxValue;
+            }
+
+            while (_locked && timeout > TimeSpan.FromTicks(current - start))
+            {
+            }
+
+            if(_locked)
+            {
+                return false;
+            }
+
+            _locked = true;
             return true;
         }
 
-        public bool DequeueMessage(out IpcMessage message)
+        public bool DequeueMessage(out IpcMessage? message)
         {
-            return _messages.TryDequeue(out message);
+            var result = _messages.TryDequeue(out var data);
+            message = data;
+            return result;
         }
 
         public void QueueMessage(IpcMessage message)
         {
+            if (message.SourceApplication != ApplicationId)
+            {
+                throw new InvalidOperationException("Message source must be this instance.");
+            }
+
             _messages.Enqueue(message);
         }
 
         public void Release()
         {
+            _locked = false;
+        }
+
+        private void CreateServer()
+        {
+            ServerCount++;
+            _serverStream = new NamedPipeServerStream(ResourceName, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances);
         }
 
         private async Task ListenAsync()
         {
-            if (_cancelSource == null || _serverStream == null)
+            while (_cancelSource != null && _serverStream != null && !_cancelSource.IsCancellationRequested)
             {
-                return;
-            }
-
-            await _serverStream.WaitForConnectionAsync(_cancelSource.Token);
-            if(_cancelSource.IsCancellationRequested)
-            {
-                return;
-            }
-
-            // Read the message.
-            var incoming = ReadServerData();
-
-            // Determine what to do based on type of message.
-            var message = System.Text.Json.JsonSerializer.Deserialize<PipedMessage>(incoming);
-            if(message.Type == PipedMessageTypes.QueueRequest)
-            {
-                if(message.Message.HasValue)
+                await _serverStream.WaitForConnectionAsync(_cancelSource.Token);
+                if (_cancelSource.IsCancellationRequested)
                 {
-                    _messages.Enqueue(message.Message.Value);
-                }
-                else
-                {
-                    // TODO: Error.
-                }
-            }
-            else if(message.Type == PipedMessageTypes.DequeueRequest)
-            {
-                IpcMessage outgoingData;
-                while (!_messages.TryDequeue(out outgoingData))
-                {
+                    return;
                 }
 
-                var outgoing = new PipedMessage(PipedMessageTypes.DequeueRequest, outgoingData);
-                var text = System.Text.Json.JsonSerializer.Serialize(outgoing);
-                WriteServerData(text);
-            }
+                if (Acquire(TimeSpan.FromSeconds(10)))
+                {
+                    RunClient();
+                    Release();
+                }
 
-            // Recreate server.
-            Begin();
+
+                // Recreate server.
+                CreateServer();
+            }
+        }
+
+        private void RunClient()
+        {
+            bool close = false;
+            while (_serverStream != null && _serverStream.IsConnected && !close && _cancelSource != null && !_cancelSource.IsCancellationRequested)
+            {
+                // Read the message.
+                var incoming = ReadServerData();
+
+                // Determine what to do based on type of message.
+                var message = System.Text.Json.JsonSerializer.Deserialize<PipedMessage>(incoming);
+                if (message.Type == PipedMessageTypes.QueueRequest)
+                {
+                    if (message.Message.HasValue)
+                    {
+                        _messages.Enqueue(message.Message.Value);
+                    }
+                    else
+                    {
+                        // TODO: Error.
+                    }
+                }
+                else if (message.Type == PipedMessageTypes.DequeueRequest)
+                {
+                    IpcMessage outgoingData;
+                    while (!_messages.TryDequeue(out outgoingData))
+                    {
+                    }
+
+                    var outgoing = new PipedMessage(PipedMessageTypes.DequeueRequest, outgoingData);
+                    var text = System.Text.Json.JsonSerializer.Serialize(outgoing);
+                    WriteServerData(text);
+                }
+                else if(message.Type == PipedMessageTypes.Release)
+                {
+                    close = true;
+                }
+            }
         }
 
         private string ReadServerData()

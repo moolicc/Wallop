@@ -10,6 +10,7 @@ namespace Wallop.IPC
     {
         QueueRequest,
         DequeueRequest,
+        Release,
     }
 
     internal readonly record struct PipedMessage(PipedMessageTypes Type, IpcMessage? Message)
