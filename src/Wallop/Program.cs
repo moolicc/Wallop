@@ -21,18 +21,31 @@ namespace Wallop
                 {
                     if(isOnlyInstance)
                     {
-                        var server = PipedCommunication.CreateServer();
-                        server.MessageReceivedCallback = OtherInstanceMessageReceived;
+                        var pipe = new IPC.PipeHost("wallop.exe", "FIRSTINSTANCE");
+                        pipe.Begin();
+
+                        var host = new IPC.IpcNode(pipe);
+
+                        host.OnDataReceived2 = OtherInstanceMessageReceived;
                     }
-                    else
+                    else if(args.Length > 0)
                     {
                         EngineLog.For<Program>().Warn("Another instance of the application has been detected. Forwarding command line and exiting.");
 
-                        using (var client = PipedCommunication.CreateClient())
+                        var pipe = new IPC.PipeClient($"wallop.exe-{DateTime.Now.Ticks}", "FIRSTINSTANCE");
+                        var client = new IPC.IpcNode(pipe);
+
+                        client.Send(args.Aggregate((s1, s2) => s1 + ' ' + s2), "wallop.exe");
+                        if(client.GetReply(TimeSpan.MaxValue, out var reply))
                         {
-                            //client.SendMessageToServer(Environment.CommandLine);
-                            client.SendMessageToServer(args.Aggregate((s1, s2) => s1 + ' ' + s2));
+                            Console.WriteLine(reply);
                         }
+                        client.Shutdown();
+
+                        return 0;
+                    }
+                    else
+                    {
                         return 0;
                     }
                     RunProgram();
@@ -47,14 +60,22 @@ namespace Wallop
             return 0;
         }
 
-        private static void OtherInstanceMessageReceived(string message)
+        private static void OtherInstanceMessageReceived(IPC.IpcNode node, IPC.IpcMessage message)
         {
             if(_app == null)
             {
                 // TODO: Log missed message.
                 return;
             }
-            _app.ProcessCommandLine(false, message.Trim());
+
+            EngineLog.For<Program>().Info("Incoming message from application: {sourceApp}.", message.SourceApplication);
+            EngineLog.For<Program>().Info("Incoming message content:\n{content}.", message.Content);
+
+            var console = new System.CommandLine.IO.TestConsole();
+            _app.ProcessCommandLine(false, message.Content.Trim(), console);
+
+            var results = console.Out.ToString();
+            node.Send(results ?? "", message.SourceApplication);
         }
 
         private static void RunProgram()

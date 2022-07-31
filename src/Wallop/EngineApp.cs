@@ -88,7 +88,7 @@ namespace Wallop
             _graphicsHandler.RunWindow();
         }
 
-        public void ProcessCommandLine(bool firstInstance, string commands)
+        public void ProcessCommandLine(bool firstInstance, string commands, IConsole? console = null)
         {
             var startupEndPoint = new Types.Plugins.EndPoints.EngineStartupEndPoint(Messenger);
             _pluginContext.ExecuteEndPoint(startupEndPoint);
@@ -140,7 +140,7 @@ namespace Wallop
                 root.Add(item);
             }
 
-            root.Invoke(commands.Trim());
+            root.Invoke(commands.Trim(), console);
         }
 
         public void WindowLoaded()

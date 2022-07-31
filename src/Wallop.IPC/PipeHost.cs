@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipes;
 using System.Linq;
 using System.Text;
@@ -25,6 +26,7 @@ namespace Wallop.IPC
         private ConcurrentQueue<IpcMessage> _messages;
 
         private bool _locked;
+        private bool _streamUsable;
 
         public PipeHost(string applicationId, string resourceName)
         {
@@ -36,7 +38,8 @@ namespace Wallop.IPC
         public void Begin()
         {
             _cancelSource = new CancellationTokenSource();
-            Task.Factory.StartNew(ListenAsync, _cancelSource.Token);
+            CreateServer();
+            Task.Factory.StartNew(ListenAsync, _cancelSource.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
 
         public bool Acquire(TimeSpan? timeout = null)
@@ -57,12 +60,12 @@ namespace Wallop.IPC
             {
                 return false;
             }
-
+                        
             _locked = true;
             return true;
         }
 
-        public bool DequeueMessage(out IpcMessage? message)
+        public bool DequeueMessage([NotNullWhen(true)] out IpcMessage? message)
         {
             var result = _messages.TryDequeue(out var data);
             message = data;
@@ -87,7 +90,8 @@ namespace Wallop.IPC
         private void CreateServer()
         {
             ServerCount++;
-            _serverStream = new NamedPipeServerStream(ResourceName, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances);
+            _serverStream?.Disconnect();
+            _serverStream = new NamedPipeServerStream(ResourceName, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
         }
 
         private async Task ListenAsync()
@@ -100,11 +104,7 @@ namespace Wallop.IPC
                     return;
                 }
 
-                if (Acquire(TimeSpan.FromSeconds(10)))
-                {
-                    RunClient();
-                    Release();
-                }
+                RunClient();
 
 
                 // Recreate server.
@@ -118,7 +118,10 @@ namespace Wallop.IPC
             while (_serverStream != null && _serverStream.IsConnected && !close && _cancelSource != null && !_cancelSource.IsCancellationRequested)
             {
                 // Read the message.
+
+                Acquire();
                 var incoming = ReadServerData();
+                Release();
 
                 // Determine what to do based on type of message.
                 var message = System.Text.Json.JsonSerializer.Deserialize<PipedMessage>(incoming);
@@ -142,7 +145,9 @@ namespace Wallop.IPC
 
                     var outgoing = new PipedMessage(PipedMessageTypes.DequeueRequest, outgoingData);
                     var text = System.Text.Json.JsonSerializer.Serialize(outgoing);
+                    Acquire();
                     WriteServerData(text);
+                    Release();
                 }
                 else if(message.Type == PipedMessageTypes.Release)
                 {

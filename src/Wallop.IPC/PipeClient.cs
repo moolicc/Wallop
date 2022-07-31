@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipes;
 using System.Linq;
 using System.Text;
@@ -35,18 +36,20 @@ namespace Wallop.IPC
 
             try
             {
-                _clientStream = new NamedPipeClientStream(".", ResourceName, PipeDirection.InOut);
-                _clientStream.Connect(timeout.Value.Milliseconds);
+                _clientStream?.Close();
+                _clientStream = new NamedPipeClientStream(".", ResourceName, PipeDirection.InOut, PipeOptions.Asynchronous);
+                _clientStream.Connect((int)timeout.Value.TotalMilliseconds);
             }
             catch
             {
                 _clientStream?.Dispose();
                 return false;
             }
+
             return true;
         }
 
-        public bool DequeueMessage(out IpcMessage? message)
+        public bool DequeueMessage([NotNullWhen(true)] out IpcMessage? message)
         {
             VerifyAcquired();
             try
@@ -57,11 +60,16 @@ namespace Wallop.IPC
 
 
                 textData = ReadMessage();
-                message = System.Text.Json.JsonSerializer.Deserialize<IpcMessage>(textData);
+                message = System.Text.Json.JsonSerializer.Deserialize<PipedMessage>(textData).Message;
             }
             catch (Exception ex)
             {
                 message = null;
+                return false;
+            }
+
+            if(message == null)
+            {
                 return false;
             }
             return true;
@@ -94,7 +102,24 @@ namespace Wallop.IPC
 
         private string ReadMessage()
         {
-            return "";
+            if(_clientStream == null || !_clientStream.IsConnected)
+            {
+                return "error";
+            }
+
+            var data = new byte[4];
+            _clientStream.Read(data, 0, 4);
+
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(data);
+            }
+
+            var length = BitConverter.ToInt32(data);
+            data = new byte[length];
+            _clientStream.Read(data, 0, length);
+
+            return Encoding.UTF8.GetString(data);
         }
 
         private void WriteMessage(string data)
