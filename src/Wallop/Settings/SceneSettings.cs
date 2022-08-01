@@ -9,7 +9,7 @@ namespace Wallop.Settings
 {
     public class SceneSettings : Cog.Settings
     {
-        public string PackageSearchDirectory { get; set; } = @"C:\Users\joel\source\repos\Wallop\modules\";
+        public string PackageSearchDirectory { get; set; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "modules/");
 
         /// <summary>
         /// The name of the constant, empty scene.

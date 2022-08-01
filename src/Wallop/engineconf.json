@@ -1,9 +1,0 @@
-﻿{
-	"GraphicsSettings": {
-		"Backend": "OpenGL",
-		"WindowWidth": 800,
-		"WindowHeight": 800,
-		"Overlay": "false",
-		"WindowBorder": "Resizable"
-	}
-}

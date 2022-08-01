@@ -21,7 +21,7 @@
     <ProjectReference Include="..\Wallop.IPC\Wallop.IPC.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="engineconf.json">
+    <None Update="engine.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
@@ -35,4 +35,7 @@
   <ItemGroup>
     <Folder Include="Messaging\Messages\ReplyPayloads\" />
   </ItemGroup>
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="call ../../util/copy_packages.bat bin/$(Configuration)/net6.0/modules" />
+  </Target>
 </Project>
