@@ -5,10 +5,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Wallop.DSLExtension.Scripting;
-using Wallop.DSLExtension.Types.Plugin;
+using Wallop.Shared.ECS;
+using Wallop.Shared.ECS.Serialization;
+using Wallop.Shared.Modules;
+using Wallop.Shared.Scripting;
 using Wallop.ECS;
-using Wallop.SceneManagement;
 using Wallop.Scripting.ECS;
 using Wallop.Types.Plugins;
 using Wallop.Types.Plugins.EndPoints;
@@ -51,15 +52,15 @@ namespace Wallop.Scripting
         {
             foreach (var layout in Scene.Layouts)
             {
-                var actors = layout.EcsRoot.GetActors<ScriptedActor>();
+                var actors = layout.EntityRoot.GetActors<ScriptedActor>();
                 EngineLog.For<SceneScriptInitializer>().Info("Initializing actor scripts for layout {layout}...", layout.Name);
-                InitializeActors(layout, actors);
+                InitializeActors(actors);
             }
             EngineLog.For<SceneScriptInitializer>().Info("***** Actor scripts initialization complete! *****");
         }
 
 
-        public void InitializeActors(Layout rootLayout, IEnumerable<ScriptedActor> actors)
+        public void InitializeActors(IEnumerable<ScriptedActor> actors)
         {
             foreach (var actor in actors)
             {

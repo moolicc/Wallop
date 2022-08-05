@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Wallop.DSLExtension.Modules;
-using Wallop.DSLExtension.Scripting;
 using Wallop.ECS;
 using Wallop.Scheduling;
 using Wallop.SceneManagement;
+using Wallop.Shared.ECS;
+using Wallop.Shared.Modules;
+using Wallop.Shared.Scripting;
 
 namespace Wallop.Scripting.ECS
 {

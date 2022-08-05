@@ -1,12 +1,15 @@
 ﻿using Silk.NET.Windowing;
 using System.CommandLine;
 using System.CommandLine.Parsing;
-using Wallop.DSLExtension.Scripting;
-using Wallop.DSLExtension.Types.Plugin;
+using Wallop.Shared.ECS;
+using Wallop.Shared.ECS.Serialization;
+using Wallop.Shared.Modules;
+using Wallop.Shared.Scripting;
 using Wallop.Handlers;
 using Wallop.Messaging;
 using Wallop.Scripting;
 using Wallop.Settings;
+using Wallop.Shared.Types.Plugin;
 using Wallop.Types.Plugins.EndPoints;
 
 

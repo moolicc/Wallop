@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Wallop.DSLExtension.Scripting
+namespace Wallop.Shared.Scripting
 {
     [AttributeUsage(AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
     public sealed class ScriptFunctionFactoryAttribute : Attribute

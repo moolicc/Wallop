@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Wallop.DSLExtension.Scripting;
+using Wallop.Shared.Scripting;
+using Wallop.Shared.Types.Plugin;
 
 namespace Wallop.Types.Plugins.EndPoints
 {
-    internal class ScriptEngineEndPoint : EndPointBase, DSLExtension.Types.Plugin.ILoadingScriptEnginesEndPoint
+    internal class ScriptEngineEndPoint : EndPointBase, ILoadingScriptEnginesEndPoint
     {
         internal readonly List<IScriptEngineProvider> EngineProviders;
 

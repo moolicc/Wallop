@@ -17,7 +17,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Cog\Cog\Cog.csproj" />
     <ProjectReference Include="..\PluginPantry\PluginPantry\PluginPantry.csproj" />
-    <ProjectReference Include="..\Wallop.DSLExtension\Wallop.DSLExtension.csproj" />
+    <ProjectReference Include="..\Wallop.DSLExtension\Wallop.Shared.csproj" />
     <ProjectReference Include="..\Wallop.IPC\Wallop.IPC.csproj" />
   </ItemGroup>
   <ItemGroup>
@@ -34,6 +34,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Messaging\Messages\ReplyPayloads\" />
+    <Folder Include="SceneManagement\" />
   </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="call ../../util/copy_packages.bat bin/$(Configuration)/net6.0/modules" />

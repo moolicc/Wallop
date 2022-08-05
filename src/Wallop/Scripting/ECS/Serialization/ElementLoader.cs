@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Wallop.DSLExtension.Modules;
+using Wallop.Shared.ECS;
+using Wallop.Shared.ECS.Serialization;
+using Wallop.Shared.Modules;
+using Wallop.Shared.Scripting;
 
 namespace Wallop.Scripting.ECS.Serialization
 {
@@ -36,7 +39,7 @@ namespace Wallop.Scripting.ECS.Serialization
             _packageCache = packageCache;
         }
 
-        public T Load<T>(SceneManagement.StoredModule storedElement) where T : ScriptedElement
+        public T Load<T>(StoredModule storedElement) where T : ScriptedElement
         {
             var type = ModuleTypes.Director;
             if(typeof(T) == typeof(ScriptedActor))
@@ -82,7 +85,7 @@ namespace Wallop.Scripting.ECS.Serialization
             return (T)(ScriptedElement)new ScriptedActor(bestCandidate, storedElement);
         }
 
-        public IEnumerable<T> LoadAll<T>(params SceneManagement.StoredModule[] storedElements) where T : ScriptedElement
+        public IEnumerable<T> LoadAll<T>(params StoredModule[] storedElements) where T : ScriptedElement
         {
             foreach (var definition in storedElements)
             {

@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace Wallop.DSLExtension.Modules
+namespace Wallop.Shared.Modules
 {
     public static class PackageSaver
     {

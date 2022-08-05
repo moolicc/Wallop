@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Wallop.DSLExtension.Modules.SettingTypes
+namespace Wallop.Shared.Modules.SettingTypes
 {
     public class FileType : ISettingType
     {
@@ -12,11 +12,11 @@ namespace Wallop.DSLExtension.Modules.SettingTypes
 
         public string Serialize(object value, IEnumerable<KeyValuePair<string, string>>? args)
         {
-            if(value is FileInfo fi)
+            if (value is FileInfo fi)
             {
                 return fi.FullName;
             }
-            else if(value is FileStream fs)
+            else if (value is FileStream fs)
             {
                 return fs.Name;
             }

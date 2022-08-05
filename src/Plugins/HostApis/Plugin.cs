@@ -1,6 +1,6 @@
 ﻿using PluginPantry.Extending;
-using Wallop.DSLExtension.Scripting;
-using Wallop.DSLExtension.Types.Plugin;
+using Wallop.Shared.Scripting;
+using Wallop.Shared.Types.Plugin;
 
 namespace HostApis
 {

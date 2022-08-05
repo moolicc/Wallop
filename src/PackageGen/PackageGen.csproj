@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Wallop.DSLExtension\Wallop.DSLExtension.csproj" />
+    <ProjectReference Include="..\Wallop.DSLExtension\Wallop.Shared.csproj" />
   </ItemGroup>
 
 </Project>

@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EnginePlugins", "Plugins\En
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scripting.IronPython", "plugins\Scripting.IronPython\Scripting.IronPython.csproj", "{02B093AE-23D1-4F9F-A111-021F46AF0A3F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wallop.DSLExtension", "Wallop.DSLExtension\Wallop.DSLExtension.csproj", "{A8661B46-B735-404A-A129-87EC85056B02}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wallop.Shared", "Wallop.DSLExtension\Wallop.Shared.csproj", "{A8661B46-B735-404A-A129-87EC85056B02}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HostApis", "Plugins\HostApis\HostApis.csproj", "{B05E2553-7543-4E6E-A77F-EA4A6AF85E67}"
 EndProject
@@ -27,7 +27,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wallop", "Wallop\Wallop.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PackageGen", "PackageGen\PackageGen.csproj", "{BBA4D59C-A5F7-4DF5-B5E1-0F969CF09573}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wallop.IPC", "Wallop.IPC\Wallop.IPC.csproj", "{C87DF277-4449-4E4F-86FE-6B35406CBF4F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wallop.IPC", "Wallop.IPC\Wallop.IPC.csproj", "{C87DF277-4449-4E4F-86FE-6B35406CBF4F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

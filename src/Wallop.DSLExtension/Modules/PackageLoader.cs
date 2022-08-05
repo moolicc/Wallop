@@ -7,7 +7,7 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.XPath;
 
-namespace Wallop.DSLExtension.Modules
+namespace Wallop.Shared.Modules
 {
     public static class PackageLoader
     {
@@ -30,7 +30,7 @@ namespace Wallop.DSLExtension.Modules
         {
             var document = XDocument.Load(file);
             var root = document.Root;
-            if(root == null || root.Name != "package")
+            if (root == null || root.Name != "package")
             {
                 throw new XmlException("Failed to find root of document.");
             }
@@ -90,7 +90,7 @@ namespace Wallop.DSLExtension.Modules
 
         private static ModuleInfo LoadModuleInfo(PackageInfo packageInfo, XElement? metadataElement, string baseDir)
         {
-            if(metadataElement == null)
+            if (metadataElement == null)
             {
                 throw new XmlException("Failed to load module metadata.");
             }
@@ -104,11 +104,11 @@ namespace Wallop.DSLExtension.Modules
             {
                 throw new XmlException("Module metadata does not contain a valid type node.");
             }
-            if(moduleSourceFile == null)
+            if (moduleSourceFile == null)
             {
                 throw new XmlException("Module metadata does not contain a source file node.");
             }
-            else if(!File.Exists(moduleSourceFile))
+            else if (!File.Exists(moduleSourceFile))
             {
                 // What if potentially a module has its source created dynamically?
                 // Well I guess that's an edge-case that has to be dealt with on a case-by-case basis.
@@ -146,7 +146,7 @@ namespace Wallop.DSLExtension.Modules
             foreach (var settingElement in settingRoot.XPathSelectElements("./setting"))
             {
                 var setting = LoadModuleSetting(packageInfo, moduleInfo, settingElement);
-                if(setting != null)
+                if (setting != null)
                 {
                     yield return setting;
                 }
@@ -175,11 +175,11 @@ namespace Wallop.DSLExtension.Modules
             {
                 throw new XmlException("Failed to load module setting name.");
             }
-            if(typeElement == null)
+            if (typeElement == null)
             {
                 throw new XmlException("Failed to load module setting type.");
             }
-            if(!bool.TryParse(required, out var requiredBool))
+            if (!bool.TryParse(required, out var requiredBool))
             {
                 throw new XmlException("Module setting required value is invalid.");
             }
@@ -189,7 +189,7 @@ namespace Wallop.DSLExtension.Modules
             }
             if (defaultValue == null)
             {
-                if(required.Equals("false", StringComparison.OrdinalIgnoreCase))
+                if (required.Equals("false", StringComparison.OrdinalIgnoreCase))
                 {
                     throw new XmlException("Module setting is not required and thus requires a default value.");
                 }
@@ -198,7 +198,7 @@ namespace Wallop.DSLExtension.Modules
             {
                 defaultValue = ApplyVariables(defaultValue, packageInfo, moduleInfo);
             }
-            if(bindingsElement != null)
+            if (bindingsElement != null)
             {
                 bindings = LoadBindings(packageInfo, moduleInfo, bindingsElement);
             }
@@ -253,7 +253,7 @@ namespace Wallop.DSLExtension.Modules
 
             var argsElement = scriptEngineElement.XPathSelectElement("args");
             var args = new Dictionary<string, string>();
-            if(argsElement != null)
+            if (argsElement != null)
             {
                 args = argsElement.Elements().ToDictionary(a => a.Name.ToString(), a => a.Value);
             }
@@ -262,7 +262,7 @@ namespace Wallop.DSLExtension.Modules
 
         private static IEnumerable<string> GetModuleHostApis(XElement? apiRoot)
         {
-            if(apiRoot == null)
+            if (apiRoot == null)
             {
                 return Array.Empty<string>();
             }
@@ -273,7 +273,7 @@ namespace Wallop.DSLExtension.Modules
 
         private static (string Name, string Version, string Description, IEnumerable<KeyValuePair<string, string>> Variables) GetCommonMetadataValues(XElement? metadataRoot)
         {
-            if(metadataRoot == null)
+            if (metadataRoot == null)
             {
                 throw new XmlException("Failed to load metadata.");
             }
@@ -287,11 +287,11 @@ namespace Wallop.DSLExtension.Modules
             {
                 throw new XmlException("Package metadata must contain a package name.");
             }
-            if(version == null)
+            if (version == null)
             {
                 version = string.Empty;
             }
-            if(description == null)
+            if (description == null)
             {
                 description = string.Empty;
             }
@@ -303,7 +303,7 @@ namespace Wallop.DSLExtension.Modules
         {
             var variablesElement = metadataRoot.XPathSelectElement("./variables");
 
-            if(variablesElement == null)
+            if (variablesElement == null)
             {
                 return Array.Empty<KeyValuePair<string, string>>();
             }
@@ -313,7 +313,7 @@ namespace Wallop.DSLExtension.Modules
 
         private static KeyValuePair<string, string> GetVariableDeclaration(XElement? variableDeclElement)
         {
-            if(variableDeclElement == null)
+            if (variableDeclElement == null)
             {
                 throw new XmlException("Failed to load package variable declaration.");
             }
@@ -327,7 +327,7 @@ namespace Wallop.DSLExtension.Modules
 
         private static string ApplyVariables(string input, IEnumerable<KeyValuePair<string, string>> packageVariables, IEnumerable<KeyValuePair<string, string>>? moduleVariables)
         {
-            if(!PreserveVariables)
+            if (!PreserveVariables)
             {
                 if (moduleVariables != null)
                 {

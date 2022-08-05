@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Wallop.DSLExtension.Modules;
-using Module = Wallop.DSLExtension.Modules.Module;
+using Wallop.Shared.Modules;
+using Module = Wallop.Shared.Modules.Module;
 
 namespace PackageGen.ChangeTracking
 {

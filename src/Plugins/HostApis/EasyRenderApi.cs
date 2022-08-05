@@ -5,9 +5,9 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using TrippyGL;
-using Wallop.DSLExtension.Scripting;
-using Wallop.DSLExtension.Types.Plugin;
 using Wallop.Scripting;
+using Wallop.Shared.Scripting;
+using Wallop.Shared.Types.Plugin;
 
 namespace HostApis
 {

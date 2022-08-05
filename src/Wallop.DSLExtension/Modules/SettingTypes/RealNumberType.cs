@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Wallop.DSLExtension.Modules.SettingTypes
+namespace Wallop.Shared.Modules.SettingTypes
 {
     public enum RealNumberPrecision
     {
@@ -39,12 +39,12 @@ namespace Wallop.DSLExtension.Modules.SettingTypes
                 }
             }
             bool successful = false;
-            if(precision == RealNumberPrecision.Single)
+            if (precision == RealNumberPrecision.Single)
             {
                 successful = float.TryParse(value, out var parsed);
                 result = parsed;
             }
-            else if(precision == RealNumberPrecision.Double)
+            else if (precision == RealNumberPrecision.Double)
             {
                 successful = double.TryParse(value, out var parsed);
                 result = parsed;

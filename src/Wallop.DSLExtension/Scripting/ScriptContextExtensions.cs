@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Wallop.DSLExtension.Scripting
+namespace Wallop.Shared.Scripting
 {
     internal static class ScriptContextExtensions
     {
@@ -13,7 +13,7 @@ namespace Wallop.DSLExtension.Scripting
         public static void AddProperty<TGetDelegate, TSetDelegate>(this IScriptContext context, string property, object instance, string? alias = null, bool forceReadonly = false)
             where TGetDelegate : Delegate
             where TSetDelegate : Delegate
-            => AddProperty<TGetDelegate, TSetDelegate>(context, instance.GetType().GetProperty(property), instance, alias, forceReadonly);
+            => context.AddProperty<TGetDelegate, TSetDelegate>(instance.GetType().GetProperty(property), instance, alias, forceReadonly);
 
         public static void AddProperty<TGetDelegate, TSetDelegate>(this IScriptContext context, PropertyInfo property, object? instance, string? alias = null, bool forceReadonly = false)
             where TGetDelegate : Delegate
@@ -24,7 +24,7 @@ namespace Wallop.DSLExtension.Scripting
             {
                 var getMethod = property.GetGetMethod();
 
-                if(getMethod == null)
+                if (getMethod == null)
                 {
                     throw new MissingMethodException("Could not resolve property's Get method.");
                 }
@@ -53,7 +53,7 @@ namespace Wallop.DSLExtension.Scripting
         // CONCRETE ADD PROPERTY
 
         public static void AddProperty(this IScriptContext context, string property, object instance, string? alias = null, bool forceReadonly = false)
-            => AddProperty(context, instance.GetType().GetProperty(property), instance, alias, forceReadonly);
+            => context.AddProperty(instance.GetType().GetProperty(property), instance, alias, forceReadonly);
 
         public static void AddProperty(this IScriptContext context, PropertyInfo property, object? instance, string? alias = null, bool forceReadonly = false)
         {
@@ -93,7 +93,7 @@ namespace Wallop.DSLExtension.Scripting
         // GENERIC READONLY PROPERTY
         public static void AddReadonlyProperty<TGetDelegate>(this IScriptContext context, string property, object instance, string? alias = null)
             where TGetDelegate : Delegate
-            => AddReadonlyProperty<TGetDelegate>(context, instance.GetType().GetProperty(property), instance, alias);
+            => context.AddReadonlyProperty<TGetDelegate>(instance.GetType().GetProperty(property), instance, alias);
 
         public static void AddReadonlyProperty<TGetDelegate>(this IScriptContext context, PropertyInfo property, object? instance, string? alias = null)
           where TGetDelegate : Delegate
@@ -120,7 +120,7 @@ namespace Wallop.DSLExtension.Scripting
 
         // CONCRETE READONLY PROPERTY
         public static void AddReadonlyProperty(this IScriptContext context, string property, object instance, string? alias = null)
-            => AddReadonlyProperty(context, instance.GetType().GetProperty(property), instance, alias);
+            => context.AddReadonlyProperty(instance.GetType().GetProperty(property), instance, alias);
 
         public static void AddReadonlyProperty(this IScriptContext context, PropertyInfo property, object? instance, string? alias = null)
         {

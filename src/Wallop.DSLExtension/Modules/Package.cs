@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Wallop.DSLExtension.Modules
+namespace Wallop.Shared.Modules
 {
     public class Package
     {

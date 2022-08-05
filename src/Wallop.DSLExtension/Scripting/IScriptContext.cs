@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Wallop.DSLExtension.Scripting
+namespace Wallop.Shared.Scripting
 {
     public record Import(string Assembly, string Namespace);
     public record ExposedValue(string MemberName, object? Value);

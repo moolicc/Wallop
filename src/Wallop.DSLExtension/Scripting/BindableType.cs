@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Wallop.DSLExtension.Scripting;
 
-namespace Wallop.DSLExtension.Scripting
+namespace Wallop.Shared.Scripting
 {
     public abstract class BindableType
     {
@@ -24,7 +23,7 @@ namespace Wallop.DSLExtension.Scripting
 
         public void Bind(IScriptContext bindingContext)
         {
-            if(IsBound)
+            if (IsBound)
             {
                 // TODO: Error.
             }
@@ -60,7 +59,7 @@ namespace Wallop.DSLExtension.Scripting
         protected void SetValue<T>(string propertyName, T? value, ref T? defaultValue)
         {
             defaultValue = value;
-            if(_settingBindings.TryGetValue(propertyName, out var binding))
+            if (_settingBindings.TryGetValue(propertyName, out var binding))
             {
                 GetBindingContextSafe().SetValue(binding, value);
             }
@@ -68,11 +67,11 @@ namespace Wallop.DSLExtension.Scripting
 
         protected T? GetValue<T>(string propertyName, ref T? defaultValue)
         {
-            if(!IsBound)
+            if (!IsBound)
             {
                 return defaultValue;
             }
-            if(!_settingBindings.TryGetValue(propertyName, out var scriptName))
+            if (!_settingBindings.TryGetValue(propertyName, out var scriptName))
             {
                 return defaultValue;
             }
@@ -81,7 +80,7 @@ namespace Wallop.DSLExtension.Scripting
 
         private IScriptContext GetBindingContextSafe()
         {
-            if(_boundContext == null)
+            if (_boundContext == null)
             {
                 throw new NullReferenceException("Bindable component not yet bound.");
             }

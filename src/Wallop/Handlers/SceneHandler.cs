@@ -6,13 +6,16 @@ using System.CommandLine.NamingConventionBinder;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Wallop.DSLExtension.Scripting;
+using Wallop.ECS;
 using Wallop.Messaging.Messages;
-using Wallop.SceneManagement;
 using Wallop.SceneManagement.Serialization;
 using Wallop.Scripting;
 using Wallop.Scripting.ECS;
 using Wallop.Settings;
+using Wallop.Shared.Scripting;
+using Wallop.Shared.ECS;
+using Wallop.Shared.ECS.Serialization;
+using Wallop.Shared.Modules;
 
 namespace Wallop.Handlers
 {
@@ -127,7 +130,7 @@ namespace Wallop.Handlers
                 "The name of an actor to clone");
             var owningLayoutOpts = new Option<string>(
                 new[] { "--layout", "-l" },
-                () => _activeScene.ActiveLayout?.Name ?? "",
+                () => _activeScene.GetActiveLayouts().FirstOrDefault()?.Name ?? "",
                 "The layout upon-which to place this Actor");
             var elementSettingsOpts = new Option<Dictionary<string, string>?>(
                 aliases: new[] { "--settings", "-s" },
@@ -440,8 +443,7 @@ namespace Wallop.Handlers
 
             EngineLog.For<SceneHandler>().Info("Constructing scene...");
             var sceneLoader = new SceneLoader(settings, PackageCache);
-            var scene = sceneLoader.LoadScene();
-
+            var scene = sceneLoader.LoadScene(n => new Scene(n), LoadLayout, LoadActor, LoadDirector);
 
             EngineLog.For<SceneHandler>().Debug("Injecting script HostData...");
             Func<GL> glGetter = App.GetHandler<GraphicsHandler>().OrThrow().GetGlIsntance;
@@ -492,12 +494,12 @@ namespace Wallop.Handlers
             }
 
             EngineLog.For<SceneHandler>().Info("Saving actors with module '{module}'...", moduleId);
-            var savedLayouts = new List<(Layout SceneLayout, StoredLayout SavedInfo)>();
+            var savedLayouts = new List<(ILayout SceneLayout, StoredLayout SavedInfo)>();
 
             int actorCount = 0;
             foreach (var layout in ActiveScene.Layouts)
             {
-                var applicableActors = layout.EcsRoot.GetActors()
+                var applicableActors = layout.EntityRoot.GetActors()
                     .Where(a => a is ScriptedActor xA && xA.ModuleDeclaration.ModuleInfo.Id == moduleId);
 
                 var savedActors = sceneSaver.SaveActors(applicableActors.Select(a => (ScriptedActor)a));
@@ -508,7 +510,7 @@ namespace Wallop.Handlers
                 // Remove the actors from the layout.
                 foreach (var item in applicableActors)
                 {
-                    layout.EcsRoot.Remove(item);
+                    layout.EntityRoot.Remove(item);
                 }
 
                 actorCount += storedLayout.ActorModules.Count;
@@ -524,7 +526,7 @@ namespace Wallop.Handlers
             storedScene.Layouts = savedLayouts.Select(l => l.SavedInfo).ToList();
 
             var sceneLoader = new SceneLoader(storedScene, PackageCache);
-            sceneLoader.CreateDirectors(ActiveScene);
+            sceneLoader.CreateDirectors(ActiveScene, LoadDirector);
 
             EngineLog.For<SceneHandler>().Info("Reloading {actorCount} actors within {layoutCount} layouts with module '{module}'...", actorCount, savedLayouts.Count, moduleId);
             foreach (var item in savedLayouts)
@@ -536,7 +538,7 @@ namespace Wallop.Handlers
                         SafetyNet.Handle<SceneHandler, StoredModule, ScriptedActor>((a) => Scripting.ECS.Serialization.ElementLoader.Instance.Load<ScriptedActor>(a), savedActor, out var actor)
                             .Then<ScriptedActor>((a) =>
                             {
-                                item.SceneLayout.EcsRoot.AddActor(a);
+                                item.SceneLayout.EntityRoot.AddActor(a);
                                 a.AddedToLayout(item.SceneLayout);
                             }).Next<ScriptedActor>(a =>
                             {
@@ -555,6 +557,58 @@ namespace Wallop.Handlers
             }
         }
 
+
+        private ILayout LoadLayout(Scene scene, StoredLayout stored)
+        {
+            var layout = new Layout(stored.Name);
+            if(stored.Active)
+            {
+                layout.Activate();
+            }
+            return layout;
+        }
+
+        private IActor LoadActor(ILayout owner, StoredModule stored)
+        {
+            ScriptedActor? actor = null;
+
+            try
+            {
+                actor = Scripting.ECS.Serialization.ElementLoader.Instance.Load<ScriptedActor>(stored);
+                if (actor == null)
+                {
+                    throw new NullReferenceException();
+                }
+                EngineLog.For<SceneLoader>().Info("Actor {actor} loaded with module {module}!", stored.InstanceName, stored.ModuleId);
+            }
+            catch (Exception ex)
+            {
+                EngineLog.For<SceneLoader>().Error(ex, "Failed to load or initialize actor {actor} with module {module}!", stored.InstanceName, stored.ModuleId);
+            }
+
+            return actor!;
+        }
+
+        private IDirector LoadDirector<TScene>(TScene owner, StoredModule stored) where TScene : IScene
+        {
+            ScriptedDirector? director = null;
+
+            try
+            {
+                director = Scripting.ECS.Serialization.ElementLoader.Instance.Load<ScriptedDirector>(stored);
+                if (director == null)
+                {
+                    throw new NullReferenceException();
+                }
+                EngineLog.For<SceneLoader>().Info("Director {director} loaded with module {module}!", stored.InstanceName, stored.ModuleId);
+            }
+            catch (Exception ex)
+            {
+                EngineLog.For<SceneLoader>().Error(ex, "Failed to load or initialize director '{director}' with module '{module}'!", stored.InstanceName, stored.ModuleId);
+                
+            }
+            return director!;
+        }
 
         private object HandleSceneSettings(SceneSettingsMessage message, uint messageId)
         {
@@ -637,7 +691,7 @@ namespace Wallop.Handlers
 
                 if (message.MakeActive)
                 {
-                    scene.ActiveLayout = newLayout;
+                    newLayout.Activate();
                 }
             }
             else
@@ -677,7 +731,7 @@ namespace Wallop.Handlers
                 return Invalid(messageId, "The target layout does not exist.");
             }
 
-            _activeScene.ActiveLayout = layout;
+            layout.Activate();
             return Success(messageId);
         }
 
@@ -686,7 +740,7 @@ namespace Wallop.Handlers
             // TODO: Stored bindings
 
             // Create an actor based on the module specified in the message and add it to the specified layout.
-            var actorDefinition = new SceneManagement.StoredModule()
+            var actorDefinition = new StoredModule()
             {
                 InstanceName = message.ActorName,
                 ModuleId = message.BasedOnModule,
@@ -716,10 +770,10 @@ namespace Wallop.Handlers
                     return Fail(messageId, ex);
                 }
 
-                Layout? layout = null;
+                ILayout? layout = null;
                 if (string.IsNullOrEmpty(message.Layout))
                 {
-                    layout = _activeScene.ActiveLayout;
+                    layout = _activeScene.GetActiveLayouts().First();
                 }
                 else
                 {
@@ -737,7 +791,7 @@ namespace Wallop.Handlers
                     return Invalid(messageId, "The target layout does not exist.");
                 }
 
-                layout.EcsRoot.AddActor(actor);
+                layout.EntityRoot.AddActor(actor);
                 actor.AddedToLayout(layout);
                 Scripting.ECS.Serialization.ElementInitializer.Instance.InitializeElement(actor, _activeScene);
             }

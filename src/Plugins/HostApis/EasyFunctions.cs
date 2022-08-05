@@ -6,8 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 using TrippyGL;
 using TrippyGL.ImageSharp;
-using Wallop.DSLExtension.Scripting;
 using Wallop.Scripting;
+using Wallop.Shared.Scripting;
 
 namespace HostApis
 {

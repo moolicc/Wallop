@@ -1,7 +1,7 @@
 ﻿using IronPython.Hosting;
 using IronPython.Runtime.Exceptions;
 using Microsoft.Scripting.Hosting;
-using Wallop.DSLExtension.Scripting;
+using Wallop.Shared.Scripting;
 using IronPy = IronPython;
 
 namespace Scripting.IronPython

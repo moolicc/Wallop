@@ -1,9 +1,10 @@
 ﻿using Silk.NET.OpenGL;
 using System.Numerics;
-using Wallop.DSLExtension.Modules;
-using Wallop.DSLExtension.Scripting;
-using Wallop.SceneManagement;
+using Wallop.ECS;
 using Wallop.Scripting.ECS;
+using Wallop.Shared.ECS;
+using Wallop.Shared.Modules;
+using Wallop.Shared.Scripting;
 
 namespace Wallop.Scripting
 {
@@ -181,7 +182,9 @@ namespace Wallop.Scripting
             }
             else if(tag is ScriptedDirector director)
             {
-                return new Func<Vector2>(() => Scene.ActiveLayout.OrThrow().RenderSize);
+                // FIXME
+                throw new NotImplementedException();
+                //return new Func<Vector2>(() => Scene.ActiveLayout.OrThrow().RenderSize);
             }
             return null;
         }
@@ -195,7 +198,8 @@ namespace Wallop.Scripting
             }
             else if (tag is ScriptedDirector director)
             {
-                return new Func<Vector2>(() => Scene.ActiveLayout.OrThrow().PresentationSize);
+                // FIXME
+                //return new Func<Vector2>(() => Scene.ActiveLayout.OrThrow().PresentationSize);
             }
             return null;
         }
@@ -344,7 +348,7 @@ namespace Wallop.Scripting
         {
             if (tag is ScriptedActor actor)
             {
-                return new Func<string, IEnumerable<ScriptedActor>>(query => actor.OwningLayout.EcsRoot.GetActors<ScriptedActor>(query));
+                return new Func<string, IEnumerable<ScriptedActor>>(query => actor.OwningLayout.EntityRoot.GetActors<ScriptedActor>(query));
             }
             else if (tag is ScriptedDirector director)
             {
@@ -353,7 +357,7 @@ namespace Wallop.Scripting
                     var actors = new List<ScriptedActor>();
                     foreach (var layout in Scene.Layouts)
                     {
-                        actors.AddRange(layout.EcsRoot.GetActors<ScriptedActor>(query));
+                        actors.AddRange(layout.EntityRoot.GetActors<ScriptedActor>(query));
                     }
                     return actors.ToArray();
                 });
@@ -517,38 +521,7 @@ namespace Wallop.Scripting
 
         private ScriptedActor? FindActor(string actorId)
         {
-
-            bool ForLayout(Layout layout, string actorId, out ScriptedActor? result)
-            {
-                foreach (var actor in layout.EcsRoot.GetActors())
-                {
-                    if (actor.Name == actorId)
-                    {
-                        result = (ScriptedActor)actor;
-                        return true;
-                    }
-                }
-                result = null;
-                return false;
-            }
-
-            if (Scene.ActiveLayout != null && ForLayout(Scene.ActiveLayout, actorId, out var result))
-            {
-                return result;
-            }
-
-            foreach (var layout in Scene.Layouts)
-            {
-                if(layout == Scene.ActiveLayout)
-                {
-                    continue;
-                }
-
-                if(ForLayout(layout, actorId, out result))
-                {
-                    return result;
-                }
-            }
+            // FIXME
 
             return null;
         }

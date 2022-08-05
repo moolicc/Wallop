@@ -2,7 +2,7 @@
 using PackageGen;
 using PackageGen.ChangeTracking;
 using System.CommandLine;
-using Wallop.DSLExtension.Modules;
+using Wallop.Shared.Modules;
 
 namespace PackageGen
 

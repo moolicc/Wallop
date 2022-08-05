@@ -5,11 +5,9 @@ using System.Numerics;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using Wallop.DSLExtension.Modules;
-using Wallop.DSLExtension.Scripting;
-using Module = Wallop.DSLExtension.Modules.Module;
+using Module = Wallop.Shared.Modules.Module;
 
-namespace Wallop.DSLExtension.Scripting
+namespace Wallop.Shared.Scripting
 {
     public delegate Delegate? Factory(IScriptContext ctx, Module module, object? tag);
 
@@ -17,7 +15,7 @@ namespace Wallop.DSLExtension.Scripting
     /// Provides dependency injection into scripts.
     /// </summary>
     public class ScriptHostFunctions
-    {       
+    {
 
         private record struct ScannedMethod(MethodInfo Method, Type BackingDelegate, object? Instance, string Name);
         private record struct ScannedProperty(PropertyInfo Property, object? Instance, string Name, bool Readable, bool Writable);
@@ -102,11 +100,11 @@ namespace Wallop.DSLExtension.Scripting
 
             foreach (var property in _properties)
             {
-                if(!property.Writable && property.Readable)
+                if (!property.Writable && property.Readable)
                 {
                     context.AddReadonlyProperty(property.Property, property.Instance, property.Name);
                 }
-                else if(property.Writable && property.Readable)
+                else if (property.Writable && property.Readable)
                 {
                     context.AddProperty(property.Property, property.Instance, property.Name, false);
                 }
@@ -137,7 +135,7 @@ namespace Wallop.DSLExtension.Scripting
                     name = context.FormatGetterName(name);
                     context.SetDelegate(name, property.Getter);
                 }
-                if(property.Setter != null)
+                if (property.Setter != null)
                 {
                     var name = property.Name;
                     name = context.FormatSetterName(name);
@@ -152,7 +150,7 @@ namespace Wallop.DSLExtension.Scripting
             foreach (var factory in _factoryMethods)
             {
                 var method = factory.Factory(context, onBehalfOf, tag);
-                if(method != null)
+                if (method != null)
                 {
                     var name = context.FormatFunctionName(factory.Name);
                     context.SetDelegate(name, method);
@@ -164,7 +162,7 @@ namespace Wallop.DSLExtension.Scripting
                 var getter = factory.Getter?.Invoke(context, onBehalfOf, tag);
                 var setter = factory.Setter?.Invoke(context, onBehalfOf, tag);
 
-                if(getter != null)
+                if (getter != null)
                 {
                     var name = factory.Name;
                     name = context.FormatGetterName(name);
@@ -195,7 +193,7 @@ namespace Wallop.DSLExtension.Scripting
                 {
                     _addedProperties.Add(propertyMethod);
                 }
-                else if(TryScanPropertyFactoryMethod(instance, instanceType, method, out var propertyFactoryMethod))
+                else if (TryScanPropertyFactoryMethod(instance, instanceType, method, out var propertyFactoryMethod))
                 {
                     _factoryProperties.Add(propertyFactoryMethod);
                 }
@@ -239,7 +237,7 @@ namespace Wallop.DSLExtension.Scripting
             result = new ScannedMethod();
 
             var attrib = method.GetCustomAttribute<ScriptFunctionAttribute>();
-            if(attrib == null)
+            if (attrib == null)
             {
                 return false;
             }
@@ -254,7 +252,7 @@ namespace Wallop.DSLExtension.Scripting
             result = new FactoryMethod();
 
             var factoryAttrib = method.GetCustomAttribute<ScriptFunctionFactoryAttribute>();
-            if(factoryAttrib == null)
+            if (factoryAttrib == null)
             {
                 return false;
             }
@@ -359,15 +357,15 @@ namespace Wallop.DSLExtension.Scripting
             var method = owningType.GetMethods().FirstOrDefault(m =>
             {
                 var attrib = m.GetCustomAttribute<ScriptPropertyFactoryAttribute>();
-                if(attrib == null)
+                if (attrib == null)
                 {
                     return false;
                 }
-                if(attrib.PropertyId != id)
+                if (attrib.PropertyId != id)
                 {
                     return false;
                 }
-                if(attrib.Accessor != targetAccessor)
+                if (attrib.Accessor != targetAccessor)
                 {
                     return false;
                 }

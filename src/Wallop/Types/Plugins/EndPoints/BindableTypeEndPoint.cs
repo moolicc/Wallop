@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Wallop.DSLExtension.Scripting;
+using Wallop.Shared.Scripting;
+using Wallop.Shared.Types.Plugin;
 
 namespace Wallop.Types.Plugins.EndPoints
 {
-    public class BindableTypeEndPoint : EndPointBase, DSLExtension.Types.Plugin.IBindableTypeRegistrationEndPoint
+    public class BindableTypeEndPoint : EndPointBase, IBindableTypeRegistrationEndPoint
     {
         public IEnumerable<KeyValuePair<string, Type>> BindableTypes => _bindableTypes;
 

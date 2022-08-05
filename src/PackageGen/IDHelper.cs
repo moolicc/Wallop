@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Wallop.DSLExtension.Modules;
+using Wallop.Shared.Modules;
 
 namespace PackageGen
 {

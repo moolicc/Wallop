@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Wallop.DSLExtension.Modules;
-using Wallop.DSLExtension.Scripting;
+using Wallop.Shared.Modules;
+using Wallop.Shared.Scripting;
 
-namespace Wallop.DSLExtension.Types.Plugin
+namespace Wallop.Shared.Types.Plugin
 {
     public interface IInjectScriptContextEndPoint
     {

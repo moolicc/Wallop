@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Wallop.DSLExtension.Scripting;
-using Wallop.DSLExtension.Types.Plugin;
+using Wallop.Shared.Scripting;
+using Wallop.Shared.Types.Plugin;
 using Wallop.Types.Plugins.EndPoints;
 
 namespace Wallop.Scripting

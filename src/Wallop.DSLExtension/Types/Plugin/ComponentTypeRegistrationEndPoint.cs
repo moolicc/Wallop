@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Wallop.Shared.Scripting;
 
-namespace Wallop.DSLExtension.Types.Plugin
+namespace Wallop.Shared.Types.Plugin
 {
     public interface IBindableTypeRegistrationEndPoint
     {
         public IEnumerable<KeyValuePair<string, Type>> BindableTypes { get; }
 
-        public void Bindable<T>(string name) where T : Scripting.BindableType, new();
+        public void Bindable<T>(string name) where T : BindableType, new();
     }
 }

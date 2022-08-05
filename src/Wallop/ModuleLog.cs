@@ -2,7 +2,7 @@
 using NLog.Config;
 using NLog.LayoutRenderers;
 using System.Text;
-using Wallop.DSLExtension.Modules;
+using Wallop.Shared.Modules;
 
 namespace Wallop
 {

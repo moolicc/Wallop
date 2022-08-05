@@ -5,7 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using Wallop.DSLExtension.Scripting;
+using Wallop.Shared.Scripting;
 
 namespace Scripting.IronPython
 {

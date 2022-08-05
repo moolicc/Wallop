@@ -10,12 +10,13 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using TrippyGL;
-using Wallop.DSLExtension.Scripting;
 using Wallop.Scripting;
+using Wallop.Shared.Scripting;
+using Wallop.Shared.Types.Plugin;
 
 namespace HostApis
 {
-    public class TrippyGLApi : Wallop.DSLExtension.Types.Plugin.IHostApi
+    public class TrippyGLApi : IHostApi
     {
         public string Name => "TrippyGL";
 

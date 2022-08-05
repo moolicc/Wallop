@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Wallop.DSLExtension.Modules.SettingTypes
+namespace Wallop.Shared.Modules.SettingTypes
 {
     public class TypeCache
     {
@@ -49,7 +49,7 @@ namespace Wallop.DSLExtension.Modules.SettingTypes
 
         public bool TryDeserialize(string type, string value, out object? result, IEnumerable<KeyValuePair<string, string>>? args)
         {
-            if(!Types.TryGetValue(type, out var instance))
+            if (!Types.TryGetValue(type, out var instance))
             {
                 result = null;
                 return false;

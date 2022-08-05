@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Wallop.DSLExtension.Types.Plugin;
+using Wallop.Shared.Types.Plugin;
 
 namespace StandardComponents
 {

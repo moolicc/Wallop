@@ -1,7 +1,8 @@
-﻿using Wallop.DSLExtension.Modules;
-using Wallop.ECS;
-using Wallop.SceneManagement;
+﻿using Wallop.ECS;
 using Wallop.Settings;
+using Wallop.Shared.ECS;
+using Wallop.Shared.Modules;
+using Wallop.Shared.Scripting;
 
 namespace Wallop.Scripting.ECS
 {
@@ -33,13 +34,13 @@ namespace Wallop.Scripting.ECS
             Components = new List<object>();
         }
 
-        public void AddedToLayout(Layout owner)
+        public void AddedToLayout(ILayout owner)
         {
-            if (_owningLayout != null)
+            if (_owningLayout != null || owner is not Layout)
             {
                 // TODO: Error
             }
-            _owningLayout = owner;
+            _owningLayout = (Layout)owner;
             Id = owner.Name + NAMESPACE_DELIMITER + StoredDefinition.InstanceName;
         }
 
@@ -47,7 +48,7 @@ namespace Wallop.Scripting.ECS
         {
             foreach (var component in Components)
             {
-                if (component is DSLExtension.Scripting.BindableType bindable)
+                if (component is BindableType bindable)
                 {
                     bindable.Cleanup();
                 }
