@@ -25,19 +25,19 @@ namespace Wallop.Shared.Messaging
 
         public bool IsEmpty => _queue.IsEmpty;
 
-        private ConcurrentQueue<(T payload, uint msgId)> _queue;
+        private ConcurrentQueue<MessageProxy<T>> _queue;
         private ushort _nextId;
 
         public MessageQueue()
         {
-            _queue = new ConcurrentQueue<(T, uint)>();
+            _queue = new ConcurrentQueue<MessageProxy<T>>();
             _nextId = 1;
         }
 
 
-        public TakeResults TakeNext(out (T payload, uint messageId) result)
+        public TakeResults TakeNext(out MessageProxy<T> result)
         {
-            result = (default(T), 0);
+            result = default(MessageProxy<T>);
 
             if (_queue.IsEmpty)
             {
@@ -70,12 +70,12 @@ namespace Wallop.Shared.Messaging
 
             if (MessageListener != null)
             {
-                MessageListener((value, messageId), ref handled);
+                MessageListener(new MessageProxy<T>(value, messageId), ref handled);
             }
 
             if (!handled)
             {
-                _queue.Enqueue((value, messageId));
+                _queue.Enqueue(new MessageProxy<T>(value, messageId));
             }
             return messageId;
         }

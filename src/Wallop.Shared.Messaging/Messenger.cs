@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -7,17 +8,19 @@ using System.Threading.Tasks;
 
 namespace Wallop.Shared.Messaging
 {
-    public delegate void MessageListener<T>((T payload, uint messageId) message, ref bool handled) where T : struct;
-
-    public class Messenger
+    public class Messenger : IMessenger
     {
         private Dictionary<Type, IMessageQueue> _queues;
         private ushort _nextMessageId;
+        private List<MessageHook> _putHooks;
+        private List<MessageHook> _takeHooks;
 
         public Messenger()
         {
             _queues = new Dictionary<Type, IMessageQueue>();
             _nextMessageId = 1;
+            _putHooks = new List<MessageHook>();
+            _takeHooks = new List<MessageHook>();
         }
 
         public void RegisterQueue<T>() where T : struct
@@ -37,23 +40,31 @@ namespace Wallop.Shared.Messaging
             if (queue is MessageQueue<T> msgQueue)
             {
                 bool succeeded = msgQueue.TakeNext(out var result) == TakeResults.Succeeded;
-                payload = result.payload;
-                messageId = result.messageId;
-                return succeeded;
+
+                if (!succeeded)
+                {
+                    return false;
+                }
+
+                payload = result.Payload;
+                messageId = result.MessageId;
+
+                RunTakeHooks(messageId, payload, typeof(T));
+                return true;
             }
             return false;
         }
 
-        public (T Payload, uint MessageId)[] Take<T>(int count) where T : struct
+        public MessageProxy<T>[] Take<T>(int count) where T : struct
         {
             return Take<T>(ref count);
         }
 
-        public (T Payload, uint MessageId)[] Take<T>(ref int count) where T : struct
+        public MessageProxy<T>[] Take<T>(ref int count) where T : struct
         {
             const int MAX_FAILURES = 5;
 
-            var buffer = new (T, uint)[count];
+            var buffer = new MessageProxy<T>[count];
             if (!_queues.TryGetValue(typeof(T), out var queue))
             {
                 queue = new MessageQueue<T>();
@@ -88,7 +99,65 @@ namespace Wallop.Shared.Messaging
             return buffer;
         }
 
-        public uint Put(object message, Type messageType)
+        public bool Take([NotNullWhen(true)] out ValueType? payload, Type messageType, ref uint messageId)
+        {
+            payload = null;
+
+            var constructedType = typeof(MessageQueue<>).MakeGenericType(messageType);
+            if (!_queues.TryGetValue(messageType, out var queue))
+            {
+                return false;
+            }
+
+            var proxyType = typeof(MessageProxy<>).MakeGenericType(messageType);
+            var proxyInstance = Activator.CreateInstance(proxyType);
+            try
+            {
+                var methods = constructedType.GetMethods().Where(m => m.Name == nameof(MessageQueue<int>.TakeNext));
+                MethodInfo? method = null;
+
+                foreach (var item in methods)
+                {
+                    var param = item.GetParameters();
+                    if (param.Length == 1)
+                    {
+                        if (param[0].ParameterType == proxyType)
+                        {
+                            method = item;
+                            break;
+                        }
+                    }
+                }
+
+                if (method == null)
+                {
+                    throw new KeyNotFoundException("Failed to find expected Enqueue method.");
+                }
+                var result = (TakeResults)(method.Invoke(queue, new[] { proxyInstance }) ?? TakeResults.Failed);
+
+                if(result == TakeResults.OutOfElements
+                    || result == TakeResults.Failed)
+                {
+                    return false;
+                }
+
+                var property = proxyType.GetProperty("Payload")!;
+                var propertyValue = property.GetValue(proxyInstance)!;
+                payload = (ValueType)propertyValue;
+
+                property = proxyType.GetProperty("MessageId")!;
+                propertyValue = property.GetValue(proxyInstance)!;
+                messageId = (uint)propertyValue;
+
+                return true;
+            }
+            catch (Exception)
+            {
+            }
+            return false;
+        }
+
+        public uint Put(ValueType message, Type messageType)
         {
             var constructedType = typeof(MessageQueue<>).MakeGenericType(messageType);
             if (!_queues.TryGetValue(messageType, out var queue))
@@ -113,7 +182,7 @@ namespace Wallop.Shared.Messaging
 
             try
             {
-                var methods = constructedType.GetMethods().Where(m => m.Name == nameof(Queue<int>.Enqueue));
+                var methods = constructedType.GetMethods().Where(m => m.Name == nameof(MessageQueue<int>.Enqueue));
                 MethodInfo? method = null;
 
                 foreach (var item in methods)
@@ -141,6 +210,7 @@ namespace Wallop.Shared.Messaging
                 return 0;
             }
 
+            RunPutHooks(msgId, message, messageType);
             return msgId;
         }
 
@@ -168,6 +238,7 @@ namespace Wallop.Shared.Messaging
                 return 0;
             }
 
+            RunPutHooks(msgId, message, typeof(T));
             return msgId;
         }
 
@@ -188,7 +259,28 @@ namespace Wallop.Shared.Messaging
                 return 0;
             }
 
+            RunPutHooks(preferredId, message, typeof(T));
             return preferredId;
+        }
+
+
+        public void AddPutHook(MessageHook hook)
+        {
+            _putHooks.Add(hook);
+        }
+
+        public void RemovePutHook(MessageHook hook)
+        {
+            _putHooks.Remove(hook);
+        }
+        public void AddTakeHook(MessageHook hook)
+        {
+            _takeHooks.Add(hook);
+        }
+
+        public void RemoveTakeHook(MessageHook hook)
+        {
+            _takeHooks.Remove(hook);
         }
 
         public void Listen<T>(MessageListener<T> listener) where T : struct
@@ -209,6 +301,39 @@ namespace Wallop.Shared.Messaging
             foreach (var queue in _queues)
             {
                 queue.Value.ClearState();
+            }
+        }
+
+        private void RunPutHooks(uint messageId, ValueType message, Type messageType)
+        {
+            foreach (var item in _putHooks)
+            {
+                item(new[] { messageId }, new[] { message }, messageType);
+            }
+        }
+
+        private void RunTakeHooks(uint messageId, ValueType message, Type messageType)
+        {
+            foreach (var item in _takeHooks)
+            {
+                item(new[] { messageId }, new[] { message }, messageType);
+            }
+        }
+
+        private void RunTakeHooks<T>(MessageProxy<T>[] buffer) where T : struct
+        {
+            var ids = new uint[buffer.Length];
+            var values = new ValueType[buffer.Length];
+
+            for (int i = 0; i < buffer.Length; i++)
+            {
+                ids[i] = buffer[i].MessageId;
+                values[i] = buffer[i].Payload;
+            }
+
+            foreach (var item in _takeHooks)
+            {
+                item(ids, values, typeof(T));
             }
         }
     }

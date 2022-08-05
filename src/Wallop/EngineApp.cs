@@ -8,7 +8,7 @@ using Wallop.Shared.Scripting;
 using Wallop.Handlers;
 using Wallop.Shared.Messaging;
 using Wallop.Shared.Messaging.Messages;
-using Wallop.Shared.Messaging.Messages.Json;
+using Wallop.Shared.Messaging.Json;
 using Wallop.Scripting;
 using Wallop.Settings;
 using Wallop.Shared.Types.Plugin;

@@ -6,4 +6,12 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Messages\ReplyPayloads\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Wallop.IPC\Wallop.IPC.csproj" />
+  </ItemGroup>
+
 </Project>

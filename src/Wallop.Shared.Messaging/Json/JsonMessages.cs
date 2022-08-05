@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Wallop.Shared.Messaging.Messages.Json
+namespace Wallop.Shared.Messaging.Json
 {
     public record JsonMessages(List<JsonMessage> Messages);
 
-    public record JsonMessage(MessageTypes MessageType, System.Text.Json.Nodes.JsonObject MessageData);
+    public record JsonMessage(string MessageType, System.Text.Json.Nodes.JsonObject MessageData);
 
 }
