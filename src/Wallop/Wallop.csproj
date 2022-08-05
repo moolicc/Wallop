@@ -17,9 +17,9 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\WallopSceneEditor\wallop\src\Cog\Cog\Cog.csproj" />
     <ProjectReference Include="..\..\..\WallopSceneEditor\wallop\src\PluginPantry\PluginPantry\PluginPantry.csproj" />
-    <ProjectReference Include="..\Wallop.DSLExtension\Wallop.Shared.csproj" />
     <ProjectReference Include="..\Wallop.IPC\Wallop.IPC.csproj" />
     <ProjectReference Include="..\Wallop.Shared.Messaging\Wallop.Shared.Messaging.csproj" />
+    <ProjectReference Include="..\Wallop.Shared\Wallop.Shared.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="engine.json">

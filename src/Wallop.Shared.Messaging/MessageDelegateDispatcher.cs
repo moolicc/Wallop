@@ -90,7 +90,7 @@ namespace Wallop.Shared.Messaging
                     replyContent = new MessageReply(messageId, ReplyStatus.NotSpecified, "", replyContent.GetType(), replyContent);
                 }
 
-                messenger.Put(replyContent, typeof(MessageReply));
+                messenger.Put((ValueType)replyContent, typeof(MessageReply));
             }
         }
     }

@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Wallop.DSLExtension\Wallop.Shared.csproj" />
     <ProjectReference Include="..\..\Wallop\Wallop.csproj" />
   </ItemGroup>
 

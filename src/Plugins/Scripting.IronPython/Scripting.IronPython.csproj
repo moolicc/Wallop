@@ -13,7 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Wallop.DSLExtension\Wallop.Shared.csproj" />
+    <ProjectReference Include="..\..\..\..\WallopSceneEditor\wallop\src\PluginPantry\PluginPantry\PluginPantry.csproj" />
+    <ProjectReference Include="..\..\Wallop.Shared\Wallop.Shared.csproj" />
   </ItemGroup>
 	
 	<PropertyGroup>

@@ -39,8 +39,10 @@ namespace Wallop.Shared.Messaging.Remoting
 
 
 
-        public bool Take(ref ValueType payload, Type targetType, ref uint messageId)
+        public bool Take(out ValueType? payload, Type targetType, ref uint messageId)
         {
+            payload = null;
+
             var outgoing = new PushMessage(MessageDirection.Take, null, targetType);
             var data = JsonSerializer.Serialize(outgoing);
 

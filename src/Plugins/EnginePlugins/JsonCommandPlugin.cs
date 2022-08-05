@@ -7,7 +7,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using Wallop.Shared.Messaging.Messages.Json;
+using Wallop.Shared.Messaging.Json;
 using Wallop.Types.Plugins.EndPoints;
 
 namespace EnginePlugins
