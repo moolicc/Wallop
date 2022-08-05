@@ -15,8 +15,8 @@
     <None Remove="PluginManagement\**" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Cog\Cog\Cog.csproj" />
-    <ProjectReference Include="..\PluginPantry\PluginPantry\PluginPantry.csproj" />
+    <ProjectReference Include="..\..\..\WallopSceneEditor\wallop\src\Cog\Cog\Cog.csproj" />
+    <ProjectReference Include="..\..\..\WallopSceneEditor\wallop\src\PluginPantry\PluginPantry\PluginPantry.csproj" />
     <ProjectReference Include="..\Wallop.DSLExtension\Wallop.Shared.csproj" />
     <ProjectReference Include="..\Wallop.IPC\Wallop.IPC.csproj" />
   </ItemGroup>
