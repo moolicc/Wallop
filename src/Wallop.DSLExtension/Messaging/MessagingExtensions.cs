@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Wallop.Messaging.Messages;
+using Wallop.Shared.Messaging.Messages;
 
-namespace Wallop.Messaging
+namespace Wallop.Shared.Messaging
 {
     public static class MessagingExtensions
     {
@@ -30,7 +30,7 @@ namespace Wallop.Messaging
         public static void ReplyFailed(this Messenger messenger, uint messageId, string? statusMessage = null, Exception? errorPayload = null)
         {
             Type? payloadType = null;
-            if(errorPayload != null)
+            if (errorPayload != null)
             {
                 payloadType = errorPayload.GetType();
             }
@@ -58,7 +58,7 @@ namespace Wallop.Messaging
             // Seed our first reply.
             if (!messenger.Take(ref incomingReply, ref incomingReplyId))
             {
-                reply = default(T);
+                reply = default;
                 return false;
             }
 
@@ -79,7 +79,7 @@ namespace Wallop.Messaging
                 messenger.Put(incomingReply, incomingReplyId);
 
                 // If we've wrapped back around the queue to the start, forget it.
-                if(incomingReplyId == startingIncomingId)
+                if (incomingReplyId == startingIncomingId)
                 {
                     result = false;
                     break;
@@ -87,16 +87,16 @@ namespace Wallop.Messaging
             }
 
             // If we failed somewhere in the loop, return as such.
-            if(!result)
+            if (!result)
             {
-                reply = default(T);
+                reply = default;
                 return false;
             }
 
             // Return the data cast to the correct Type.
-            if(incomingReply.Content is null)
+            if (incomingReply.Content is null)
             {
-                reply = default(T);
+                reply = default;
             }
             else
             {
@@ -133,7 +133,7 @@ namespace Wallop.Messaging
             {
                 return (T)incomingReply.Content;
             }
-            return default(T);
+            return default;
         }
     }
 }

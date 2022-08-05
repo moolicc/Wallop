@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using Wallop.Shared.Messaging.Messages.Json;
 using Wallop.Types.Plugins.EndPoints;
 
 namespace EnginePlugins
@@ -43,7 +44,7 @@ namespace EnginePlugins
                     s = s.Replace('\'', '"');
                 }
 
-                var messages = Wallop.Messaging.Messages.Json.Json.ParseMessages(s);
+                var messages = Json.ParseMessages(s);
 
                 foreach (var item in messages)
                 {

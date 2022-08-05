@@ -6,7 +6,9 @@ using Wallop.Shared.ECS.Serialization;
 using Wallop.Shared.Modules;
 using Wallop.Shared.Scripting;
 using Wallop.Handlers;
-using Wallop.Messaging;
+using Wallop.Shared.Messaging;
+using Wallop.Shared.Messaging.Messages;
+using Wallop.Shared.Messaging.Messages.Json;
 using Wallop.Scripting;
 using Wallop.Settings;
 using Wallop.Shared.Types.Plugin;
@@ -113,7 +115,7 @@ namespace Wallop
                     j = File.ReadAllText(j);
                 }
 
-                var messages = Messaging.Messages.Json.Json.ParseMessages(j);
+                var messages = Json.ParseMessages(j);
 
                 foreach (var item in messages)
                 {

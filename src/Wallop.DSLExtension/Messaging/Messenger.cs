@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Wallop.Messaging
+namespace Wallop.Shared.Messaging
 {
     public delegate void MessageListener<T>((T payload, uint messageId) message, ref bool handled) where T : struct;
 
@@ -28,7 +28,7 @@ namespace Wallop.Messaging
 
         public bool Take<T>(ref T payload, ref uint messageId) where T : struct
         {
-            if(!_queues.TryGetValue(typeof(T), out var queue))
+            if (!_queues.TryGetValue(typeof(T), out var queue))
             {
                 queue = new MessageQueue<T>();
                 _queues.Add(typeof(T), queue);
@@ -130,7 +130,7 @@ namespace Wallop.Messaging
                     }
                 }
 
-                if(method == null)
+                if (method == null)
                 {
                     throw new KeyNotFoundException("Failed to find expected Enqueue method.");
                 }

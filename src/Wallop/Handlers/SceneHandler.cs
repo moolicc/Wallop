@@ -7,7 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Wallop.ECS;
-using Wallop.Messaging.Messages;
+using Wallop.Shared.Messaging;
+using Wallop.Shared.Messaging.Messages;
 using Wallop.SceneManagement.Serialization;
 using Wallop.Scripting;
 using Wallop.Scripting.ECS;
@@ -284,7 +285,7 @@ namespace Wallop.Handlers
             sceneExportCommand.SetHandler(
                 (string exportLocationOpts, string exportName) =>
                 {
-                    App.Messenger.Put(new SceneSaveMessage(SettingsSaveOptions.Default, exportLocationOpts));
+                    App.Messenger.Put(new SceneSaveMessage((int)SettingsSaveOptions.Default, exportLocationOpts));
                 }, exportLocationOpts, exportAsNameOpts);
 
 
@@ -336,22 +337,22 @@ namespace Wallop.Handlers
             sceneCommand.SetHandler(new Action<string, ThreadingPolicy, string, IEnumerable<string>, string, ThreadingPolicy>(
                 (defaultSceneName, drawThreadingPolicy, pkgSearchDir, scenePreloads, selectedScene, updateThreadingPolicy) =>
                 {
-                    var changes = new SceneSettings()
-                    {
-                        DefaultSceneName = defaultSceneName,
-                        DrawThreadingPolicy = drawThreadingPolicy,
-                        PackageSearchDirectory = pkgSearchDir,
-                        ScenePreloadList = new List<string>(scenePreloads),
-                        SelectedScene = selectedScene,
-                        UpdateThreadingPolicy = updateThreadingPolicy
-                    };
 
                     if(_sceneLoaded || !firstInstance)
                     {
-                        App.Messenger.Put(new SceneSettingsMessage(changes));
+                        App.Messenger.Put(new SceneSettingsMessage(pkgSearchDir, defaultSceneName, selectedScene, scenePreloads.ToArray(), (int)updateThreadingPolicy, (int)drawThreadingPolicy));
                     }
                     else
                     {
+                        var changes = new SceneSettings()
+                        {
+                            DefaultSceneName = defaultSceneName,
+                            DrawThreadingPolicy = drawThreadingPolicy,
+                            PackageSearchDirectory = pkgSearchDir,
+                            ScenePreloadList = new List<string>(scenePreloads),
+                            SelectedScene = selectedScene,
+                            UpdateThreadingPolicy = updateThreadingPolicy
+                        };
                         _sceneSettings = changes;
                     }
                 }), defaultSceneNameOpts, drawThreadingPolicyOpts, pkgSearchDirOpts, scenePreloadsOpts, selectedSceneOpts, updateThreadingPolicyOpts);
@@ -617,29 +618,29 @@ namespace Wallop.Handlers
 
             try
             {
-                _sceneSettings.DefaultSceneName = message.Settings.DefaultSceneName;
+                _sceneSettings.DefaultSceneName = message.DefaultSceneName ?? _sceneSettings.DefaultSceneName;
 
-                if (_sceneSettings.PackageSearchDirectory != message.Settings.PackageSearchDirectory)
+                if (message.PackageSearchDirectory != null && _sceneSettings.PackageSearchDirectory != message.PackageSearchDirectory)
                 {
-                    _sceneSettings.PackageSearchDirectory = message.Settings.PackageSearchDirectory;
-                    PackageCache.ReloadAll(message.Settings.PackageSearchDirectory);
+                    _sceneSettings.PackageSearchDirectory = message.PackageSearchDirectory;
+                    PackageCache.ReloadAll(message.PackageSearchDirectory);
                 }
 
-                if (_sceneSettings.DrawThreadingPolicy != message.Settings.DrawThreadingPolicy)
+                if (message.DrawPolicy.HasValue && (int)_sceneSettings.DrawThreadingPolicy != message.DrawPolicy.Value)
                 {
-                    _sceneSettings.DrawThreadingPolicy = message.Settings.DrawThreadingPolicy;
-                    _taskHandler.DrawPolicy = message.Settings.DrawThreadingPolicy;
+                    _sceneSettings.DrawThreadingPolicy = (ThreadingPolicy)message.DrawPolicy.Value;
+                    _taskHandler.DrawPolicy = (ThreadingPolicy)message.DrawPolicy.Value;
                 }
-                if (_sceneSettings.UpdateThreadingPolicy != message.Settings.UpdateThreadingPolicy)
+                if (message.UpdatePolicy.HasValue && (int)_sceneSettings.UpdateThreadingPolicy != message.UpdatePolicy.Value)
                 {
-                    _sceneSettings.UpdateThreadingPolicy = message.Settings.UpdateThreadingPolicy;
-                    _taskHandler.UpdatePolicy = message.Settings.UpdateThreadingPolicy;
+                    _sceneSettings.UpdateThreadingPolicy = (ThreadingPolicy)message.UpdatePolicy.Value;
+                    _taskHandler.UpdatePolicy = (ThreadingPolicy)message.UpdatePolicy.Value;
                 }
 
 
-                foreach (var item in message.Settings.ScenePreloadList)
+                foreach (var item in message.ScenePreloads ?? Array.Empty<string>())
                 {
-                    if (item == message.Settings.SelectedScene || item == message.Settings.DefaultSceneName)
+                    if (item == message.SelectedScene || item == message.DefaultSceneName)
                     {
                         continue;
                     }
@@ -651,9 +652,9 @@ namespace Wallop.Handlers
                     _sceneStore.Load(item);
                 }
 
-                if(message.Settings.SelectedScene != _sceneSettings.SelectedScene)
+                if(message.SelectedScene != null && message.SelectedScene != _sceneSettings.SelectedScene)
                 {
-                    SwitchScene(message.Settings.SelectedScene);
+                    SwitchScene(message.SelectedScene);
                 }
             }
             catch (Exception ex)
@@ -849,7 +850,7 @@ namespace Wallop.Handlers
         {
             try
             {
-                SaveCurrentSceneConfig(message.Options, message.Location);
+                SaveCurrentSceneConfig((SettingsSaveOptions)message.Options!, message.Location!);
             }
             catch (Exception ex)
             {

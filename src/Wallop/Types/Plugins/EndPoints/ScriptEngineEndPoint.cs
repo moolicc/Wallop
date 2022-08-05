@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Wallop.Shared.Scripting;
 using Wallop.Shared.Types.Plugin;
+using Wallop.Shared.Messaging;
+using Wallop.Shared.Messaging.Messages;
 
 namespace Wallop.Types.Plugins.EndPoints
 {
@@ -13,7 +15,7 @@ namespace Wallop.Types.Plugins.EndPoints
         internal readonly List<IScriptEngineProvider> EngineProviders;
 
 
-        public ScriptEngineEndPoint(Messaging.Messenger messages)
+        public ScriptEngineEndPoint(Messenger messages)
             : base(messages)
         {
             EngineProviders = new List<IScriptEngineProvider>();

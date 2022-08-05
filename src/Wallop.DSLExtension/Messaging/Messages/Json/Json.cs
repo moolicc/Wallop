@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Wallop.Messaging.Messages.Json
+namespace Wallop.Shared.Messaging.Messages.Json
 {
     public static class Json
     {
@@ -38,24 +38,24 @@ namespace Wallop.Messaging.Messages.Json
             return _typeMap.First(kvp => kvp.Value == type).Key;
         }
 
-        
+
         public static IEnumerable<(object Value, Type MessageType)> ParseMessages(string jsonSource)
         {
             var root = System.Text.Json.JsonSerializer.Deserialize<JsonMessages>(jsonSource);
 
-            if(root == null)
+            if (root == null)
             {
                 throw new InvalidOperationException("Failed to parse json source.");
             }
 
             foreach (var item in root.Messages)
             {
-                if(item != null)
+                if (item != null)
                 {
                     var type = GetType(item.MessageType);
                     var result = System.Text.Json.JsonSerializer.Deserialize(item.MessageData, type);
 
-                    if(result == null)
+                    if (result == null)
                     {
                         throw new InvalidOperationException("Failed to parse message from json.");
                     }

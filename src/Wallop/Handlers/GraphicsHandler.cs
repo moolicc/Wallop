@@ -8,7 +8,8 @@ using System.CommandLine.NamingConventionBinder;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Wallop.Messaging;
+using Wallop.Shared.Messaging;
+using Wallop.Shared.Messaging.Messages;
 using Wallop.Settings;
 using Wallop.Types.Plugins;
 using Wallop.Types.Plugins.EndPoints;
@@ -72,20 +73,21 @@ namespace Wallop.Handlers
             var graphicsHandler = CommandHandler.Create<int, int, WindowBorder, bool, double, bool>(
                 (winWidth, winHeight, winBorder, overlay, refreshRate, vsync) =>
                 {
-                    var changes = new Settings.GraphicsSettings();
-                    changes.WindowWidth = winWidth;
-                    changes.WindowHeight = winHeight;
-                    changes.WindowBorder = winBorder;
-                    changes.Overlay = overlay;
-                    changes.RefreshRate = refreshRate;
-                    changes.VSync = vsync;
 
                     if (WindowInitialized || !firstInstance)
                     {
-                        App.Messenger.Put(new GraphicsMessage() { ChangeSet = changes });
+                        App.Messenger.Put(new GraphicsMessage(winWidth, winHeight, overlay, (int)winBorder, refreshRate, vsync));
                     }
                     else
                     {
+                        var changes = new GraphicsSettings();
+                        changes.WindowWidth = winWidth;
+                        changes.WindowHeight = winHeight;
+                        changes.WindowBorder = winBorder;
+                        changes.Overlay = overlay;
+                        changes.RefreshRate = refreshRate;
+                        changes.VSync = vsync;
+
                         _graphicsSettings = changes;
                     }
                 });
@@ -98,16 +100,16 @@ namespace Wallop.Handlers
         {
             try
             {
-                var newSize = new Vector2D<int>(msg.ChangeSet.WindowWidth, msg.ChangeSet.WindowHeight);
-                var newBorder = msg.ChangeSet.WindowBorder;
-                var newRefreshRate = msg.ChangeSet.RefreshRate;
-                var newVsync = msg.ChangeSet.VSync;
+                (int? X, int? Y) newSize = (msg.WindowWidth, msg.WindowHeight);
+                var newBorder = (WindowBorder?)msg.WindowBorder;
+                var newRefreshRate = msg.RefreshRate;
+                var newVsync = msg.VSync;
 
 
                 bool? overlayUpdate = null;
-                if (_graphicsSettings.Overlay != msg.ChangeSet.Overlay)
+                if (msg.Overlay.HasValue && _graphicsSettings.Overlay != msg.Overlay.Value)
                 {
-                    overlayUpdate = msg.ChangeSet.Overlay;
+                    overlayUpdate = msg.Overlay;
                 }
 
                 UpdateGraphics(newSize, newBorder, newRefreshRate, newVsync, overlayUpdate);
@@ -198,21 +200,23 @@ namespace Wallop.Handlers
 
         private void WindowResized(Vector2D<int> size)
         {
-            UpdateGraphics(size);
+            UpdateGraphics((size.X, size.Y));
         }
 
-        private void UpdateGraphics(Vector2D<int>? size = null, WindowBorder? border = null, double? refreshRate = null, bool? vsync = null, bool? overlay = null)
+        private void UpdateGraphics((int? X, int? Y)? size = null, WindowBorder? border = null, double? refreshRate = null, bool? vsync = null, bool? overlay = null)
         {
-            if(size == null)
+            if (!size.HasValue)
             {
                 _gl.Viewport(_window.Size);
             }
             else
             {
-                _graphicsSettings.WindowWidth = size.Value.X;
-                _graphicsSettings.WindowHeight = size.Value.Y;
-                _window.Size = size.Value;
-                _gl.Viewport(size.Value);
+                var x = size.Value.X ?? _graphicsSettings.WindowWidth;
+                var y = size.Value.Y ?? _graphicsSettings.WindowHeight;
+                var newSize = new Vector2D<int>(x, y);
+
+                _window.Size = newSize;
+                _gl.Viewport(newSize);
             }
 
             if(border.HasValue)

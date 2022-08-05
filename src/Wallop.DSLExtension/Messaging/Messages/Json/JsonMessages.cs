@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Wallop.Messaging.Messages.Json
+namespace Wallop.Shared.Messaging.Messages.Json
 {
     public record JsonMessages(List<JsonMessage> Messages);
 

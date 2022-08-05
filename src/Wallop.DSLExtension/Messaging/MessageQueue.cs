@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Wallop.Messaging
+namespace Wallop.Shared.Messaging
 {
     public enum TakeResults
     {
@@ -43,12 +43,12 @@ namespace Wallop.Messaging
             {
                 return TakeResults.OutOfElements;
             }
-            else if(!_queue.TryDequeue(out result))
+            else if (!_queue.TryDequeue(out result))
             {
                 return TakeResults.Failed;
             }
 
-            
+
             return TakeResults.Succeeded;
         }
 

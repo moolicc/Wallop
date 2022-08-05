@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Wallop.Shared.Messaging;
+using Wallop.Shared.Messaging.Messages;
 
 namespace Wallop.Types.Plugins.EndPoints
 {
@@ -12,7 +14,7 @@ namespace Wallop.Types.Plugins.EndPoints
         public IWindow Window { get; private set; }
         public nint WindowHandle => Window.Handle;
 
-        internal OverlayerEndPoint(Messaging.Messenger messages, IWindow window)
+        internal OverlayerEndPoint(Messenger messages, IWindow window)
             : base(messages)
         {
             Window = window;

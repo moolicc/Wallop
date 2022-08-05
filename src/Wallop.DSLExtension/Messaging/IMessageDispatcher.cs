@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Wallop.Messaging
+namespace Wallop.Shared.Messaging
 {
-    public struct GraphicsMessage
+    public interface IMessageDispatcher
     {
-        public Settings.GraphicsSettings ChangeSet;
+        void Dispatch(Messenger messenger);
     }
 }

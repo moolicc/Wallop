@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Wallop.Shared.Messaging;
 using Wallop.Shared.Scripting;
 using Wallop.Shared.Types.Plugin;
 
@@ -14,7 +15,7 @@ namespace Wallop.Types.Plugins.EndPoints
 
         private Dictionary<string, Type> _bindableTypes;
 
-        public BindableTypeEndPoint(Messaging.Messenger messages)
+        public BindableTypeEndPoint(Messenger messages)
             : base(messages)
         {
             _bindableTypes = new Dictionary<string, Type>();

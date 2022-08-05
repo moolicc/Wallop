@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Wallop.Shared.Modules;
+using Wallop.Shared.Messaging;
 using Wallop.Shared.Scripting;
 using Wallop.Shared.Types.Plugin;
 
@@ -15,7 +16,7 @@ namespace Wallop.Types.Plugins.EndPoints
 
         public IScriptContext Context { get; private set; }
 
-        public ScriptInjectEndPoint(Messaging.Messenger messages, Module currentModule, IScriptContext currentContext)
+        public ScriptInjectEndPoint(Messenger messages, Module currentModule, IScriptContext currentContext)
             : base(messages)
         {
             CurrentModule = currentModule;

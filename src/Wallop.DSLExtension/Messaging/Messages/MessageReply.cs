@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Wallop.Messaging.Messages
+namespace Wallop.Shared.Messaging.Messages
 {
     public enum ReplyStatus
     {

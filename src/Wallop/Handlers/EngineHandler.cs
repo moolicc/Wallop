@@ -4,8 +4,9 @@ using System.CommandLine;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Wallop.Messaging;
-using Wallop.Messaging.Messages;
+using Wallop.Shared.Messaging;
+using Wallop.Shared.Messaging.Messages;
+
 
 namespace Wallop.Handlers
 {

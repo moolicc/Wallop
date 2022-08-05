@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Wallop.Messaging.Messages;
+using Wallop.Shared.Messaging.Messages;
 
-namespace Wallop.Messaging
+namespace Wallop.Shared.Messaging
 {
     public delegate void MessageHandler<T>(T message, uint messageId) where T : struct;
     public delegate object? MessageHandlerReply<T>(T message, uint messageId) where T : struct;
@@ -46,11 +46,11 @@ namespace Wallop.Messaging
 
         public void Dispatch(Messenger messenger)
         {
-            if(Handler == null && HandlerWithReply == null)
+            if (Handler == null && HandlerWithReply == null)
             {
                 return;
             }
-            if(MessagesPerDispatch == 1)
+            if (MessagesPerDispatch == 1)
             {
                 T message = default;
                 uint messageId = 0;
@@ -59,11 +59,11 @@ namespace Wallop.Messaging
                     Handle(messenger, message, messageId);
                 }
             }
-            else if(MessagesPerDispatch > 1)
+            else if (MessagesPerDispatch > 1)
             {
                 int actualCount = MessagesPerDispatch;
                 var buffer = messenger.Take<T>(ref actualCount);
-                for(int i = 0; i < actualCount; i++)
+                for (int i = 0; i < actualCount; i++)
                 {
                     Handle(messenger, buffer[i].Payload, buffer[i].MessageId);
                 }
@@ -80,7 +80,7 @@ namespace Wallop.Messaging
             {
                 var replyContent = HandlerWithReply(message, messageId);
 
-                if(replyContent == null)
+                if (replyContent == null)
                 {
                     return;
                 }
