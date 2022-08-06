@@ -11,10 +11,10 @@ namespace Wallop.Shared.Messaging
     {
         public static void ReplySuccess(this IMessenger messenger, uint messageId, object? replyPayload = null)
         {
-            Type? payloadType = null;
+            string? payloadType = null;
             if (replyPayload != null)
             {
-                payloadType = replyPayload.GetType();
+                payloadType = replyPayload.GetType().FullName;
             }
 
             var reply = new MessageReply(messageId, ReplyStatus.Successful, "Operation successful.", payloadType, replyPayload);
@@ -23,16 +23,16 @@ namespace Wallop.Shared.Messaging
 
         public static void ReplyInvalid(this IMessenger messenger, uint messageId, string details)
         {
-            var reply = new MessageReply(messageId, ReplyStatus.Failed, "Operation invalid.", typeof(string), details);
+            var reply = new MessageReply(messageId, ReplyStatus.Failed, "Operation invalid.", typeof(string).FullName, details);
             messenger.Put(reply);
         }
 
         public static void ReplyFailed(this IMessenger messenger, uint messageId, string? statusMessage = null, Exception? errorPayload = null)
         {
-            Type? payloadType = null;
+            string? payloadType = null;
             if (errorPayload != null)
             {
-                payloadType = errorPayload.GetType();
+                payloadType = errorPayload.GetType().FullName;
             }
             var reply = new MessageReply(messageId, ReplyStatus.Failed, statusMessage ?? "Operation failed.", payloadType, errorPayload);
             messenger.Put(reply);
@@ -40,7 +40,7 @@ namespace Wallop.Shared.Messaging
 
         public static void Reply<T>(this IMessenger messenger, uint messageId, ReplyStatus status, string statusMessage, T data)
         {
-            var reply = new MessageReply(messageId, status, statusMessage, typeof(T), data);
+            var reply = new MessageReply(messageId, status, statusMessage, typeof(T).FullName, data);
             messenger.Put(reply);
         }
 

@@ -129,6 +129,7 @@ namespace Wallop.IPC
                 {
                     if (message.Message.HasValue)
                     {
+                        Console.WriteLine("ENQUEUEING for {0}", message);
                         _messages.Enqueue(message.Message.Value);
                     }
                     else
@@ -142,6 +143,7 @@ namespace Wallop.IPC
                     while (!_messages.TryDequeue(out outgoingData))
                     {
                     }
+                    Console.WriteLine("DEQUEUING for {0}", outgoingData);
 
                     var outgoing = new PipedMessage(PipedMessageTypes.DequeueRequest, outgoingData);
                     var text = System.Text.Json.JsonSerializer.Serialize(outgoing);

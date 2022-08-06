@@ -50,10 +50,10 @@ namespace Wallop.Handlers
 
         protected virtual MessageReply Success(uint messageId, object? content = null)
         {
-            Type? contentType = null;
+            string? contentType = null;
             if (content != null)
             {
-                contentType = content.GetType();
+                contentType = content.GetType().FullName;
             }
 
             return new MessageReply(messageId, ReplyStatus.Successful, "Operation was successful.", contentType, content);
@@ -62,17 +62,17 @@ namespace Wallop.Handlers
 
         protected virtual MessageReply Invalid(uint messageId, string? details = null)
         {
-            Type contentType = typeof(string);
+            string contentType = typeof(string).FullName!;
             return new MessageReply(messageId, ReplyStatus.Invalid, "Invalid state.", contentType, details ?? string.Empty);
         }
 
 
         protected virtual MessageReply Fail(uint messageId, Exception? exception = null)
         {
-            Type? contentType = null;
+            string? contentType = null;
             if (exception != null)
             {
-                contentType = exception.GetType();
+                contentType = exception.GetType().FullName;
             }
 
             return new MessageReply(messageId, ReplyStatus.Successful, "Operation failed!", contentType, exception);
