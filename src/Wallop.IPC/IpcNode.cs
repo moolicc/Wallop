@@ -141,6 +141,8 @@ namespace Wallop.IPC
 
                                 throw;
                             }
+
+                            break;
                         }
 
                         if(startId == -1)
