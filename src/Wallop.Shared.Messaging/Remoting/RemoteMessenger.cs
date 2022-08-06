@@ -74,7 +74,7 @@ namespace Wallop.Shared.Messaging.Remoting
         {
             payload = null;
 
-            var outgoing = new PushMessage(MessageDirection.Take, null, targetType, null);
+            var outgoing = new PushMessage(MessageDirection.Take, null, targetType.FullName, null);
             var data = JsonSerializer.Serialize(outgoing);
 
             IpcClient.Send(data, HostApplication);
@@ -94,7 +94,7 @@ namespace Wallop.Shared.Messaging.Remoting
         public bool Take<T>(ref T payload, ref uint messageId) where T : struct
         {
             var targetType = typeof(T);
-            var outgoing = new PushMessage(MessageDirection.Take, null, targetType, null);
+            var outgoing = new PushMessage(MessageDirection.Take, null, targetType.FullName, null);
             var data = JsonSerializer.Serialize(outgoing);
 
             IpcClient.Send(data, HostApplication);

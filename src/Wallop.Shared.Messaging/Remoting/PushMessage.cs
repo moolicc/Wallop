@@ -6,5 +6,5 @@ using System.Threading.Tasks;
 
 namespace Wallop.Shared.Messaging.Remoting
 {
-    internal readonly record struct PushMessage(MessageDirection Direction, Json.JsonMessage? PutMessage, Type? TakeType, uint? PreferredId);
+    internal readonly record struct PushMessage(MessageDirection Direction, Json.JsonMessage? PutMessage, string? TakeType, uint? PreferredId);
 }
