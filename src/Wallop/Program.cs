@@ -17,6 +17,7 @@ namespace Wallop
 
         private const string DEFAULT_CONF = "engine.json";
 
+        public const string MESSENGER_PIPE_RESOURCE = "msg";
         private const string ARGS_PIPE_RESOURCE = "args";
         private const string MUTEX_RESOURCE = "single-instance-mutex";
 

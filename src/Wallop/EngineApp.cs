@@ -13,6 +13,7 @@ using Wallop.Scripting;
 using Wallop.Settings;
 using Wallop.Shared.Types.Plugin;
 using Wallop.Types.Plugins.EndPoints;
+using Wallop.Shared.Messaging.Remoting;
 
 
 // TODO:
@@ -40,6 +41,9 @@ namespace Wallop
         private bool _sceneSetup;
 
         private Messenger _messenger;
+        private IPC.PipeHost _relayHost;
+        private IPC.IpcNode _relayNode;
+        private MessageRelay _relay;
         private GraphicsHandler _graphicsHandler;
         private SceneHandler _sceneHandler;
         private List<EngineHandler> _handlers;
@@ -85,10 +89,16 @@ namespace Wallop
         }
 
 
-
         public void Run()
         {
             EngineLog.For<EngineApp>().Info("Beginning Engine Execution!");
+
+            _relayHost = new IPC.PipeHost(AppSettings.InstanceName, $"{AppSettings.InstanceName}{Program.APP_RESOURCE_DELIMITER}{Program.MESSENGER_PIPE_RESOURCE}");
+            _relayHost.Begin();
+
+            _relayNode = new IPC.IpcNode(_relayHost);
+
+            _relay = new MessageRelay(_relayNode, _messenger);
 
             _graphicsHandler.RunWindow();
         }
