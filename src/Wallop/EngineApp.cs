@@ -89,11 +89,16 @@ namespace Wallop
         }
 
 
-
         public void Run()
         {
             EngineLog.For<EngineApp>().Info("Beginning Engine Execution!");
 
+            _relayHost = new IPC.PipeHost(AppSettings.InstanceName, $"{AppSettings.InstanceName}{Program.APP_RESOURCE_DELIMITER}{Program.MESSENGER_PIPE_RESOURCE}");
+            _relayHost.Begin();
+
+            _relayNode = new IPC.IpcNode(_relayHost);
+
+            _relay = new MessageRelay(_relayNode, _messenger);
 
             _graphicsHandler.RunWindow();
         }
