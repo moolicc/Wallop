@@ -30,7 +30,7 @@ namespace Wallop.Shared.Messaging.Remoting
                 var messageType = Type.GetType(push.PutMessage.MessageType)!;
                 var message = JsonSerializer.Deserialize(push.PutMessage.MessageData, messageType)!;
 
-                var id = Messenger.Put((ValueType)message, messageType);
+                var id = Messenger.Put((ValueType)message, messageType, push.PreferredId);
 
                 var outgoing = new PullMessage(id, null);
                 var encoded = JsonSerializer.Serialize(outgoing);

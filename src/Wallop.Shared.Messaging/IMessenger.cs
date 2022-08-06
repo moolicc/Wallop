@@ -19,6 +19,8 @@ namespace Wallop.Shared.Messaging
 
         uint Put(ValueType message, Type messageType);
         uint Put<T>(T message) where T : struct;
+        uint Put<T>(T message, uint? preferredId) where T : struct;
+        uint Put(ValueType message, Type messageType, uint? preferredId);
 
         void AddTakeHook(MessageHook hook);
         void RemoveTakeHook(MessageHook hook);

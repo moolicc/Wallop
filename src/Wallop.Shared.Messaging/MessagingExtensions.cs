@@ -9,7 +9,7 @@ namespace Wallop.Shared.Messaging
 {
     public static class MessagingExtensions
     {
-        public static void ReplySuccess(this Messenger messenger, uint messageId, object? replyPayload = null)
+        public static void ReplySuccess(this IMessenger messenger, uint messageId, object? replyPayload = null)
         {
             Type? payloadType = null;
             if (replyPayload != null)
@@ -21,13 +21,13 @@ namespace Wallop.Shared.Messaging
             messenger.Put(reply);
         }
 
-        public static void ReplyInvalid(this Messenger messenger, uint messageId, string details)
+        public static void ReplyInvalid(this IMessenger messenger, uint messageId, string details)
         {
             var reply = new MessageReply(messageId, ReplyStatus.Failed, "Operation invalid.", typeof(string), details);
             messenger.Put(reply);
         }
 
-        public static void ReplyFailed(this Messenger messenger, uint messageId, string? statusMessage = null, Exception? errorPayload = null)
+        public static void ReplyFailed(this IMessenger messenger, uint messageId, string? statusMessage = null, Exception? errorPayload = null)
         {
             Type? payloadType = null;
             if (errorPayload != null)
@@ -38,18 +38,18 @@ namespace Wallop.Shared.Messaging
             messenger.Put(reply);
         }
 
-        public static void Reply<T>(this Messenger messenger, uint messageId, ReplyStatus status, string statusMessage, T data)
+        public static void Reply<T>(this IMessenger messenger, uint messageId, ReplyStatus status, string statusMessage, T data)
         {
             var reply = new MessageReply(messageId, status, statusMessage, typeof(T), data);
             messenger.Put(reply);
         }
 
-        public static void Reply<T>(this Messenger messenger, MessageReply reply)
+        public static void Reply<T>(this IMessenger messenger, MessageReply reply)
         {
             messenger.Put(reply);
         }
 
-        public static bool TryGetReply<T>(this Messenger messenger, uint messageId, out T? reply)
+        public static bool TryGetReply<T>(this IMessenger messenger, uint messageId, out T? reply)
         {
             // Hold the reply at the time of the queue.
             uint incomingReplyId = 0;
@@ -105,7 +105,7 @@ namespace Wallop.Shared.Messaging
             return true;
         }
 
-        public static T? AwaitReply<T>(this Messenger messenger, uint messageId)
+        public static T? AwaitReply<T>(this IMessenger messenger, uint messageId)
         {
             // Hold the reply at the time of the queue.
             uint incomingReplyId = 0;

@@ -177,7 +177,71 @@ namespace Wallop.Shared.Messaging
             ushort high;
             unchecked
             {
-                high = _nextMessageId++;
+                high = _nextMessageId;
+                _nextMessageId += 2;
+            }
+
+            try
+            {
+                var methods = constructedType.GetMethods().Where(m => m.Name == nameof(MessageQueue<int>.Enqueue));
+                MethodInfo? method = null;
+
+                foreach (var item in methods)
+                {
+                    var param = item.GetParameters();
+                    if (param.Length == 2)
+                    {
+                        if (param[0].ParameterType == messageType
+                            && param[1].ParameterType == typeof(ushort))
+                        {
+                            method = item;
+                            break;
+                        }
+                    }
+                }
+
+                if (method == null)
+                {
+                    throw new KeyNotFoundException("Failed to find expected Enqueue method.");
+                }
+                msgId = (uint)(method.Invoke(queue, new[] { message, high }) ?? 0);
+            }
+            catch (Exception)
+            {
+                return 0;
+            }
+
+            RunPutHooks(msgId, message, messageType);
+            return msgId;
+        }
+
+        public uint Put(ValueType message, Type messageType, uint? preferredId)
+        {
+            if(!preferredId.HasValue)
+            {
+                return Put(message, messageType);
+            }
+
+            var constructedType = typeof(MessageQueue<>).MakeGenericType(messageType);
+            if (!_queues.TryGetValue(messageType, out var queue))
+            {
+                var newInstance = Activator.CreateInstance(constructedType);
+
+                if (newInstance == null)
+                {
+                    throw new InvalidCastException("Specified message type is invalid.");
+                }
+
+                queue = (IMessageQueue)newInstance;
+                _queues.Add(messageType, queue);
+            }
+
+            uint msgId;
+            ushort high;
+            unchecked
+            {
+                high = _nextMessageId;
+                _nextMessageId += 2;
             }
 
             try
@@ -203,7 +267,7 @@ namespace Wallop.Shared.Messaging
                 {
                     throw new KeyNotFoundException("Failed to find expected Enqueue method.");
                 }
-                msgId = (uint)(method.Invoke(queue, new[] { message, high }) ?? 0);
+                msgId = (uint)(method.Invoke(queue, new[] { message, preferredId.Value }) ?? 0);
             }
             catch (Exception)
             {
@@ -226,7 +290,8 @@ namespace Wallop.Shared.Messaging
             ushort high;
             unchecked
             {
-                high = _nextMessageId++;
+                high = _nextMessageId;
+                _nextMessageId += 2;
             }
 
             if (queue is MessageQueue<T> msgQueue)
@@ -242,8 +307,13 @@ namespace Wallop.Shared.Messaging
             return msgId;
         }
 
-        internal uint Put<T>(T message, uint preferredId) where T : struct
+        public uint Put<T>(T message, uint? preferredId) where T : struct
         {
+            if (!preferredId.HasValue)
+            {
+                return Put<T>(message);
+            }
+
             if (!_queues.TryGetValue(typeof(T), out var queue))
             {
                 queue = new MessageQueue<T>();
@@ -252,15 +322,15 @@ namespace Wallop.Shared.Messaging
 
             if (queue is MessageQueue<T> msgQueue)
             {
-                preferredId = msgQueue.Enqueue(message, preferredId);
+                preferredId = msgQueue.Enqueue(message, preferredId.Value);
             }
             else
             {
                 return 0;
             }
 
-            RunPutHooks(preferredId, message, typeof(T));
-            return preferredId;
+            RunPutHooks(preferredId.Value, message, typeof(T));
+            return preferredId.Value;
         }
 
 

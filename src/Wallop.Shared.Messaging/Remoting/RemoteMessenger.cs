@@ -22,7 +22,20 @@ namespace Wallop.Shared.Messaging.Remoting
         public uint Put(ValueType message, Type messageType)
         {
             var encoded = Json.Json.WriteMessage(message, messageType);
-            var outgoing = new PushMessage(MessageDirection.Put, encoded, null);
+            var outgoing = new PushMessage(MessageDirection.Put, encoded, null, null);
+
+            var payload = JsonSerializer.Serialize(outgoing);
+
+            IpcClient.Send(payload, HostApplication);
+
+            var reply = GetMessageReply();
+            return reply.MessageID;
+        }
+
+        public uint Put(ValueType message, Type messageType, uint? preferredId)
+        {
+            var encoded = Json.Json.WriteMessage(message, messageType);
+            var outgoing = new PushMessage(MessageDirection.Put, encoded, null, preferredId);
 
             var payload = JsonSerializer.Serialize(outgoing);
 
@@ -37,13 +50,31 @@ namespace Wallop.Shared.Messaging.Remoting
             return Put(message, typeof(T));
         }
 
+        public uint Put<T>(T message, uint? preferredId) where T : struct
+        {
+            if(!preferredId.HasValue)
+            {
+                return Put(message);
+            }
+
+            var encoded = Json.Json.WriteMessage(message, typeof(T));
+            var outgoing = new PushMessage(MessageDirection.Put, encoded, null, preferredId);
+
+            var payload = JsonSerializer.Serialize(outgoing);
+
+            IpcClient.Send(payload, HostApplication);
+
+            var reply = GetMessageReply();
+            return reply.MessageID;
+        }
+
 
 
         public bool Take(out ValueType? payload, Type targetType, ref uint messageId)
         {
             payload = null;
 
-            var outgoing = new PushMessage(MessageDirection.Take, null, targetType);
+            var outgoing = new PushMessage(MessageDirection.Take, null, targetType, null);
             var data = JsonSerializer.Serialize(outgoing);
 
             IpcClient.Send(data, HostApplication);
@@ -63,7 +94,7 @@ namespace Wallop.Shared.Messaging.Remoting
         public bool Take<T>(ref T payload, ref uint messageId) where T : struct
         {
             var targetType = typeof(T);
-            var outgoing = new PushMessage(MessageDirection.Take, null, targetType);
+            var outgoing = new PushMessage(MessageDirection.Take, null, targetType, null);
             var data = JsonSerializer.Serialize(outgoing);
 
             IpcClient.Send(data, HostApplication);
