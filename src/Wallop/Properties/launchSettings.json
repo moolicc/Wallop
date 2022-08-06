@@ -2,7 +2,6 @@
   "profiles": {
     "Wallop": {
       "commandName": "Project",
-      "commandLineArgs": "[send-to:instance1] scene --help",
       "nativeDebugging": true
     },
     "WSL": {
