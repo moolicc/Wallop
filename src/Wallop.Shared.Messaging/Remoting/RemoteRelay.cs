@@ -40,9 +40,10 @@ namespace Wallop.Shared.Messaging.Remoting
             {
                 uint id = 0;
 
-                if(Messenger.Take(out var payload, push.TakeType, ref id))
+                var type = Type.GetType(push.TakeType);
+                if(Messenger.Take(out var payload, type, ref id))
                 {
-                    var jMessage = Json.Json.WriteMessage(payload!, push.TakeType);
+                    var jMessage = Json.Json.WriteMessage(payload!, type);
 
                     var outgoing = new PullMessage(id, jMessage);
                     var encoded = JsonSerializer.Serialize(outgoing);
