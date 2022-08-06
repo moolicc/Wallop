@@ -113,27 +113,28 @@ namespace Wallop.Shared.Messaging
             var proxyInstance = Activator.CreateInstance(proxyType);
             try
             {
-                var methods = constructedType.GetMethods().Where(m => m.Name == nameof(MessageQueue<int>.TakeNext));
-                MethodInfo? method = null;
+                var method = constructedType.GetMethods().FirstOrDefault(m => m.Name == nameof(MessageQueue<int>.TakeNext));
+                //MethodInfo? method = null;
 
-                foreach (var item in methods)
-                {
-                    var param = item.GetParameters();
-                    if (param.Length == 1)
-                    {
-                        if (param[0].ParameterType == proxyType)
-                        {
-                            method = item;
-                            break;
-                        }
-                    }
-                }
+                //foreach (var item in methods)
+                //{
+                //    var param = item.GetParameters();
+                //    if (param.Length == 1)
+                //    {
+                //        if (param[0].ParameterType == proxyType)
+                //        {
+                //            method = item;
+                //            break;
+                //        }
+                //    }
+                //}
 
                 if (method == null)
                 {
                     throw new KeyNotFoundException("Failed to find expected Enqueue method.");
                 }
-                var result = (TakeResults)(method.Invoke(queue, new[] { proxyInstance }) ?? TakeResults.Failed);
+                var args = new[] { proxyInstance };
+                var result = (TakeResults)(method.Invoke(queue, args) ?? TakeResults.Failed);
 
                 if(result == TakeResults.OutOfElements
                     || result == TakeResults.Failed)
@@ -142,11 +143,11 @@ namespace Wallop.Shared.Messaging
                 }
 
                 var property = proxyType.GetProperty("Payload")!;
-                var propertyValue = property.GetValue(proxyInstance)!;
+                var propertyValue = property.GetValue(args[0])!;
                 payload = (ValueType)propertyValue;
 
                 property = proxyType.GetProperty("MessageId")!;
-                propertyValue = property.GetValue(proxyInstance)!;
+                propertyValue = property.GetValue(args[0])!;
                 messageId = (uint)propertyValue;
 
                 return true;

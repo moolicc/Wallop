@@ -87,7 +87,7 @@ namespace Wallop.Shared.Messaging
 
                 if (replyContent is not MessageReply)
                 {
-                    replyContent = new MessageReply(messageId, ReplyStatus.NotSpecified, "", replyContent.GetType(), replyContent);
+                    replyContent = new MessageReply(messageId, ReplyStatus.NotSpecified, "", replyContent.GetType().FullName, replyContent);
                 }
 
                 messenger.Put((ValueType)replyContent, typeof(MessageReply));

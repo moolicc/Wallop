@@ -14,5 +14,5 @@ namespace Wallop.Shared.Messaging.Messages
         Failed,
     }
 
-    public readonly record struct MessageReply(uint MessageId, ReplyStatus Status, string StatusMessage, Type? ContentType, object? Content);
+    public readonly record struct MessageReply(uint MessageId, ReplyStatus Status, string StatusMessage, string? ContentType, object? Content);
 }
