@@ -14,6 +14,7 @@ namespace Wallop.IPC
         public static readonly string LocalMachine = ".";
 
         public Encoding Encoding { get; set; }
+        public bool AllowMultipleClients { get; set; }
 
         public int PipesCreated { get; private set; }
 
@@ -27,6 +28,7 @@ namespace Wallop.IPC
         {
             _queue = new ConcurrentQueue<IpcData>();
             Encoding = Encoding.ASCII;
+            AllowMultipleClients = true;
         }
 
 
@@ -75,7 +77,11 @@ namespace Wallop.IPC
                     break;
                 }
 
-                await HandleClientAsync(cancelToken);
+                var handler = HandleClientAsync(cancelToken);
+                if(!AllowMultipleClients)
+                {
+                    await handler;
+                }
             }
         }
 
