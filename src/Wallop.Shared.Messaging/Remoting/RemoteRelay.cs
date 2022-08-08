@@ -11,20 +11,21 @@ namespace Wallop.Shared.Messaging.Remoting
 
     public class MessageRelay
     {
-        public IpcNode HostIpcNode { get; init; }
+        public IpcAgent HostAgent { get; init; }
         public IMessenger Messenger { get; init; }
 
-        public MessageRelay(IpcNode hostIpcNode, IMessenger messenger)
+        public MessageRelay(IpcAgent hostAgent, IMessenger messenger)
         {
-            HostIpcNode = hostIpcNode;
+            HostAgent = hostAgent;
             Messenger = messenger;
 
-            hostIpcNode.OnDataReceived2 += OnDataReceived;
+            hostAgent.RequestReceivedCallback = OnRequest;
         }
 
-        private void OnDataReceived(IpcNode node, IpcMessage incoming)
+        private object? OnRequest(Request request)
         {
-            var push = JsonSerializer.Deserialize<PushMessage>(incoming.Content);
+            var push = request.As<PushMessage>();
+            object? outgoing = new PullMessage(0, null);
             if (push.Direction == MessageDirection.Put && push.PutMessage != null)
             {
                 var messageType = Type.GetType(push.PutMessage.MessageType)!;
@@ -32,32 +33,25 @@ namespace Wallop.Shared.Messaging.Remoting
 
                 var id = Messenger.Put((ValueType)message, messageType, push.PreferredId);
 
-                var outgoing = new PullMessage(id, null);
-                var encoded = JsonSerializer.Serialize(outgoing);
-                node.Send(encoded, incoming.SourceApplication);
+                outgoing = new PullMessage(id, null);
             }
             else if (push.Direction == MessageDirection.Take && push.TakeType != null)
             {
                 uint id = 0;
 
                 var type = Type.GetType(push.TakeType);
-                if(Messenger.Take(out var payload, type, ref id))
+                if (Messenger.Take(out var payload, type, ref id))
                 {
                     var jMessage = Json.Json.WriteMessage(payload!, type);
 
-                    var outgoing = new PullMessage(id, jMessage);
-                    var encoded = JsonSerializer.Serialize(outgoing);
-                    node.Send(encoded, incoming.SourceApplication);
-                }
-                else
-                {
-                    var outgoing = new PullMessage(0, null);
-                    var encoded = JsonSerializer.Serialize(outgoing);
-                    node.Send(encoded, incoming.SourceApplication);
+                    outgoing = new PullMessage(id, jMessage);
+                    return outgoing;
                 }
             }
+            return outgoing;
         }
     }
+    
 
 
     /*

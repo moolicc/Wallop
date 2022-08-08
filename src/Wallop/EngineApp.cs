@@ -42,7 +42,7 @@ namespace Wallop
 
         private Messenger _messenger;
         private IPC.PipeHost _relayHost;
-        private IPC.IpcNode _relayNode;
+        private IPC.IpcConnection _relayNode;
         private MessageRelay _relay;
         private GraphicsHandler _graphicsHandler;
         private SceneHandler _sceneHandler;
@@ -54,6 +54,10 @@ namespace Wallop
             _handlers = new List<EngineHandler>();
             _services = new List<object>();
             _messenger = new Messenger();
+
+            _relayHost = new IPC.PipeHost(AppSettings.InstanceName, $"{AppSettings.InstanceName}{Program.APP_RESOURCE_DELIMITER}{Program.MESSENGER_PIPE_RESOURCE}");
+            _relay = new MessageRelay(_relayHost, _messenger);
+            _relayHost.AllowMultipleClients = true;
 
             _pluginContext = pluginContext;
 
@@ -93,12 +97,12 @@ namespace Wallop
         {
             EngineLog.For<EngineApp>().Info("Beginning Engine Execution!");
 
-            _relayHost = new IPC.PipeHost(AppSettings.InstanceName, $"{AppSettings.InstanceName}{Program.APP_RESOURCE_DELIMITER}{Program.MESSENGER_PIPE_RESOURCE}");
-            _relayHost.Begin();
+            //_relayHost = new IPC.PipeHost(AppSettings.InstanceName, $"{AppSettings.InstanceName}{Program.APP_RESOURCE_DELIMITER}{Program.MESSENGER_PIPE_RESOURCE}");
+            //_relayHost.Begin();
 
-            _relayNode = new IPC.IpcNode(_relayHost);
+            //_relayNode = new IPC.IpcConnection(_relayHost);
 
-            _relay = new MessageRelay(_relayNode, _messenger);
+            //_relay = new MessageRelay(_relayNode, _messenger);
 
             _graphicsHandler.RunWindow();
         }

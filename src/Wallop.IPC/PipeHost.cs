@@ -9,197 +9,175 @@ using System.Threading.Tasks;
 
 namespace Wallop.IPC
 {
-    public class PipeHost : IIpcEndpoint
+    public class PipeHost : IpcAgent
     {
-        public bool IsConnected { get; private set; }
+        public static readonly string LocalMachine = ".";
 
-        public int ServerCount { get; private set; }
+        public Encoding Encoding { get; set; }
+        public bool AllowMultipleClients { get; set; }
 
-        public string ResourceName { get; init; }
+        public int PipesCreated { get; private set; }
 
-        public string ApplicationId { get; init; }
+        private NamedPipeServerStream? _pipeServerStream;
+        private Task? _listenTask;
 
-
-        private CancellationTokenSource? _cancelSource;
-        private NamedPipeServerStream? _serverStream;
-
-        private ConcurrentQueue<IpcMessage> _messages;
-
-        private bool _locked;
-        private bool _streamUsable;
+        private ConcurrentQueue<IpcData> _queue;
 
         public PipeHost(string applicationId, string resourceName)
+            : base(applicationId, resourceName)
         {
-            ResourceName = resourceName;
-            ApplicationId = applicationId;
-            _messages = new ConcurrentQueue<IpcMessage>();
+            _queue = new ConcurrentQueue<IpcData>();
+            Encoding = Encoding.ASCII;
+            AllowMultipleClients = true;
         }
 
-        public void Begin()
+
+        public Task Listen(CancellationToken cancelToken)
         {
-            _cancelSource = new CancellationTokenSource();
-            CreateServer();
-            Task.Factory.StartNew(ListenAsync, _cancelSource.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            _listenTask = ListenAsync(cancelToken);
+            return _listenTask;
         }
 
-        public bool Acquire(TimeSpan? timeout = null)
-        {
-            var start = DateTime.Now.Ticks;
-            var current = DateTime.Now.Ticks;
 
-            if (!timeout.HasValue)
+
+        public override async Task<IpcData?> DequeueDataAsync(CancellationToken? cancelToken = null)
+        {
+            var data = await Task.Run<IpcData?>(() =>
             {
-                timeout = TimeSpan.MaxValue;
+                while (!cancelToken.HasValue || (cancelToken.HasValue && !cancelToken.Value.IsCancellationRequested))
+                {
+                    if(_queue.TryDequeue(out var data))
+                    {
+                        return data;
+                    }
+                }
+
+                return null;
+            });
+
+            return data;
+        }
+
+        public override Task<bool> QueueDataAsync(IpcData data, CancellationToken? cancelToken = null)
+        {
+            _queue.Enqueue(data);
+            return Task.FromResult(true);
+        }
+
+        private async Task ListenAsync(CancellationToken cancelToken)
+        {
+            while (!cancelToken.IsCancellationRequested)
+            {
+                _pipeServerStream = new NamedPipeServerStream(ResourceName, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+                PipesCreated++;
+
+                await _pipeServerStream.WaitForConnectionAsync(cancelToken);
+                if (cancelToken.IsCancellationRequested)
+                {
+                    break;
+                }
+
+                var handler = HandleClientAsync(cancelToken);
+                if(!AllowMultipleClients)
+                {
+                    await handler;
+                }
+            }
+        }
+
+        private async Task HandleClientAsync(CancellationToken cancelToken)
+        {
+            if(_pipeServerStream == null)
+            {
+                throw new InvalidOperationException("Pipe server is null.");
             }
 
-            while (_locked && timeout > TimeSpan.FromTicks(current - start))
+            bool loop = true;
+
+            while(loop)
             {
-            }
-
-            if(_locked)
-            {
-                return false;
-            }
-                        
-            _locked = true;
-            return true;
-        }
-
-        public bool DequeueMessage([NotNullWhen(true)] out IpcMessage? message)
-        {
-            var result = _messages.TryDequeue(out var data);
-            message = data;
-            return result;
-        }
-
-        public void QueueMessage(IpcMessage message)
-        {
-            if (message.SourceApplication != ApplicationId)
-            {
-                throw new InvalidOperationException("Message source must be this instance.");
-            }
-
-            _messages.Enqueue(message);
-        }
-
-        public void Release()
-        {
-            _locked = false;
-        }
-
-        private void CreateServer()
-        {
-            ServerCount++;
-            _serverStream?.Disconnect();
-            _serverStream = new NamedPipeServerStream(ResourceName, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
-        }
-
-        private async Task ListenAsync()
-        {
-            while (_cancelSource != null && _serverStream != null && !_cancelSource.IsCancellationRequested)
-            {
-                await _serverStream.WaitForConnectionAsync(_cancelSource.Token);
-                if (_cancelSource.IsCancellationRequested)
+                var buffer = new byte[4];
+                await _pipeServerStream.ReadAsync(buffer, 0, buffer.Length, cancelToken);
+                if (cancelToken.IsCancellationRequested)
                 {
                     return;
                 }
 
-                RunClient();
+                int length = 0;
+                if (BitConverter.IsLittleEndian)
+                {
+                    Array.Reverse(buffer, 0, 4);
+                }
+                length = BitConverter.ToInt32(buffer);
 
+                buffer = new byte[length];
 
-                // Recreate server.
-                CreateServer();
+                await _pipeServerStream.ReadAsync(buffer, 0, length, cancelToken);
+                if (cancelToken.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                var textData = Encoding.GetString(buffer);
+                loop = await HandleDataAsync(textData);
             }
         }
 
-        private void RunClient()
+        private async Task<bool> HandleDataAsync(string data)
         {
-            bool close = false;
-            while (_serverStream != null && _serverStream.IsConnected && !close && _cancelSource != null && !_cancelSource.IsCancellationRequested)
+            // TODO: Handle lost connections.
+            var datagram = Serializer.Deserialize<PipeDatagram>(data);
+            
+            if(datagram.Command == PipeCommand.Enqueue)
             {
-                // Read the message.
-
-                Acquire();
-                var incoming = ReadServerData();
-                Release();
-
-                // Determine what to do based on type of message.
-                var message = System.Text.Json.JsonSerializer.Deserialize<PipedMessage>(incoming);
-                if (message.Type == PipedMessageTypes.QueueRequest)
+                if(datagram.IpcData != null)
                 {
-                    if (message.Message.HasValue)
-                    {
-                        Console.WriteLine("ENQUEUEING for {0}", message);
-                        _messages.Enqueue(message.Message.Value);
-                    }
-                    else
-                    {
-                        // TODO: Error.
-                    }
+                    var ipcData = Serializer.Deserialize<IpcData>(datagram.IpcData);
+                    await QueueDataAsync(ipcData);
                 }
-                else if (message.Type == PipedMessageTypes.DequeueRequest)
-                {
-                    IpcMessage outgoingData;
-                    while (!_messages.TryDequeue(out outgoingData))
-                    {
-                    }
-                    Console.WriteLine("DEQUEUING for {0}", outgoingData);
-
-                    var outgoing = new PipedMessage(PipedMessageTypes.DequeueRequest, outgoingData);
-                    var text = System.Text.Json.JsonSerializer.Serialize(outgoing);
-                    Acquire();
-                    WriteServerData(text);
-                    Release();
-                }
-                else if(message.Type == PipedMessageTypes.Release)
-                {
-                    close = true;
-                }
+                return true;
             }
+            else if(datagram.Command == PipeCommand.Dequeue)
+            {
+                var ipcData = await DequeueDataAsync();
+                if(ipcData != null)
+                {
+                    await WriteIpcResponse(ipcData.Value);
+                }
+                return true;
+            }
+
+            return false;
         }
 
-        private string ReadServerData()
-        {
-            if(_serverStream == null)
-            {
-                return "error";
-            }
 
-            var data = new byte[4];
-            _serverStream.Read(data, 0, 4);
+        private async Task WriteIpcResponse(IpcData data)
+        {
+            var text = Serializer.Serialize(data);
+            var datagram = new PipeDatagram(PipeCommand.DequeueResponse, text);
+
+            text = Serializer.Serialize(datagram);
+
+            var outgoing = GetData(text);
+
+            await _pipeServerStream!.WriteAsync(outgoing, 0, outgoing.Length);
+        }
+
+        private byte[] GetData(string textData)
+        {
+            var buffer = Encoding.GetBytes(textData);
+            var length = BitConverter.GetBytes(buffer.Length);
 
             if(BitConverter.IsLittleEndian)
             {
-                Array.Reverse(data);
+                Array.Reverse(length);
             }
 
-            var length = BitConverter.ToInt32(data);
-            data = new byte[length];
-            _serverStream.Read(data, 0, length);
+            var returnVal = new byte[buffer.Length + length.Length];
+            Array.Copy(length, 0, returnVal, 0, length.Length);
+            Array.Copy(buffer, 0, returnVal, length.Length, buffer.Length);
 
-            return Encoding.UTF8.GetString(data);
-        }
-
-        private void WriteServerData(string data)
-        {
-            if (_serverStream == null)
-            {
-                return;
-            }
-
-            var dataBuffer = Encoding.UTF8.GetBytes(data);
-            var lenBuffer = BitConverter.GetBytes(dataBuffer.Length);
-            var buffer = new byte[dataBuffer.Length + lenBuffer.Length];
-
-            if (BitConverter.IsLittleEndian)
-            {
-                Array.Reverse(lenBuffer);
-            }
-
-            Array.Copy(lenBuffer, buffer, lenBuffer.Length);
-            Array.Copy(dataBuffer, 0, buffer, lenBuffer.Length, dataBuffer.Length);
-
-            _serverStream.Write(buffer, 0, buffer.Length);
+            return returnVal;
         }
     }
 }
