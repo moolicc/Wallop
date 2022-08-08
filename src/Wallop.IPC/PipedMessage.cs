@@ -13,7 +13,7 @@ namespace Wallop.IPC
         Release,
     }
 
-    internal readonly record struct PipedMessage(PipedMessageTypes Type, IpcMessage? Message)
+    internal readonly record struct PipedMessage(PipedMessageTypes Type, IpcData? Message)
     {
 
     }

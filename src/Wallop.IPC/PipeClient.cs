@@ -8,148 +8,189 @@ using System.Threading.Tasks;
 
 namespace Wallop.IPC
 {
-    public class PipeClient : IIpcEndpoint
+    public class PipeClient : IpcAgent
     {
-        public bool IsConnected => _clientStream != null && _clientStream.IsConnected;
+        public readonly record struct PipeClientConfig(string ApplicationId, string HostMachine, string HostApplication, string ResourceName);
 
-        public string ResourceName { get; init; }
-        public string ApplicationId { get; init; }
-        public string HostName { get; init; }
+        public delegate Task UseClientAction(PipeClient client, CancellationToken cancelToken);
 
 
-        private NamedPipeClientStream? _clientStream;
+        public static readonly string LocalMachine = ".";
 
 
-        public PipeClient(string applicationId, string resourceName, string hostName = ".")
+        public static async Task UseAsync(PipeClientConfig config, UseClientAction useAction)
+            => await UseAsync(config.ApplicationId, config.HostMachine, config.HostApplication, config.ResourceName, useAction);
+
+        public static async Task UseAsync(string applicationId, string hostMachine, string hostApplication, string resourceName, UseClientAction useAction)
         {
-            ApplicationId = applicationId;
-            ResourceName = resourceName;
-            HostName = hostName;
+            var client = new PipeClient(applicationId, hostMachine, hostApplication, resourceName);
+            var cancelSource = new CancellationTokenSource();
+            await client.BeginAsync();
+
+            await useAction(client, cancelSource.Token);
+
+            await client.EndAsync();
+            cancelSource.Dispose();
         }
 
-        public bool Acquire(TimeSpan? timeout = null)
+
+        public Encoding Encoding { get; set; }
+        public string HostApplication { get; private set; }
+        public string HostMachine { get; private set; }
+
+        private NamedPipeClientStream? _pipeClient;
+
+        public PipeClient(PipeClientConfig conf)
+            : this(conf.ApplicationId, conf.HostMachine, conf.HostApplication, conf.ResourceName)
         {
-            if(!timeout.HasValue)
-            {
-                timeout = TimeSpan.FromSeconds(10);
-            }
-
-            try
-            {
-                _clientStream?.Close();
-                _clientStream = new NamedPipeClientStream(".", ResourceName, PipeDirection.InOut, PipeOptions.Asynchronous);
-                _clientStream.Connect((int)timeout.Value.TotalMilliseconds);
-            }
-            catch
-            {
-                _clientStream?.Dispose();
-                return false;
-            }
-
-            return true;
         }
 
-        public bool DequeueMessage([NotNullWhen(true)] out IpcMessage? message)
+        public PipeClient(string applicationId, string hostMachine, string hostApplication, string resourceName)
+            : base(applicationId, resourceName)
         {
-            VerifyAcquired();
-            try
-            {
-                var outgoing = new PipedMessage(PipedMessageTypes.DequeueRequest, null);
-                var textData = System.Text.Json.JsonSerializer.Serialize(outgoing);
-                WriteMessage(textData);
-
-
-                textData = ReadMessage();
-                message = System.Text.Json.JsonSerializer.Deserialize<PipedMessage>(textData).Message;
-            }
-            catch (Exception ex)
-            {
-                message = null;
-                return false;
-            }
-
-            if(message == null)
-            {
-                return false;
-            }
-            return true;
+            HostMachine = hostMachine;
+            HostApplication = hostApplication;
+            Encoding = Encoding.ASCII;
         }
 
-        public void QueueMessage(IpcMessage message)
+        public async Task BeginAsync()
         {
-            VerifyAcquired();
-            if (message.SourceApplication != ApplicationId)
-            {
-                throw new InvalidOperationException("Message source must be this Client.");
-            }
-
-            var outgoing = new PipedMessage(PipedMessageTypes.QueueRequest, message);
-            var textData = System.Text.Json.JsonSerializer.Serialize(outgoing);
-            WriteMessage(textData);
+            _pipeClient = new NamedPipeClientStream(HostMachine, ResourceName, PipeDirection.InOut, PipeOptions.Asynchronous);
+            await _pipeClient.ConnectAsync();
         }
 
-        public void Release()
+        public async Task EndAsync()
         {
-            VerifyAcquired();
-
-            var outgoing = new PipedMessage(PipedMessageTypes.Release, null);
-            var textData = System.Text.Json.JsonSerializer.Serialize(outgoing);
-            WriteMessage(textData);
-
-            _clientStream?.Close();
-            _clientStream?.Dispose();
-        }
-
-        private string ReadMessage()
-        {
-            if(_clientStream == null || !_clientStream.IsConnected)
+            if(_pipeClient?.IsConnected == true)
             {
-                return "error";
+                await SendDisconnectAsync();
             }
 
-            var data = new byte[4];
-            _clientStream.Read(data, 0, 4);
 
-            if (BitConverter.IsLittleEndian)
-            {
-                Array.Reverse(data);
-            }
-
-            var length = BitConverter.ToInt32(data);
-            data = new byte[length];
-            _clientStream.Read(data, 0, length);
-
-            return Encoding.UTF8.GetString(data);
-        }
-
-        private void WriteMessage(string data)
-        {
-            if (_clientStream == null)
+            if(_pipeClient == null)
             {
                 return;
             }
-
-            var dataBuffer = Encoding.UTF8.GetBytes(data);
-            var lenBuffer = BitConverter.GetBytes(dataBuffer.Length);
-            var buffer = new byte[dataBuffer.Length + lenBuffer.Length];
-
-            if (BitConverter.IsLittleEndian)
-            {
-                Array.Reverse(lenBuffer);
-            }
-
-            Array.Copy(lenBuffer, buffer, lenBuffer.Length);
-            Array.Copy(dataBuffer, 0, buffer, lenBuffer.Length, dataBuffer.Length);
-
-            _clientStream.Write(buffer, 0, buffer.Length);
+            _pipeClient.Close();
+            await _pipeClient.DisposeAsync();
         }
 
-        private void VerifyAcquired()
+        public override async Task<bool> QueueDataAsync(IpcData data, CancellationToken? cancelToken)
         {
-            if(_clientStream == null || !_clientStream.IsConnected)
+            if (_pipeClient == null)
             {
-                throw new InvalidOperationException("You must first acquire.");
+                return false;
             }
+
+            try
+            {
+                var serialized = Serializer.Serialize(data);
+                var datagram = new PipeDatagram(PipeCommand.Enqueue, serialized);
+
+                var text = Serializer.Serialize(datagram);
+                var buffer = GetBytes(text);
+                await _pipeClient.WriteAsync(buffer, 0, buffer.Length, cancelToken ?? new CancellationToken(false));
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override async Task<IpcData?> DequeueDataAsync(CancellationToken? cancelToken)
+        {
+            if (_pipeClient == null)
+            {
+                return null;
+            }
+
+            try
+            {
+                var datagram = new PipeDatagram(PipeCommand.Dequeue, null);
+                var outgoing = Serializer.Serialize(datagram);
+                var buffer = GetBytes(outgoing);
+
+                await _pipeClient.WriteAsync(buffer, 0, buffer.Length, cancelToken ?? new CancellationToken(false));
+
+                var incoming = await ReadAsync(cancelToken ?? new CancellationToken(false));
+                datagram = Serializer.Deserialize<PipeDatagram>(incoming);
+
+                if (datagram.IpcData == null)
+                {
+                    throw new InvalidOperationException("Exepected response data.");
+                }
+
+                var ipcData = Serializer.Deserialize<IpcData>(datagram.IpcData);
+                return ipcData;
+            }
+            catch (Exception ex)
+            {
+            }
+            return null;
+        }
+
+
+        private async Task SendDisconnectAsync()
+        {
+            if(_pipeClient == null)
+            {
+                return;
+            }
+            try
+            {
+                var datagram = new PipeDatagram(PipeCommand.Disconnect, null);
+
+                var text = Serializer.Serialize(datagram);
+                var buffer = GetBytes(text);
+                await _pipeClient.WriteAsync(buffer, 0, buffer.Length);
+            }
+            catch (Exception ex)
+            {
+            }
+        }
+
+        private byte[] GetBytes(string text)
+        {
+            var buffer = Encoding.GetBytes(text);
+            var length = BitConverter.GetBytes(buffer.Length);
+
+            if(BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(length);
+            }
+
+            var returnVal = new byte[buffer.Length + length.Length];
+            Array.Copy(length, 0, returnVal, 0, length.Length);
+            Array.Copy(buffer, 0, returnVal, length.Length, buffer.Length);
+
+            return returnVal;
+        }
+
+        private async Task<string> ReadAsync(CancellationToken cancelToken)
+        {
+            if (_pipeClient == null)
+            {
+                return string.Empty;
+            }
+
+            var buffer = new byte[4];
+            await _pipeClient.ReadAsync(buffer, 0, buffer.Length, cancelToken);
+
+            int length = 0;
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(buffer, 0, 4);
+            }
+            length = BitConverter.ToInt32(buffer);
+
+            buffer = new byte[length];
+
+            await _pipeClient.ReadAsync(buffer, 0, length, cancelToken);
+
+            var textData = Encoding.GetString(buffer);
+            return textData;
         }
     }
 }

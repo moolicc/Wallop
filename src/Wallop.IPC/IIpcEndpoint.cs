@@ -9,14 +9,11 @@ namespace Wallop.IPC
 {
     public interface IIpcEndpoint
     {
-        bool IsConnected { get; }
         string ResourceName { get; }
         string ApplicationId { get; }
 
 
-        bool Acquire(TimeSpan? timeout = null);
-        void QueueMessage(IpcMessage message);
-        bool DequeueMessage([NotNullWhen(true)] out IpcMessage? message);
-        void Release();
+        Task<bool> QueueDataAsync(IpcData data, CancellationToken? cancelToken = null);
+        Task<IpcData?> DequeueDataAsync(CancellationToken? cancelToken = null);
     }
 }

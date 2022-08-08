@@ -6,5 +6,13 @@ using System.Threading.Tasks;
 
 namespace Wallop.IPC
 {
-    public readonly record struct IpcMessage(int MessageId, string Content, string SourceApplication, string TargetApplication);
+    [Flags]
+    public enum MessageTypes
+    {
+        Request,
+        Response,
+        Statement
+    }
+
+    public readonly record struct IpcMessage(MessageTypes Type, int MessageId, string Message, int? ReplyToId);
 }
