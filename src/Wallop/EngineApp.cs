@@ -55,6 +55,10 @@ namespace Wallop
             _services = new List<object>();
             _messenger = new Messenger();
 
+            _relayHost = new IPC.PipeHost(AppSettings.InstanceName, $"{AppSettings.InstanceName}{Program.APP_RESOURCE_DELIMITER}{Program.MESSENGER_PIPE_RESOURCE}");
+            _relay = new MessageRelay(_relayHost, _messenger);
+            _relayHost.AllowMultipleClients = true;
+
             _pluginContext = pluginContext;
 
             AddService(_pluginContext);
