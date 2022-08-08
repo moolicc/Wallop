@@ -4,18 +4,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Text.Json;
+using Wallop.IPC;
 
 namespace Wallop.Shared.Messaging.Remoting
 {
     public class RemoteMessenger : IMessenger
     {
-        public IPC.IpcNode IpcClient { get; init; }
+        public IpcAgent AgentClient { get; init; }
         public string HostApplication { get; init; }
 
 
-        public RemoteMessenger(IPC.IpcNode ipcClient, string hostApplication)
+        public RemoteMessenger(IpcAgent agentClient, string hostApplication)
         {
-            IpcClient = ipcClient;
+            AgentClient = agentClient;
             HostApplication = hostApplication;
         }
 
@@ -24,12 +25,15 @@ namespace Wallop.Shared.Messaging.Remoting
             var encoded = Json.Json.WriteMessage(message, messageType);
             var outgoing = new PushMessage(MessageDirection.Put, encoded, null, null);
 
-            var payload = JsonSerializer.Serialize(outgoing);
+            var result = AgentClient.SendRequestAsync(outgoing, null, HostApplication).Result;
 
-            IpcClient.Send(payload, HostApplication);
+            if(!result.RequestFailed)
+            {
+                var reply = result.As<PullMessage>();
+                return reply.MessageID;
+            }
 
-            var reply = GetMessageReply();
-            return reply.MessageID;
+            return 0;
         }
 
         public uint Put(ValueType message, Type messageType, uint? preferredId)
@@ -37,12 +41,15 @@ namespace Wallop.Shared.Messaging.Remoting
             var encoded = Json.Json.WriteMessage(message, messageType);
             var outgoing = new PushMessage(MessageDirection.Put, encoded, null, preferredId);
 
-            var payload = JsonSerializer.Serialize(outgoing);
+            var result = AgentClient.SendRequestAsync(outgoing, null, HostApplication).Result;
 
-            IpcClient.Send(payload, HostApplication);
+            if (!result.RequestFailed)
+            {
+                var reply = result.As<PullMessage>();
+                return reply.MessageID;
+            }
 
-            var reply = GetMessageReply();
-            return reply.MessageID;
+            return 0;
         }
 
         public uint Put<T>(T message) where T : struct
@@ -59,13 +66,15 @@ namespace Wallop.Shared.Messaging.Remoting
 
             var encoded = Json.Json.WriteMessage(message, typeof(T));
             var outgoing = new PushMessage(MessageDirection.Put, encoded, null, preferredId);
+            var result = AgentClient.SendRequestAsync(outgoing, null, HostApplication).Result;
 
-            var payload = JsonSerializer.Serialize(outgoing);
+            if (!result.RequestFailed)
+            {
+                var reply = result.As<PullMessage>();
+                return reply.MessageID;
+            }
 
-            IpcClient.Send(payload, HostApplication);
-
-            var reply = GetMessageReply();
-            return reply.MessageID;
+            return 0;
         }
 
 
@@ -77,9 +86,14 @@ namespace Wallop.Shared.Messaging.Remoting
             var outgoing = new PushMessage(MessageDirection.Take, null, targetType.FullName, null);
             var data = JsonSerializer.Serialize(outgoing);
 
-            IpcClient.Send(data, HostApplication);
+            var result = AgentClient.SendRequestAsync(outgoing, null, HostApplication).Result;
 
-            var reply = GetMessageReply();
+            if (result.RequestFailed)
+            {
+                return false;
+            }
+
+            var reply = result.As<PullMessage>();
             if(reply.EncodedMessage == null)
             {
                 return false;
@@ -97,9 +111,14 @@ namespace Wallop.Shared.Messaging.Remoting
             var outgoing = new PushMessage(MessageDirection.Take, null, targetType.FullName, null);
             var data = JsonSerializer.Serialize(outgoing);
 
-            IpcClient.Send(data, HostApplication);
+            var result = AgentClient.SendRequestAsync(outgoing, null, HostApplication).Result;
 
-            var reply = GetMessageReply();
+            if (result.RequestFailed)
+            {
+                return false;
+            }
+
+            var reply = result.As<PullMessage>();
             if (reply.EncodedMessage == null)
             {
                 return false;
@@ -154,13 +173,6 @@ namespace Wallop.Shared.Messaging.Remoting
         public void ClearState()
         {
             throw new NotImplementedException();
-        }
-
-        private PullMessage GetMessageReply()
-        {
-            IpcClient.GetReply(TimeSpan.FromMinutes(1), out var payload);
-            var incoming = JsonSerializer.Deserialize<PullMessage>(payload!);
-            return incoming;
         }
     }
 }

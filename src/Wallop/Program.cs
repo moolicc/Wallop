@@ -5,6 +5,7 @@ using System.CommandLine.Parsing;
 using System.Reflection;
 using Wallop;
 using Wallop.ECS;
+using Wallop.IPC;
 
 namespace Wallop
 {
@@ -26,8 +27,9 @@ namespace Wallop
         private static Cog.Configuration _config;
         private static Settings.AppSettings _appSettings;
         private static Settings.PluginSettings _pluginSettings;
+        private static CancellationTokenSource _cancellationTokenSource;
 
-        static int Main(string[] args)
+        static async Task<int> Main(string[] args)
         {
             string targetApp = DEFAULT_NAME;
             if(args.Length >= 1)
@@ -54,31 +56,41 @@ namespace Wallop
             {
                 try
                 {
-                    if(isOnlyInstance)
+                    _cancellationTokenSource = new CancellationTokenSource();
+                    if (isOnlyInstance)
                     {
                         var pipe = new IPC.PipeHost($"{Settings.AppSettings.InstanceName}", $"{Settings.AppSettings.InstanceName}{APP_RESOURCE_DELIMITER}{ARGS_PIPE_RESOURCE}");
-                        pipe.Begin();
+                        pipe.Listen(_cancellationTokenSource.Token);
 
-                        var host = new IPC.IpcNode(pipe);
+                        pipe.RequestReceivedCallback = OnIpcRequestReceived;
+                        pipe.StatementReceivedCallback = OnIpcStatementReceived;
 
-                        host.OnDataReceived2 = OtherInstanceMessageReceived;
+                        pipe.ProcessMessages(_cancellationTokenSource.Token);
                     }
-                    else if(!isOnlyInstance && args.Length > 0)
+                    else if (!isOnlyInstance && args.Length > 0)
                     {
                         EngineLog.For<Program>().Warn("Another instance of the application has been detected. Forwarding command line and exiting.");
 
                         var targetResource = ARGS_PIPE_RESOURCE;
 
-
-                        var pipe = new IPC.PipeClient($"{DEFAULT_NAME}-{DateTime.Now.Ticks}", $"{targetApp}{APP_RESOURCE_DELIMITER}{targetResource}");
-                        var client = new IPC.IpcNode(pipe);
-
-                        client.Send(args.Aggregate((s1, s2) => s1 + ' ' + s2), targetApp);
-                        if(client.GetReply(TimeSpan.MaxValue, out var reply))
+                        var config = new PipeClient.PipeClientConfig
                         {
-                            Console.WriteLine(reply);
-                        }
-                        client.Shutdown();
+                            ApplicationId = $"{DEFAULT_NAME}-{DateTime.Now.Ticks}",
+                            HostApplication = targetApp,
+                            HostMachine = PipeClient.LocalMachine,
+                            ResourceName = $"{targetApp}{APP_RESOURCE_DELIMITER}{targetResource}"
+                        };
+                        await PipeClient.UseAsync(config,
+                            async (p, c) =>
+                            {
+                                var msg = args.Aggregate((s1, s2) => s1 + ' ' + s2);
+                                await p.SendRequestAsync(msg, r =>
+                                {
+                                    Console.WriteLine(r.As<string>());
+                                }, targetApp);
+
+
+                            });
 
                         return 0;
                     }
@@ -98,23 +110,29 @@ namespace Wallop
             return 0;
         }
 
-        private static void OtherInstanceMessageReceived(IPC.IpcNode node, IPC.IpcMessage message)
+
+        private static object? OnIpcRequestReceived(Request request)
         {
-            if(_app == null)
+            if (_app == null)
             {
-                // TODO: Log missed message.
-                return;
+                return null;
             }
 
-            EngineLog.For<Program>().Info("Incoming message from application: {sourceApp}.", message.SourceApplication);
-            EngineLog.For<Program>().Info("Incoming message content:\n{content}.", message.Content);
+            EngineLog.For<Program>().Info("Incoming message from application: {sourceApp}.", request.OtherApplicationId);
+            EngineLog.For<Program>().Info("Incoming message content:\n{content}.", request.Message);
 
             var console = new System.CommandLine.IO.TestConsole();
-            ExecuteCommandLine(false, message.Content.Trim(), console);
+            ExecuteCommandLine(false, request.Message.Trim(), console);
 
             var results = console.Out.ToString();
-            node.Send(results ?? "", message.SourceApplication);
+            return results;
         }
+
+        private static void OnIpcStatementReceived(string sender, object content)
+        {
+            throw new NotImplementedException();
+        }
+
 
         private static void RunProgram(bool isFirstInstance)
         {
