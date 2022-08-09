@@ -63,26 +63,26 @@ namespace Wallop.IPC.Serialization
         {
             public override IntermediateValue? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
-                if(reader.TokenType != JsonTokenType.StartObject)
+                if (reader.TokenType != JsonTokenType.StartObject)
                 {
                     throw new JsonException();
                 }
 
                 // Read Type discriminator
                 reader.Read();
-                if(reader.TokenType != JsonTokenType.PropertyName)
+                if (reader.TokenType != JsonTokenType.PropertyName)
                 {
                     throw new JsonException();
                 }
 
                 var propName = reader.GetString();
-                if(propName != nameof(IntermediateValue.ValueType))
+                if (propName != nameof(IntermediateValue.ValueType))
                 {
                     throw new JsonException();
                 }
 
                 reader.Read();
-                if(reader.TokenType != JsonTokenType.String)
+                if (reader.TokenType != JsonTokenType.String)
                 {
                     throw new JsonException();
                 }
@@ -109,11 +109,11 @@ namespace Wallop.IPC.Serialization
                 }
 
                 var serialized = reader.GetString()!;
-                var type = Type.GetType(typeString)!;
+                var type = TypeHelper.GetTypeByName(typeString)!;
                 var value = JsonSerializer.Deserialize(serialized, type)!;
 
                 reader.Read();
-                if(reader.TokenType != JsonTokenType.EndObject)
+                if (reader.TokenType != JsonTokenType.EndObject)
                 {
                     throw new JsonException();
                 }
@@ -130,7 +130,6 @@ namespace Wallop.IPC.Serialization
 
                 writer.WriteEndObject();
             }
-
         }
     }
 }

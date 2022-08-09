@@ -61,13 +61,13 @@ namespace Wallop.IPC
 
         public async Task EndAsync()
         {
-            if(_pipeClient?.IsConnected == true)
+            if (_pipeClient?.IsConnected == true)
             {
                 await SendDisconnectAsync().ConfigureAwait(false);
             }
 
 
-            if(_pipeClient == null)
+            if (_pipeClient == null)
             {
                 return;
             }
@@ -88,7 +88,15 @@ namespace Wallop.IPC
 
                 var text = Serializer.Serialize(datagram);
                 var buffer = GetBytes(text);
-                await _pipeClient.WriteAsync(buffer, 0, buffer.Length, cancelToken ?? new CancellationToken(false)).ConfigureAwait(false);
+
+                if (cancelToken == null)
+                {
+                    await _pipeClient.WriteAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
+                }
+                else
+                {
+                    await _pipeClient.WriteAsync(buffer, 0, buffer.Length, cancelToken.Value).ConfigureAwait(false);
+                }
             }
             catch (Exception ex)
             {
@@ -111,17 +119,32 @@ namespace Wallop.IPC
                 var outgoing = Serializer.Serialize(datagram);
                 var buffer = GetBytes(outgoing);
 
-                await _pipeClient.WriteAsync(buffer, 0, buffer.Length, cancelToken ?? new CancellationToken(false)).ConfigureAwait(false);
+                if (cancelToken != null)
+                {
+                    await _pipeClient.WriteAsync(buffer, 0, buffer.Length, cancelToken ?? new CancellationToken(false)).ConfigureAwait(false);
+                }
+                else
+                {
+                    await _pipeClient.WriteAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
+                }
 
-                var incoming = await ReadAsync(cancelToken ?? new CancellationToken(false)).ConfigureAwait(false);
-                datagram = Serializer.Deserialize<PipeDatagram>(incoming);
+                string? incoming = null;
+
+                if (cancelToken != null)
+                {
+                    incoming = await ReadAsync(cancelToken.Value).ConfigureAwait(false);
+                }
+                else
+                {
+                    incoming = await ReadAsync(null).ConfigureAwait(false);
+                }
 
                 if (datagram.IpcData == null)
                 {
                     throw new InvalidOperationException("Exepected response data.");
                 }
 
-               // var ipcData = Serializer.Deserialize<IpcData>(datagram.IpcData);
+                // var ipcData = Serializer.Deserialize<IpcData>(datagram.IpcData);
                 return (IpcData?)datagram.IpcData;
             }
             catch (Exception ex)
@@ -133,7 +156,7 @@ namespace Wallop.IPC
 
         private async Task SendDisconnectAsync()
         {
-            if(_pipeClient == null)
+            if (_pipeClient == null)
             {
                 return;
             }
@@ -155,7 +178,7 @@ namespace Wallop.IPC
             var buffer = Encoding.GetBytes(text);
             var length = BitConverter.GetBytes(buffer.Length);
 
-            if(BitConverter.IsLittleEndian)
+            if (BitConverter.IsLittleEndian)
             {
                 Array.Reverse(length);
             }
@@ -167,7 +190,7 @@ namespace Wallop.IPC
             return returnVal;
         }
 
-        private async Task<string> ReadAsync(CancellationToken cancelToken)
+        private async Task<string> ReadAsync(CancellationToken? cancelToken)
         {
             if (_pipeClient == null)
             {
@@ -175,7 +198,15 @@ namespace Wallop.IPC
             }
 
             var buffer = new byte[4];
-            await _pipeClient.ReadAsync(buffer, 0, buffer.Length, cancelToken).ConfigureAwait(false);
+
+            if (cancelToken != null)
+            {
+                await _pipeClient.ReadAsync(buffer, 0, buffer.Length, cancelToken.Value).ConfigureAwait(false);
+            }
+            else
+            {
+                await _pipeClient.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
+            }
 
             int length = 0;
             if (BitConverter.IsLittleEndian)
@@ -186,7 +217,14 @@ namespace Wallop.IPC
 
             buffer = new byte[length];
 
-            await _pipeClient.ReadAsync(buffer, 0, length, cancelToken).ConfigureAwait(false);
+            if (cancelToken != null)
+            {
+                await _pipeClient.ReadAsync(buffer, 0, buffer.Length, cancelToken.Value).ConfigureAwait(false);
+            }
+            else
+            {
+                await _pipeClient.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
+            }
 
             var textData = Encoding.GetString(buffer);
             return textData;

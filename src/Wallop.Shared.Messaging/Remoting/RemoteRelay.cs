@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Wallop.IPC;
 using System.Text.Json;
+using Wallop.IPC.Serialization;
 
 namespace Wallop.Shared.Messaging.Remoting
 {
@@ -28,7 +29,7 @@ namespace Wallop.Shared.Messaging.Remoting
             object? outgoing = new PullMessage(0, null);
             if (push.Direction == MessageDirection.Put && push.PutMessage != null)
             {
-                var messageType = Type.GetType(push.PutMessage.MessageType)!;
+                var messageType = TypeHelper.GetTypeByName(push.PutMessage.MessageType)!;
                 var message = JsonSerializer.Deserialize(push.PutMessage.MessageData, messageType)!;
 
                 var id = Messenger.Put((ValueType)message, messageType, push.PreferredId);
@@ -39,7 +40,7 @@ namespace Wallop.Shared.Messaging.Remoting
             {
                 uint id = 0;
 
-                var type = Type.GetType(push.TakeType);
+                var type = TypeHelper.GetTypeByName(push.TakeType);
                 if (Messenger.Take(out var payload, type, ref id))
                 {
                     var jMessage = Json.Json.WriteMessage(payload!, type);

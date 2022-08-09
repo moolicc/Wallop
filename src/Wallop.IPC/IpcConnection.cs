@@ -35,7 +35,7 @@ namespace Wallop.IPC
         {
             //var serialized = Serializer.Serialize(packet);
             var data = new IpcData(packet);
-            return await QueueDataAsync(data);
+            return await QueueDataAsync(data).ConfigureAwait(false);
         }
 
         protected virtual async Task<IpcPacket?> RecvAsync(TimeSpan? timeout = null)
@@ -51,7 +51,7 @@ namespace Wallop.IPC
                 Task.Factory.StartNew(async () =>
                 {
                     await Task.Delay(timeout.Value, cancelSource.Token);
-                    if(cancelSource.IsCancellationRequested)
+                    if (cancelSource.IsCancellationRequested)
                     {
                         return;
                     }
@@ -61,17 +61,17 @@ namespace Wallop.IPC
 
 
 
-            while(!cancelSource.Token.IsCancellationRequested)
+            while (!cancelSource.Token.IsCancellationRequested)
             {
-                var received = await DequeueDataAsync(cancelSource.Token);
-                if(received == null)
+                var received = await DequeueDataAsync(cancelSource.Token).ConfigureAwait(false);
+                if (received == null)
                 {
                     break;
                 }
 
                 //packet = Serializer.Deserialize<IpcPacket>(received.Value.Content);
                 packet = received.Value.Packet;
-                if(packet.Value.TargetApplication != ApplicationId && packet.Value.TargetApplication != AnyApplication)
+                if (packet.Value.TargetApplication != ApplicationId && packet.Value.TargetApplication != AnyApplication)
                 {
                     failedTasks.Add(SendAsync(packet.Value));
                 }
@@ -81,7 +81,7 @@ namespace Wallop.IPC
                 }
             }
 
-            if(!cancelSource.IsCancellationRequested)
+            if (!cancelSource.IsCancellationRequested)
             {
                 cancelSource.Cancel();
                 cancelSource.Dispose();
