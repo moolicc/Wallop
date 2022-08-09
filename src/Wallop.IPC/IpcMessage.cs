@@ -14,5 +14,22 @@ namespace Wallop.IPC
         Statement
     }
 
-    public readonly record struct IpcMessage(MessageTypes Type, int MessageId, string Message, int? ReplyToId);
+    // [System.Text.Json.Serialization.JsonConstructor]
+    public readonly record struct IpcMessage
+    {
+        public MessageTypes Type { get; init; }
+        public int MessageId { get; init; }
+        public object Content { get; init; }
+        public int? ReplyToId { get; init; }
+
+
+        [System.Text.Json.Serialization.JsonConstructor]
+        public IpcMessage(MessageTypes type, int messageId, object content, int? replyToId)
+        {
+            Type = type;
+            MessageId = messageId;
+            Content = content;
+            ReplyToId = replyToId;
+        }
+    }
 }

@@ -63,6 +63,8 @@ namespace Wallop
             _relay = new MessageRelay(_relayHost, _messenger);
             _relayHost.AllowMultipleClients = true;
             _relayHost.Listen(_cancelSource.Token);
+            _relayHost.ProcessMessages(_cancelSource.Token);
+
 
             _pluginContext = pluginContext;
 

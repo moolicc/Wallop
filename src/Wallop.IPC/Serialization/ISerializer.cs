@@ -10,6 +10,8 @@ namespace Wallop.IPC.Serialization
     {
         string Serialize(object data);
         T Deserialize<T>(string data);
+        T Deserialize<T>(object intermediateData);
+        object Deserialize(object intermediateData, Type targetType);
         object Deserialize(string data);
     }
 }

@@ -119,10 +119,10 @@ namespace Wallop
             }
 
             EngineLog.For<Program>().Info("Incoming message from application: {sourceApp}.", request.OtherApplicationId);
-            EngineLog.For<Program>().Info("Incoming message content:\n{content}.", request.Message);
+            EngineLog.For<Program>().Info("Incoming message content:\n{content}.", request.SerializedMessage);
 
             var console = new System.CommandLine.IO.TestConsole();
-            ExecuteCommandLine(false, request.Message.Trim(), console);
+            ExecuteCommandLine(false, request.As<string>().Trim(), console);
 
             var results = console.Out.ToString();
             return results;

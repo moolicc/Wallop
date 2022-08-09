@@ -14,5 +14,15 @@ namespace Wallop.IPC
         Disconnect,
     }
 
-    public readonly record struct PipeDatagram(PipeCommand Command, string? IpcData);
+    public readonly record struct PipeDatagram
+    {
+        public PipeCommand Command { get; init; }
+        public IpcData? IpcData { get; init; }
+
+        public PipeDatagram(PipeCommand command, IpcData? ipcData)
+        {
+            Command = command;
+            IpcData = ipcData;
+        }
+    }
 }

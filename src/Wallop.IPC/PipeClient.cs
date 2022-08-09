@@ -84,8 +84,7 @@ namespace Wallop.IPC
 
             try
             {
-                var serialized = Serializer.Serialize(data);
-                var datagram = new PipeDatagram(PipeCommand.Enqueue, serialized);
+                var datagram = new PipeDatagram(PipeCommand.Enqueue, data);
 
                 var text = Serializer.Serialize(datagram);
                 var buffer = GetBytes(text);
@@ -122,8 +121,8 @@ namespace Wallop.IPC
                     throw new InvalidOperationException("Exepected response data.");
                 }
 
-                var ipcData = Serializer.Deserialize<IpcData>(datagram.IpcData);
-                return ipcData;
+               // var ipcData = Serializer.Deserialize<IpcData>(datagram.IpcData);
+                return (IpcData?)datagram.IpcData;
             }
             catch (Exception ex)
             {

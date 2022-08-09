@@ -11,41 +11,46 @@ namespace Wallop.IPC
     {
         public int RequestId { get; init; }
         public bool RequestFailed { get; init; }
-        public string Message { get; init; }
+        public object SerializedMessage { get; init; }
         public string OtherApplicationId { get; init; }
 
         private ISerializer _serializer;
 
 
-        private Request(ISerializer serializer, int requestId, string otherApplicationId, string message, bool failed)
+        private Request(ISerializer serializer, int requestId, string otherApplicationId, object serializedMessage, bool failed)
         {
             RequestId = requestId;
             RequestFailed = failed;
-            Message = message;
+            SerializedMessage = serializedMessage;
             _serializer = serializer;
             OtherApplicationId = otherApplicationId;
         }
 
         public T As<T>()
         {
-            return _serializer.Deserialize<T>(Message);
+            //return (T)Message;
+            return _serializer.Deserialize<T>(SerializedMessage);
         }
 
-        public object ToObject()
+        public object ToObject(Type type)
         {
-            return _serializer.Deserialize(Message);
+            return _serializer.Deserialize(SerializedMessage, type);
         }
 
 
         public static Request Success(ISerializer serializer, string otherAppId, int requestId, string message)
             => new Request(serializer, requestId, otherAppId, message, false);
 
+        public static Request Success(ISerializer serializer, string otherAppId, int requestId, object message)
+            => new Request(serializer, requestId, otherAppId, message, false);
+
+
         public static Request Failed(ISerializer serializer, string otherAppId, int requestId, string reason)
             => new Request(serializer, requestId, otherAppId, reason, true);
 
 
 
-        public static implicit operator string(Request res)
-            => res.Message;
+        //public static implicit operator string(Request res)
+        //    => res.Message;
     }
 }

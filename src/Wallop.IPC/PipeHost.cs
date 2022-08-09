@@ -133,22 +133,22 @@ namespace Wallop.IPC
         {
             // TODO: Handle lost connections.
             var datagram = Serializer.Deserialize<PipeDatagram>(data);
-            
+            var ipcData = datagram.IpcData;
             if(datagram.Command == PipeCommand.Enqueue)
             {
-                if(datagram.IpcData != null)
+                if(ipcData != null)
                 {
-                    var ipcData = Serializer.Deserialize<IpcData>(datagram.IpcData);
-                    await QueueDataAsync(ipcData);
+                    //var ipcData = Serializer.Deserialize<IpcData>(datagram.IpcData);
+                    await QueueDataAsync((IpcData)ipcData);
                 }
                 return true;
             }
             else if(datagram.Command == PipeCommand.Dequeue)
             {
-                var ipcData = await DequeueDataAsync();
+                ipcData = await DequeueDataAsync();
                 if(ipcData != null)
                 {
-                    await WriteIpcResponse(ipcData.Value);
+                    await WriteIpcResponse((IpcData)ipcData);
                 }
                 return true;
             }
@@ -159,10 +159,10 @@ namespace Wallop.IPC
 
         private async Task WriteIpcResponse(IpcData data)
         {
-            var text = Serializer.Serialize(data);
-            var datagram = new PipeDatagram(PipeCommand.DequeueResponse, text);
+            //var text = Serializer.Serialize(data);
+            var datagram = new PipeDatagram(PipeCommand.DequeueResponse, data);
 
-            text = Serializer.Serialize(datagram);
+            var text = Serializer.Serialize(datagram);
 
             var outgoing = GetData(text);
 

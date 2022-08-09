@@ -33,8 +33,8 @@ namespace Wallop.IPC
 
         protected virtual async Task<bool> SendAsync(IpcPacket packet)
         {
-            var serialized = Serializer.Serialize(packet);
-            var data = new IpcData(serialized);
+            //var serialized = Serializer.Serialize(packet);
+            var data = new IpcData(packet);
             return await QueueDataAsync(data);
         }
 
@@ -69,7 +69,8 @@ namespace Wallop.IPC
                     break;
                 }
 
-                packet = Serializer.Deserialize<IpcPacket>(received.Value.Content);
+                //packet = Serializer.Deserialize<IpcPacket>(received.Value.Content);
+                packet = received.Value.Packet;
                 if(packet.Value.TargetApplication != ApplicationId && packet.Value.TargetApplication != AnyApplication)
                 {
                     failedTasks.Add(SendAsync(packet.Value));
