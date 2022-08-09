@@ -56,14 +56,14 @@ namespace Wallop.IPC
         public async Task BeginAsync()
         {
             _pipeClient = new NamedPipeClientStream(HostMachine, ResourceName, PipeDirection.InOut, PipeOptions.Asynchronous);
-            await _pipeClient.ConnectAsync();
+            await _pipeClient.ConnectAsync().ConfigureAwait(false);
         }
 
         public async Task EndAsync()
         {
             if(_pipeClient?.IsConnected == true)
             {
-                await SendDisconnectAsync();
+                await SendDisconnectAsync().ConfigureAwait(false);
             }
 
 
@@ -72,7 +72,7 @@ namespace Wallop.IPC
                 return;
             }
             _pipeClient.Close();
-            await _pipeClient.DisposeAsync();
+            await _pipeClient.DisposeAsync().ConfigureAwait(false);
         }
 
         public override async Task<bool> QueueDataAsync(IpcData data, CancellationToken? cancelToken)
@@ -89,7 +89,7 @@ namespace Wallop.IPC
 
                 var text = Serializer.Serialize(datagram);
                 var buffer = GetBytes(text);
-                await _pipeClient.WriteAsync(buffer, 0, buffer.Length, cancelToken ?? new CancellationToken(false));
+                await _pipeClient.WriteAsync(buffer, 0, buffer.Length, cancelToken ?? new CancellationToken(false)).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -112,9 +112,9 @@ namespace Wallop.IPC
                 var outgoing = Serializer.Serialize(datagram);
                 var buffer = GetBytes(outgoing);
 
-                await _pipeClient.WriteAsync(buffer, 0, buffer.Length, cancelToken ?? new CancellationToken(false));
+                await _pipeClient.WriteAsync(buffer, 0, buffer.Length, cancelToken ?? new CancellationToken(false)).ConfigureAwait(false);
 
-                var incoming = await ReadAsync(cancelToken ?? new CancellationToken(false));
+                var incoming = await ReadAsync(cancelToken ?? new CancellationToken(false)).ConfigureAwait(false);
                 datagram = Serializer.Deserialize<PipeDatagram>(incoming);
 
                 if (datagram.IpcData == null)
@@ -144,7 +144,7 @@ namespace Wallop.IPC
 
                 var text = Serializer.Serialize(datagram);
                 var buffer = GetBytes(text);
-                await _pipeClient.WriteAsync(buffer, 0, buffer.Length);
+                await _pipeClient.WriteAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -176,7 +176,7 @@ namespace Wallop.IPC
             }
 
             var buffer = new byte[4];
-            await _pipeClient.ReadAsync(buffer, 0, buffer.Length, cancelToken);
+            await _pipeClient.ReadAsync(buffer, 0, buffer.Length, cancelToken).ConfigureAwait(false);
 
             int length = 0;
             if (BitConverter.IsLittleEndian)
@@ -187,7 +187,7 @@ namespace Wallop.IPC
 
             buffer = new byte[length];
 
-            await _pipeClient.ReadAsync(buffer, 0, length, cancelToken);
+            await _pipeClient.ReadAsync(buffer, 0, length, cancelToken).ConfigureAwait(false);
 
             var textData = Encoding.GetString(buffer);
             return textData;

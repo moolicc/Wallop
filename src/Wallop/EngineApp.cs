@@ -38,6 +38,8 @@ namespace Wallop
 
         private PluginPantry.PluginContext _pluginContext;
 
+        private CancellationTokenSource _cancelSource;
+
         private bool _sceneSetup;
 
         private Messenger _messenger;
@@ -51,6 +53,8 @@ namespace Wallop
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public EngineApp(Cog.Configuration config, PluginPantry.PluginContext pluginContext)
         {
+            _cancelSource = new CancellationTokenSource();
+
             _handlers = new List<EngineHandler>();
             _services = new List<object>();
             _messenger = new Messenger();
@@ -58,6 +62,7 @@ namespace Wallop
             _relayHost = new IPC.PipeHost(AppSettings.InstanceName, $"{AppSettings.InstanceName}{Program.APP_RESOURCE_DELIMITER}{Program.MESSENGER_PIPE_RESOURCE}");
             _relay = new MessageRelay(_relayHost, _messenger);
             _relayHost.AllowMultipleClients = true;
+            _relayHost.Listen(_cancelSource.Token);
 
             _pluginContext = pluginContext;
 

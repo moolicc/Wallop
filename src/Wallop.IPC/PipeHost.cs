@@ -77,11 +77,11 @@ namespace Wallop.IPC
                     break;
                 }
 
-                var handler = HandleClientAsync(cancelToken);
-                if(!AllowMultipleClients)
-                {
-                    await handler;
-                }
+                await HandleClientAsync(cancelToken);
+                //if(!AllowMultipleClients)
+                //{
+                //    await handler;
+                //}
             }
         }
 
@@ -94,32 +94,38 @@ namespace Wallop.IPC
 
             bool loop = true;
 
-            while(loop)
+            try
             {
-                var buffer = new byte[4];
-                await _pipeServerStream.ReadAsync(buffer, 0, buffer.Length, cancelToken);
-                if (cancelToken.IsCancellationRequested)
+                while (loop)
                 {
-                    return;
+                    var buffer = new byte[4];
+                    await _pipeServerStream.ReadAsync(buffer, 0, buffer.Length, cancelToken);
+                    if (cancelToken.IsCancellationRequested)
+                    {
+                        return;
+                    }
+
+                    int length = 0;
+                    if (BitConverter.IsLittleEndian)
+                    {
+                        Array.Reverse(buffer, 0, 4);
+                    }
+                    length = BitConverter.ToInt32(buffer);
+
+                    buffer = new byte[length];
+
+                    await _pipeServerStream.ReadAsync(buffer, 0, length, cancelToken);
+                    if (cancelToken.IsCancellationRequested)
+                    {
+                        return;
+                    }
+
+                    var textData = Encoding.GetString(buffer);
+                    loop = await HandleDataAsync(textData);
                 }
-
-                int length = 0;
-                if (BitConverter.IsLittleEndian)
-                {
-                    Array.Reverse(buffer, 0, 4);
-                }
-                length = BitConverter.ToInt32(buffer);
-
-                buffer = new byte[length];
-
-                await _pipeServerStream.ReadAsync(buffer, 0, length, cancelToken);
-                if (cancelToken.IsCancellationRequested)
-                {
-                    return;
-                }
-
-                var textData = Encoding.GetString(buffer);
-                loop = await HandleDataAsync(textData);
+            }
+            catch (Exception ex)
+            {
             }
         }
 

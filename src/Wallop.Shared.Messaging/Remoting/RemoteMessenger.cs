@@ -25,11 +25,13 @@ namespace Wallop.Shared.Messaging.Remoting
             var encoded = Json.Json.WriteMessage(message, messageType);
             var outgoing = new PushMessage(MessageDirection.Put, encoded, null, null);
 
-            var result = AgentClient.SendRequestAsync(outgoing, null, HostApplication).Result;
+            var result = AgentClient.SendRequestAsync(outgoing, null, HostApplication);
 
-            if(!result.RequestFailed)
+            while (!result.IsCompleted) ;
+
+            if(!result.Result.RequestFailed)
             {
-                var reply = result.As<PullMessage>();
+                var reply = result.Result.As<PullMessage>();
                 return reply.MessageID;
             }
 
@@ -41,11 +43,13 @@ namespace Wallop.Shared.Messaging.Remoting
             var encoded = Json.Json.WriteMessage(message, messageType);
             var outgoing = new PushMessage(MessageDirection.Put, encoded, null, preferredId);
 
-            var result = AgentClient.SendRequestAsync(outgoing, null, HostApplication).Result;
+            var result = AgentClient.SendRequestAsync(outgoing, null, HostApplication);
 
-            if (!result.RequestFailed)
+            while (!result.IsCompleted) ;
+
+            if (!result.Result.RequestFailed)
             {
-                var reply = result.As<PullMessage>();
+                var reply = result.Result.As<PullMessage>();
                 return reply.MessageID;
             }
 
@@ -66,11 +70,13 @@ namespace Wallop.Shared.Messaging.Remoting
 
             var encoded = Json.Json.WriteMessage(message, typeof(T));
             var outgoing = new PushMessage(MessageDirection.Put, encoded, null, preferredId);
-            var result = AgentClient.SendRequestAsync(outgoing, null, HostApplication).Result;
+            var result = AgentClient.SendRequestAsync(outgoing, null, HostApplication);
 
-            if (!result.RequestFailed)
+            while (!result.IsCompleted) ;
+
+            if (!result.Result.RequestFailed)
             {
-                var reply = result.As<PullMessage>();
+                var reply = result.Result.As<PullMessage>();
                 return reply.MessageID;
             }
 
@@ -86,14 +92,16 @@ namespace Wallop.Shared.Messaging.Remoting
             var outgoing = new PushMessage(MessageDirection.Take, null, targetType.FullName, null);
             var data = JsonSerializer.Serialize(outgoing);
 
-            var result = AgentClient.SendRequestAsync(outgoing, null, HostApplication).Result;
+            var result = AgentClient.SendRequestAsync(outgoing, null, HostApplication);
 
-            if (result.RequestFailed)
+            while (!result.IsCompleted) ;
+
+            if (result.Result.RequestFailed)
             {
                 return false;
             }
 
-            var reply = result.As<PullMessage>();
+            var reply = result.Result.As<PullMessage>();
             if(reply.EncodedMessage == null)
             {
                 return false;
@@ -111,14 +119,16 @@ namespace Wallop.Shared.Messaging.Remoting
             var outgoing = new PushMessage(MessageDirection.Take, null, targetType.FullName, null);
             var data = JsonSerializer.Serialize(outgoing);
 
-            var result = AgentClient.SendRequestAsync(outgoing, null, HostApplication).Result;
+            var result = AgentClient.SendRequestAsync(outgoing, null, HostApplication);
 
-            if (result.RequestFailed)
+            while (!result.IsCompleted) ;
+
+            if (result.Result.RequestFailed)
             {
                 return false;
             }
 
-            var reply = result.As<PullMessage>();
+            var reply = result.Result.As<PullMessage>();
             if (reply.EncodedMessage == null)
             {
                 return false;
