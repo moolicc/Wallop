@@ -68,7 +68,7 @@ namespace Wallop.Shared.Messaging
             // Loop until the messenger.Take fails, we wrap back around the queue to the first ID we checked, or we find
             // the reply for our message ID.
             var result = true;
-            while (incomingReplyId != messageId)
+            while (incomingReplyId != startingIncomingId && incomingReply.ReplyToMessageId != messageId)
             {
                 if (!messenger.Take(ref incomingReply, ref incomingReplyId))
                 {
@@ -97,6 +97,10 @@ namespace Wallop.Shared.Messaging
             if (incomingReply.Content is null)
             {
                 reply = default;
+            }
+            else if (incomingReply is MessageReply msgReply && typeof(T) == typeof(MessageReply))
+            {
+                reply = (T)(object)msgReply;
             }
             else
             {
@@ -129,6 +133,10 @@ namespace Wallop.Shared.Messaging
             }
 
             // Return the data cast to the correct Type.
+            if (incomingReply is MessageReply msgReply && typeof(T) == typeof(MessageReply))
+            {
+                incomingReply = msgReply;
+            }
             if (incomingReply.Content is not null)
             {
                 return (T)incomingReply.Content;

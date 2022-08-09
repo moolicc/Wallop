@@ -29,7 +29,7 @@ namespace Wallop.Shared.Messaging.Remoting
 
             while (!result.IsCompleted) ;
 
-            if(!result.Result.RequestFailed)
+            if (!result.Result.RequestFailed)
             {
                 var reply = result.Result.As<PullMessage>();
                 return reply.MessageID;
@@ -63,7 +63,7 @@ namespace Wallop.Shared.Messaging.Remoting
 
         public uint Put<T>(T message, uint? preferredId) where T : struct
         {
-            if(!preferredId.HasValue)
+            if (!preferredId.HasValue)
             {
                 return Put(message);
             }
@@ -102,7 +102,7 @@ namespace Wallop.Shared.Messaging.Remoting
             }
 
             var reply = result.Result.As<PullMessage>();
-            if(reply.EncodedMessage == null)
+            if (reply.EncodedMessage == null)
             {
                 return false;
             }
@@ -120,6 +120,7 @@ namespace Wallop.Shared.Messaging.Remoting
             var data = JsonSerializer.Serialize(outgoing);
 
             var result = AgentClient.SendRequestAsync(outgoing, null, HostApplication);
+            result.ConfigureAwait(false);
 
             while (!result.IsCompleted) ;
 
@@ -133,6 +134,7 @@ namespace Wallop.Shared.Messaging.Remoting
             {
                 return false;
             }
+
 
             messageId = reply.MessageID;
             var response = JsonSerializer.Deserialize(reply.EncodedMessage.MessageData, targetType);

@@ -138,6 +138,7 @@ namespace Wallop.IPC
                 {
                     incoming = await ReadAsync(null).ConfigureAwait(false);
                 }
+                datagram = Serializer.Deserialize<PipeDatagram>(incoming);
 
                 if (datagram.IpcData == null)
                 {
