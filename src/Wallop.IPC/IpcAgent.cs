@@ -63,7 +63,7 @@ namespace Wallop.IPC
         {
             var intermediate = IntermediateValue.FromSerialized(Serializer, message);
             var data = new IpcMessage(MessageTypes.Statement, GetNextMessageId(), intermediate, null);
-            return await SendMessageAsync(data, targetApplication);
+            return await SendMessageAsync(data, targetApplication).ConfigureAwait(false);
         }
 
 
@@ -73,14 +73,14 @@ namespace Wallop.IPC
             var intermediate = IntermediateValue.FromSerialized(Serializer, message);
             var outgoing = new IpcMessage(MessageTypes.Request, GetNextMessageId(), intermediate, null);
 
-            if (!await SendMessageAsync(outgoing, targetApplication))
+            if (!await SendMessageAsync(outgoing, targetApplication).ConfigureAwait(false))
             {
                 var result = Request.Failed(Serializer, targetApplication, outgoing.MessageId, "Failed to send request message.");
                 requestComplete?.Invoke(result);
                 return result;
             }
 
-            var incoming = await RecvMessageAsync(MessageTypes.Response);
+            var incoming = await RecvMessageAsync(MessageTypes.Response).ConfigureAwait(false);
             if(incoming == null)
             {
                 var result = Request.Failed(Serializer, targetApplication, outgoing.MessageId, "Failed to receive response.");
@@ -90,7 +90,7 @@ namespace Wallop.IPC
 
             while (incoming.Value.ReplyToId != outgoing.MessageId)
             {
-                incoming = await RecvMessageAsync(MessageTypes.Response);
+                incoming = await RecvMessageAsync(MessageTypes.Response).ConfigureAwait(false);
                 if (incoming == null)
                 {
                     var result = Request.Failed(Serializer, targetApplication, outgoing.MessageId, "Failed to receive response on retry.");
@@ -106,7 +106,7 @@ namespace Wallop.IPC
 
         public virtual async Task<T?> ReceiveStatementAsync<T>()
         {
-            var incomingPacket = await RecvAsync();
+            var incomingPacket = await RecvAsync().ConfigureAwait(false);
             if (incomingPacket == null)
             {
                 return default(T?);
@@ -116,7 +116,7 @@ namespace Wallop.IPC
             var incomingMessage = incomingPacket.Value.Message;
             if (incomingMessage.Type != MessageTypes.Statement)
             {
-                await SendAsync(incomingPacket.Value);
+                await SendAsync(incomingPacket.Value).ConfigureAwait(false);
                 return default(T?);
             }
 
@@ -128,7 +128,7 @@ namespace Wallop.IPC
 
         public virtual async Task<object?> ReceiveStatementAsync()
         {
-            var incomingPacket = await RecvAsync();
+            var incomingPacket = await RecvAsync().ConfigureAwait(false);
             if (incomingPacket == null)
             {
                 return null;
@@ -138,7 +138,7 @@ namespace Wallop.IPC
             var incomingMessage = incomingPacket.Value.Message;
             if (incomingMessage.Type != MessageTypes.Statement)
             {
-                await SendAsync(incomingPacket.Value);
+                await SendAsync(incomingPacket.Value).ConfigureAwait(false);
                 return null;
             }
 
@@ -149,7 +149,7 @@ namespace Wallop.IPC
 
         public virtual async Task<Request?> RespondToRequestAsync(HandleReply? handleReply)
         {
-            var incomingPacket = await RecvAsync();
+            var incomingPacket = await RecvAsync().ConfigureAwait(false);
             if(incomingPacket == null)
             {
                 return null;
@@ -159,7 +159,7 @@ namespace Wallop.IPC
             var incomingMessage = incomingPacket.Value.Message;
             if (incomingMessage.Type != MessageTypes.Request)
             {
-                await SendAsync(incomingPacket.Value);
+                await SendAsync(incomingPacket.Value).ConfigureAwait(false);
                 return null;
             }
 
@@ -170,7 +170,7 @@ namespace Wallop.IPC
             {
                 var intermediate = IntermediateValue.FromSerialized(Serializer, replyData);
                 var outgoing = new IpcMessage(MessageTypes.Response, GetNextMessageId(), intermediate, incomingMessage.MessageId);
-                await SendMessageAsync(outgoing, incomingPacket.Value.SourceApplication);
+                await SendMessageAsync(outgoing, incomingPacket.Value.SourceApplication).ConfigureAwait(false);
             }
 
             return result;
@@ -183,12 +183,12 @@ namespace Wallop.IPC
             var serialized = Serializer.Serialize(message);
             //var packet = new IpcPacket(serialized, ApplicationId, targetApplication);
             var packet = new IpcPacket(message, ApplicationId, targetApplication);
-            return await SendAsync(packet);
+            return await SendAsync(packet).ConfigureAwait(false);
         }
 
         public virtual async Task<IpcMessage?> RecvMessageAsync(MessageTypes typeFilter)
         {
-            var packet = await RecvAsync();
+            var packet = await RecvAsync().ConfigureAwait(false);
             if(packet == null)
             {
                 return null;
@@ -198,7 +198,7 @@ namespace Wallop.IPC
             var ipcMessage = packet.Value.Message;
             if (!typeFilter.HasFlag(ipcMessage.Type))
             {
-                await SendAsync(packet.Value);
+                await SendAsync(packet.Value).ConfigureAwait(false);
                 return null;
             }
 
@@ -211,7 +211,7 @@ namespace Wallop.IPC
             {
                 if(RequestReceivedCallback != null || StatementReceivedCallback != null)
                 {
-                    var incoming = await RecvAsync(TimeSpan.FromSeconds(10));
+                    var incoming = await RecvAsync(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
                     if(incoming != null)
                     {
                         //var ipcMessage = Serializer.Deserialize<IpcMessage>(incoming.Value.Content);
@@ -219,7 +219,7 @@ namespace Wallop.IPC
 
                         if (incoming.Value.TargetApplication != AnyApplication && incoming.Value.TargetApplication != ApplicationId)
                         {
-                            await SendAsync(incoming.Value);
+                            await SendAsync(incoming.Value).ConfigureAwait(false);
                         }
                         else if(ipcMessage.Type == MessageTypes.Request && RequestReceivedCallback != null)
                         {
@@ -232,7 +232,7 @@ namespace Wallop.IPC
                                 //var outgoing = new IpcMessage(MessageTypes.Response, GetNextMessageId(), serialized, ipcMessage.MessageId);
                                 var intermediate = IntermediateValue.FromSerialized(Serializer, replyData);
                                 var outgoing = new IpcMessage(MessageTypes.Response, GetNextMessageId(), intermediate, ipcMessage.MessageId);
-                                await SendMessageAsync(outgoing, incoming.Value.SourceApplication);
+                                await SendMessageAsync(outgoing, incoming.Value.SourceApplication).ConfigureAwait(false);
                             }
                         }
                         else if(ipcMessage.Type == MessageTypes.Statement && StatementReceivedCallback != null)
@@ -242,12 +242,12 @@ namespace Wallop.IPC
                         }
                         else
                         {
-                            await SendAsync(incoming.Value);
+                            await SendAsync(incoming.Value).ConfigureAwait(false);
                         }
                     }
                 }
 
-                await Task.Delay(MESSAGE_PROC_DELAY);
+                await Task.Delay(MESSAGE_PROC_DELAY).ConfigureAwait(false);
             }
         }
     }

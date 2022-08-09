@@ -19,17 +19,17 @@ namespace Wallop.IPC
 
 
         public static async Task UseAsync(PipeClientConfig config, UseClientAction useAction)
-            => await UseAsync(config.ApplicationId, config.HostMachine, config.HostApplication, config.ResourceName, useAction);
+            => await UseAsync(config.ApplicationId, config.HostMachine, config.HostApplication, config.ResourceName, useAction).ConfigureAwait(false);
 
         public static async Task UseAsync(string applicationId, string hostMachine, string hostApplication, string resourceName, UseClientAction useAction)
         {
             var client = new PipeClient(applicationId, hostMachine, hostApplication, resourceName);
             var cancelSource = new CancellationTokenSource();
-            await client.BeginAsync();
+            await client.BeginAsync().ConfigureAwait(false);
 
-            await useAction(client, cancelSource.Token);
+            await useAction(client, cancelSource.Token).ConfigureAwait(false);
 
-            await client.EndAsync();
+            await client.EndAsync().ConfigureAwait(false);
             cancelSource.Dispose();
         }
 

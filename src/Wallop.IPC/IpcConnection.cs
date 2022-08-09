@@ -50,7 +50,7 @@ namespace Wallop.IPC
             {
                 Task.Factory.StartNew(async () =>
                 {
-                    await Task.Delay(timeout.Value, cancelSource.Token);
+                    await Task.Delay(timeout.Value, cancelSource.Token).ConfigureAwait(false);
                     if (cancelSource.IsCancellationRequested)
                     {
                         return;

@@ -53,7 +53,7 @@ namespace Wallop.IPC
                 }
 
                 return null;
-            });
+            }).ConfigureAwait(false);
 
             return data;
         }
@@ -71,13 +71,13 @@ namespace Wallop.IPC
                 _pipeServerStream = new NamedPipeServerStream(ResourceName, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
                 PipesCreated++;
 
-                await _pipeServerStream.WaitForConnectionAsync(cancelToken);
+                await _pipeServerStream.WaitForConnectionAsync(cancelToken).ConfigureAwait(false);
                 if (cancelToken.IsCancellationRequested)
                 {
                     break;
                 }
 
-                await HandleClientAsync(cancelToken);
+                await HandleClientAsync(cancelToken).ConfigureAwait(false);
                 //if(!AllowMultipleClients)
                 //{
                 //    await handler;
@@ -99,7 +99,7 @@ namespace Wallop.IPC
                 while (loop)
                 {
                     var buffer = new byte[4];
-                    await _pipeServerStream.ReadAsync(buffer, 0, buffer.Length, cancelToken);
+                    await _pipeServerStream.ReadAsync(buffer, 0, buffer.Length, cancelToken).ConfigureAwait(false);
                     if (cancelToken.IsCancellationRequested)
                     {
                         return;
@@ -114,14 +114,14 @@ namespace Wallop.IPC
 
                     buffer = new byte[length];
 
-                    await _pipeServerStream.ReadAsync(buffer, 0, length, cancelToken);
+                    await _pipeServerStream.ReadAsync(buffer, 0, length, cancelToken).ConfigureAwait(false);
                     if (cancelToken.IsCancellationRequested)
                     {
                         return;
                     }
 
                     var textData = Encoding.GetString(buffer);
-                    loop = await HandleDataAsync(textData);
+                    loop = await HandleDataAsync(textData).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
@@ -139,16 +139,16 @@ namespace Wallop.IPC
                 if(ipcData != null)
                 {
                     //var ipcData = Serializer.Deserialize<IpcData>(datagram.IpcData);
-                    await QueueDataAsync((IpcData)ipcData);
+                    await QueueDataAsync((IpcData)ipcData).ConfigureAwait(false);
                 }
                 return true;
             }
             else if(datagram.Command == PipeCommand.Dequeue)
             {
-                ipcData = await DequeueDataAsync();
+                ipcData = await DequeueDataAsync().ConfigureAwait(false);
                 if(ipcData != null)
                 {
-                    await WriteIpcResponse((IpcData)ipcData);
+                    await WriteIpcResponse((IpcData)ipcData).ConfigureAwait(false);
                 }
                 return true;
             }
@@ -166,7 +166,7 @@ namespace Wallop.IPC
 
             var outgoing = GetData(text);
 
-            await _pipeServerStream!.WriteAsync(outgoing, 0, outgoing.Length);
+            await _pipeServerStream!.WriteAsync(outgoing, 0, outgoing.Length).ConfigureAwait(false);
         }
 
         private byte[] GetData(string textData)
