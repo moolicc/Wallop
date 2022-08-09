@@ -31,6 +31,6 @@
 		]
 	},
 	"SceneSettings": {
-		"PackageSearchDirectory": "modulz"
+		"PackageSearchDirectory": "modules"
 	}
 }

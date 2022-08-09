@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Wallop.IPC.Serialization;
 
 namespace Wallop.IPC
 {
@@ -19,12 +20,12 @@ namespace Wallop.IPC
     {
         public MessageTypes Type { get; init; }
         public int MessageId { get; init; }
-        public object Content { get; init; }
+        public IntermediateValue Content { get; init; }
         public int? ReplyToId { get; init; }
 
 
         [System.Text.Json.Serialization.JsonConstructor]
-        public IpcMessage(MessageTypes type, int messageId, object content, int? replyToId)
+        public IpcMessage(MessageTypes type, int messageId, IntermediateValue content, int? replyToId)
         {
             Type = type;
             MessageId = messageId;

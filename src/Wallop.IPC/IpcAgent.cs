@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Wallop.IPC.Serialization;
 
 namespace Wallop.IPC
 {
@@ -58,17 +59,10 @@ namespace Wallop.IPC
         }
 
 
-
-        public virtual async Task<bool> SendStatementAsync<T>(T message, string targetApplication = "*")
-            where T : notnull
-        {
-            var serialized = Serializer.Serialize(message);
-            return await SendStatementAsync(serialized, targetApplication);
-        }
-
         public virtual async Task<bool> SendStatementAsync(string message, string targetApplication = "*")
         {
-            var data = new IpcMessage(MessageTypes.Statement, GetNextMessageId(), message, null);
+            var intermediate = IntermediateValue.FromSerialized(Serializer, message);
+            var data = new IpcMessage(MessageTypes.Statement, GetNextMessageId(), intermediate, null);
             return await SendMessageAsync(data, targetApplication);
         }
 
@@ -76,8 +70,8 @@ namespace Wallop.IPC
         public virtual async Task<Request> SendRequestAsync<TRequest>(TRequest message, RequestComplete? requestComplete, string targetApplication = "*")
             where TRequest : notnull
         {
-            var serialized = Serializer.Serialize(message);
-            var outgoing = new IpcMessage(MessageTypes.Request, GetNextMessageId(), serialized, null);
+            var intermediate = IntermediateValue.FromSerialized(Serializer, message);
+            var outgoing = new IpcMessage(MessageTypes.Request, GetNextMessageId(), intermediate, null);
 
             if (!await SendMessageAsync(outgoing, targetApplication))
             {
@@ -105,7 +99,7 @@ namespace Wallop.IPC
                 }
             }
 
-            var response = Request.Success(Serializer, targetApplication, outgoing.MessageId, incoming.Value.Content);
+            var response = Request.Success(Serializer, targetApplication, outgoing.MessageId, incoming.Value.Content.Value);
             requestComplete?.Invoke(response);
             return response;
         }
@@ -129,7 +123,7 @@ namespace Wallop.IPC
             //var message = Serializer.Deserialize<T>(incomingMessage.Message);
 
             // TODO: If this works, Add T constraint and avoid this cast.
-            return (T)(object)incomingMessage;
+            return (T)incomingMessage.Content.Value;
         }
 
         public virtual async Task<object?> ReceiveStatementAsync()
@@ -174,8 +168,8 @@ namespace Wallop.IPC
 
             if(replyData != null)
             {
-                var serialized = Serializer.Serialize(replyData);
-                var outgoing = new IpcMessage(MessageTypes.Response, GetNextMessageId(), serialized, incomingMessage.MessageId);
+                var intermediate = IntermediateValue.FromSerialized(Serializer, replyData);
+                var outgoing = new IpcMessage(MessageTypes.Response, GetNextMessageId(), intermediate, incomingMessage.MessageId);
                 await SendMessageAsync(outgoing, incomingPacket.Value.SourceApplication);
             }
 
@@ -217,7 +211,7 @@ namespace Wallop.IPC
             {
                 if(RequestReceivedCallback != null || StatementReceivedCallback != null)
                 {
-                    var incoming = await RecvAsync(TimeSpan.FromSeconds(1));
+                    var incoming = await RecvAsync(TimeSpan.FromSeconds(10));
                     if(incoming != null)
                     {
                         //var ipcMessage = Serializer.Deserialize<IpcMessage>(incoming.Value.Content);
@@ -230,20 +224,21 @@ namespace Wallop.IPC
                         else if(ipcMessage.Type == MessageTypes.Request && RequestReceivedCallback != null)
                         {
                             //var replyData = RequestReceivedCallback(Request.Success(Serializer, incoming.Value.SourceApplication, ipcMessage.MessageId, ipcMessage.Message
-                            var replyData = RequestReceivedCallback(Request.Success(Serializer, incoming.Value.SourceApplication, ipcMessage.MessageId, ipcMessage.Content));
+                            var replyData = RequestReceivedCallback(Request.Success(Serializer, incoming.Value.SourceApplication, ipcMessage.MessageId, ipcMessage.Content.Value));
 
                             if (replyData != null)
                             {
                                 //var serialized = Serializer.Serialize(replyData);
                                 //var outgoing = new IpcMessage(MessageTypes.Response, GetNextMessageId(), serialized, ipcMessage.MessageId);
-                                var outgoing = new IpcMessage(MessageTypes.Response, GetNextMessageId(), replyData, ipcMessage.MessageId);
+                                var intermediate = IntermediateValue.FromSerialized(Serializer, replyData);
+                                var outgoing = new IpcMessage(MessageTypes.Response, GetNextMessageId(), intermediate, ipcMessage.MessageId);
                                 await SendMessageAsync(outgoing, incoming.Value.SourceApplication);
                             }
                         }
                         else if(ipcMessage.Type == MessageTypes.Statement && StatementReceivedCallback != null)
                         {
                             //StatementReceivedCallback(incoming.Value.SourceApplication, Serializer.Deserialize(ipcMessage.Message));
-                            StatementReceivedCallback(incoming.Value.SourceApplication, ipcMessage.Content);
+                            StatementReceivedCallback(incoming.Value.SourceApplication, ipcMessage.Content.Value);
                         }
                         else
                         {

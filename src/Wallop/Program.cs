@@ -119,7 +119,7 @@ namespace Wallop
             }
 
             EngineLog.For<Program>().Info("Incoming message from application: {sourceApp}.", request.OtherApplicationId);
-            EngineLog.For<Program>().Info("Incoming message content:\n{content}.", request.SerializedMessage);
+            EngineLog.For<Program>().Info("Incoming message content:\n{content}.", request.Message);
 
             var console = new System.CommandLine.IO.TestConsole();
             ExecuteCommandLine(false, request.As<string>().Trim(), console);
@@ -318,7 +318,7 @@ namespace Wallop
                 if (File.Exists(combined))
                 {
                     EngineLog.For<Program>().Info("Unloaded dependency found at {assemblyPath}!", combined);
-                    return Assembly.LoadFile(combined);
+                    return Assembly.LoadFrom(combined);
                 }
             }
 

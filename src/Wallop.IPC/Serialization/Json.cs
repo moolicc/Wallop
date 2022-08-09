@@ -5,13 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 
 namespace Wallop.IPC.Serialization
 {
     public class Json : ISerializer
     {
-        private readonly record struct JsonData(string Type, string Data);
-
         public T Deserialize<T>(string data)
         {
             //var jObject = JsonSerializer.Deserialize<JsonData>(data);
@@ -25,7 +24,14 @@ namespace Wallop.IPC.Serialization
             //return (T)JsonSerializer.Deserialize(jObject.Data, type)!;
 
 
-            return JsonSerializer.Deserialize<T>(data)!;
+            var options = new JsonSerializerOptions
+            {
+                Converters =
+                {
+                    new IntermediateConverter()
+                }
+            };
+            return JsonSerializer.Deserialize<T>(data, options)!;
         }
 
         public string Serialize(object data)
@@ -43,41 +49,88 @@ namespace Wallop.IPC.Serialization
             //var jObject = new JsonData(data.GetType().FullName, text!);
             //return JsonSerializer.Serialize(jObject);
 
-            return JsonSerializer.Serialize(data, data.GetType());
-        }
-
-        public object Deserialize(string data)
-        {
-            //var jObject = JsonSerializer.Deserialize<JsonData>(data);
-            //var type = Type.GetType(jObject.Type)!;
-
-            //if(type.IsAssignableTo(typeof(IConvertible)))
-            //{
-            //    return Convert.ChangeType(jObject.Data, type);
-            //}
-
-            //return JsonSerializer.Deserialize(jObject.Data, type)!;
-
-            return JsonSerializer.Deserialize(data, typeof(object))!;
-        }
-
-        public T Deserialize<T>(object intermediateData)
-        {
-            if(intermediateData is JsonElement jNode)
+            var options = new JsonSerializerOptions
             {
-                return jNode.Deserialize<T>()!;
-            }
-            var type = intermediateData.GetType();
-            throw new InvalidOperationException("Invalid intermediate data.");
+                Converters =
+                {
+                    new IntermediateConverter()
+                }
+            };
+            return JsonSerializer.Serialize(data, data.GetType(), options);
         }
 
-        public object Deserialize(object intermediateData, Type targetType)
+        private class IntermediateConverter : JsonConverter<IntermediateValue>
         {
-            if (intermediateData.GetType().IsAssignableFrom(typeof(JsonElement)))
+            public override IntermediateValue? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
-                return ((JsonNode)intermediateData).Deserialize(targetType)!;
+                if(reader.TokenType != JsonTokenType.StartObject)
+                {
+                    throw new JsonException();
+                }
+
+                // Read Type discriminator
+                reader.Read();
+                if(reader.TokenType != JsonTokenType.PropertyName)
+                {
+                    throw new JsonException();
+                }
+
+                var propName = reader.GetString();
+                if(propName != nameof(IntermediateValue.ValueType))
+                {
+                    throw new JsonException();
+                }
+
+                reader.Read();
+                if(reader.TokenType != JsonTokenType.String)
+                {
+                    throw new JsonException();
+                }
+
+                var typeString = reader.GetString()!;
+
+                // Read serialized value
+                reader.Read();
+                if (reader.TokenType != JsonTokenType.PropertyName)
+                {
+                    throw new JsonException();
+                }
+
+                propName = reader.GetString();
+                if (propName != nameof(IntermediateValue.SerializedValue))
+                {
+                    throw new JsonException();
+                }
+
+                reader.Read();
+                if (reader.TokenType != JsonTokenType.String)
+                {
+                    throw new JsonException();
+                }
+
+                var serialized = reader.GetString()!;
+                var type = Type.GetType(typeString)!;
+                var value = JsonSerializer.Deserialize(serialized, type)!;
+
+                reader.Read();
+                if(reader.TokenType != JsonTokenType.EndObject)
+                {
+                    throw new JsonException();
+                }
+
+                return new IntermediateValue(serialized, value);
             }
-            throw new InvalidOperationException("Invalid intermediate data.");
+
+            public override void Write(Utf8JsonWriter writer, IntermediateValue value, JsonSerializerOptions options)
+            {
+                writer.WriteStartObject();
+
+                writer.WriteString(nameof(IntermediateValue.ValueType), value.ValueType.FullName!);
+                writer.WriteString(nameof(IntermediateValue.SerializedValue), value.SerializedValue);
+
+                writer.WriteEndObject();
+            }
+
         }
     }
 }
