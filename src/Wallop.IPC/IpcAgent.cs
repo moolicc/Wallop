@@ -25,9 +25,13 @@ namespace Wallop.IPC
         private CancellationToken? _messageProcCancelToken;
 
 
+        private int _nextId;
+
+
         public IpcAgent(string applicationId, string resourceName)
             : base(applicationId, resourceName)
         {
+            _nextId = 1;
         }
 
         public Task ProcessMessages(CancellationToken cancelToken)
@@ -39,23 +43,7 @@ namespace Wallop.IPC
 
         protected virtual int GetNextMessageId()
         {
-            long start = 0;
-            var yearStart = new DateTime(DateTime.Now.Year, 1, 1).Ticks;
-            unchecked
-            {
-                start = DateTime.Now.Ticks;
-
-                while (start >= int.MaxValue)
-                {
-                    start -= yearStart;
-                    if (start < 0)
-                    {
-                        yearStart /= 2;
-                        start = -start;
-                    }
-                }
-            }
-            return (int)start;
+            return _nextId++;
         }
 
 
