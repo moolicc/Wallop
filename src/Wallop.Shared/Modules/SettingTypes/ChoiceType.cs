@@ -12,7 +12,7 @@ namespace Wallop.Shared.Modules.SettingTypes
     {
         // Choices are defined in the format:
         // <option>label:value</option>
-        private const char LABEL_VALUE_DELIMITER = '|';
+        public const char LABEL_VALUE_DELIMITER = '|';
 
         public string Name => "choice";
 
