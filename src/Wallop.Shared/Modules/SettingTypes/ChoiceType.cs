@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Wallop.Shared.Modules.SettingTypes
 {
-    public readonly record struct Choice(int Index, string Label, string Value);
+    public readonly record struct Option(int Index, string Label, string Value);
 
     public class ChoiceType : ISettingType
     {
@@ -20,7 +20,7 @@ namespace Wallop.Shared.Modules.SettingTypes
 
         public string Serialize(object value, IEnumerable<KeyValuePair<string, string>>? args)
         {
-            var choices = GetChoices(args);
+            var choices = GetOptions(args);
 
             if (value is int i)
             {
@@ -32,7 +32,7 @@ namespace Wallop.Shared.Modules.SettingTypes
             }
             else if (value is string s)
             {
-                Choice? selected = null;
+                Option? selected = null;
                 foreach (var item in choices)
                 {
                     if (s.Equals(item.Label, StringComparison.OrdinalIgnoreCase)
@@ -53,7 +53,7 @@ namespace Wallop.Shared.Modules.SettingTypes
                 // Find e.name:value match
                 // or e.name:label match
                 var enumNames = Enum.GetNames(e.GetType());
-                Choice? selected = null;
+                Option? selected = null;
 
                 foreach (var choice in choices)
                 {
@@ -117,7 +117,7 @@ namespace Wallop.Shared.Modules.SettingTypes
 
         public bool TryDeserialize(string value, out object? result, IEnumerable<KeyValuePair<string, string>>? args)
         {
-            var choices = GetChoices(args);
+            var choices = GetOptions(args);
 
             if(int.TryParse(value, out int index))
             {
@@ -140,14 +140,14 @@ namespace Wallop.Shared.Modules.SettingTypes
         }
 
 
-        private Choice[] GetChoices(IEnumerable<KeyValuePair<string, string>>? args)
+        public static Option[] GetOptions(IEnumerable<KeyValuePair<string, string>>? args)
         {
             if(args == null)
             {
-                return Array.Empty<Choice>();
+                return Array.Empty<Option>();
             }
 
-            var choices = new List<Choice>();
+            var choices = new List<Option>();
             int optionIndex = 0;
             foreach (var arg in args)
             {
@@ -163,7 +163,7 @@ namespace Wallop.Shared.Modules.SettingTypes
                         value = split[1];
                     }
 
-                    choices.Add(new Choice(optionIndex, label, value));
+                    choices.Add(new Option(optionIndex, label, value));
                     optionIndex++;
                 }
             }
