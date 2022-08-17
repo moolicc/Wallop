@@ -13,9 +13,12 @@ using Wallop.Shared.Messaging.Messages;
 using Wallop.Settings;
 using Wallop.Types.Plugins;
 using Wallop.Types.Plugins.EndPoints;
+using Silk.NET.Windowing.Sdl;
+using Silk.NET.Core.Contexts;
 
 namespace Wallop.Handlers
 {
+    // TODO: Use libvlc to support video playback
     // TODO: Should move ALL graphics related setup and modifying to here.
     internal class GraphicsHandler : EngineHandler
     {
@@ -31,7 +34,7 @@ namespace Wallop.Handlers
             _graphicsSettings = graphicsSettings;
         }
 
-        public override Command? GetCommandLineCommand(bool firstInstance)
+        public override Command? GetCommandLineCommand()
         {
             var windowWidth = new Option<int>(new[] { "--win-width", "-w" },
                 () => _graphicsSettings.WindowWidth,
@@ -56,6 +59,10 @@ namespace Wallop.Handlers
                 new[] { "--vsync", "-v" },
                 () => _graphicsSettings.VSync,
                 "Specifies if vsync should be enabled or disabled.");
+            var parentOption = new Option<string>(
+                new[] { "--parent", "-p" },
+                () => "",
+                "Specifies the handle for the window to render onto.");
 
 
 
@@ -68,15 +75,16 @@ namespace Wallop.Handlers
                 skipOverlayOpt,
                 refreshRateOpt,
                 vsyncEnable,
+                parentOption
             };
 
-            var graphicsHandler = CommandHandler.Create<int, int, WindowBorder, bool, double, bool>(
-                (winWidth, winHeight, winBorder, overlay, refreshRate, vsync) =>
+            var graphicsHandler = CommandHandler.Create<int, int, WindowBorder, bool, double, bool, string>(
+                (winWidth, winHeight, winBorder, overlay, refreshRate, vsync, parent) =>
                 {
 
-                    if (WindowInitialized || !firstInstance)
+                    if (WindowInitialized)
                     {
-                        App.Messenger.Put(new GraphicsMessage(winWidth, winHeight, overlay, (int)winBorder, refreshRate, vsync));
+                        App.Messenger.Put(new GraphicsMessage(winWidth, winHeight, overlay, (int)winBorder, refreshRate, vsync, parent));
                     }
                     else
                     {
@@ -87,6 +95,7 @@ namespace Wallop.Handlers
                         changes.Overlay = overlay;
                         changes.RefreshRate = refreshRate;
                         changes.VSync = vsync;
+                        changes.ParentHandle = parent;
 
                         _graphicsSettings = changes;
                     }
@@ -135,6 +144,8 @@ namespace Wallop.Handlers
 
 
             EngineLog.For<GraphicsHandler>().Info("Creating window with options: {options}", _graphicsSettings);
+
+            /*
             var options = WindowOptions.Default;
             options.Size = new Vector2D<int>(_graphicsSettings.WindowWidth, _graphicsSettings.WindowHeight);
             options.WindowBorder = _graphicsSettings.WindowBorder;
@@ -152,10 +163,49 @@ namespace Wallop.Handlers
             _window.Update += App.Update;
             _window.Render += App.Draw;
             _window.Closing += App.Shutdown;
+            */
 
-            WindowInitialized = true;
+            _graphicsSettings.ParentHandle = "";
+            bool newWindow = string.IsNullOrEmpty(_graphicsSettings.ParentHandle.Trim().Trim('"'));
+            if (newWindow)
+            {
+                Window.PrioritizeSdl();
+                _window = Window.Create(WindowOptions.Default);
+            }
+            else
+            {
+                unsafe
+                {
+                    var handle = IntPtr.Parse(_graphicsSettings.ParentHandle).ToPointer();
+                    _window = (IWindow)SdlWindowing.CreateFrom(handle);
+                }
+            }
 
-            _window.Run();
+            if (newWindow)
+            {
+                _window.Size = new Vector2D<int>(_graphicsSettings.WindowWidth, _graphicsSettings.WindowHeight);
+                _window.WindowBorder = _graphicsSettings.WindowBorder;
+                _window.IsVisible = !_graphicsSettings.Overlay;
+            }
+            _window.FramesPerSecond = _graphicsSettings.RefreshRate;
+            _window.UpdatesPerSecond = _graphicsSettings.RefreshRate;
+            _window.VSync = _graphicsSettings.VSync;
+            _window.ShouldSwapAutomatically = true;
+
+            _window.Load += WindowLoad;
+            _window.FramebufferResize += WindowResized;
+            _window.Update += App.Update;
+            _window.Render += App.Draw;
+            _window.Closing += App.Shutdown;
+
+            if (newWindow)
+            {
+                _window.Run();
+            }
+            else
+            {
+                WindowLoad();
+            }
         }
 
         public void ClearSurface()
@@ -166,8 +216,7 @@ namespace Wallop.Handlers
         private void WindowLoad()
         {
             var pluginContext = App.GetService<PluginPantry.PluginContext>().OrThrow();
-            _window.GLContext.MakeCurrent();
-            _gl = GL.GetApi(_window);
+            _gl = _window.CreateOpenGL();
             
 
             var GLMajorVersion = _gl.GetInteger(GLEnum.MajorVersion);

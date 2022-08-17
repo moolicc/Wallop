@@ -21,6 +21,8 @@ namespace Wallop.Settings
         public double RefreshRate { get; set; } = 60.0;
         public bool VSync { get; set; } = true;
 
+        public string ParentHandle { get; set; } = "";
+
         public object Clone()
             => CloneInstance();
 

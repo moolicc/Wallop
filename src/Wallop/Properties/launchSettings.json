@@ -6,12 +6,11 @@
     },
     "WSL": {
       "commandName": "WSL2",
-      "environmentVariables": {},
       "distributionName": ""
     },
     "Wallop - Client": {
       "commandName": "Project",
-      "commandLineArgs": "scene --help",
+      "commandLineArgs": "graphics --parent myparent",
       "nativeDebugging": true
     }
   }

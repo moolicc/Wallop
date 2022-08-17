@@ -7,7 +7,7 @@ using Wallop.Shared.Modules.SettingTypes;
 
 namespace Wallop.Shared.Modules
 {
-    public record ModuleSetting(string SettingName, string SettingDescription, string? DefaultValue, string SettingType, bool Required, bool Tracked, IEnumerable<ModuleSettingBinding> Bindings, IEnumerable<KeyValuePair<string, string>> SettingTypeArgs)
+    public record ModuleSetting(string SettingName, string SettingDescription, string? DefaultValue, string SettingType, bool Required, bool Tracked, bool Nullable, IEnumerable<ModuleSettingBinding> Bindings, IEnumerable<KeyValuePair<string, string>> SettingTypeArgs)
     {
         public ISettingType? CachedType;
     }

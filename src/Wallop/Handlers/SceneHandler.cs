@@ -63,7 +63,7 @@ namespace Wallop.Handlers
             SubscribeToEngineMessages<ReloadModuleMessage>(HandleReloadModule);
         }
 
-        public override Command? GetCommandLineCommand(bool firstInstance)
+        public override Command? GetCommandLineCommand()
         {
 
             var defaultSceneNameOpts = new Option<string>(
@@ -338,7 +338,7 @@ namespace Wallop.Handlers
                 (defaultSceneName, drawThreadingPolicy, pkgSearchDir, scenePreloads, selectedScene, updateThreadingPolicy) =>
                 {
 
-                    if(_sceneLoaded || !firstInstance)
+                    if(_sceneLoaded)
                     {
                         App.Messenger.Put(new SceneSettingsMessage(pkgSearchDir, defaultSceneName, selectedScene, scenePreloads.ToArray(), (int)updateThreadingPolicy, (int)drawThreadingPolicy));
                     }

@@ -8,5 +8,6 @@ namespace Wallop.Shared.Messaging.Messages
         bool? Overlay = null,
         int? WindowBorder = null,
         double? RefreshRate = null,
-        bool? VSync = null);
+        bool? VSync = null,
+        string? ParentHandle = null);
 }
