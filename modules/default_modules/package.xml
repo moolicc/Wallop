@@ -69,7 +69,6 @@
         <setting>
           <name>file</name>
           <description>The image file to display.</description>
-          <defaultValue></defaultValue>
           <type>file</type>
           <required>true</required>
           <tracker>false</tracker>

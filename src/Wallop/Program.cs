@@ -6,6 +6,8 @@ using System.Reflection;
 using Wallop;
 using Wallop.ECS;
 using Wallop.IPC;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Wallop
 {
@@ -71,6 +73,9 @@ namespace Wallop
                     {
                         EngineLog.For<Program>().Warn("Another instance of the application has been detected. Forwarding command line and exiting.");
 
+
+                        EngineLog.For<Program>().Info("Forwarding commands to pre-existing engine instance... Include [my-name:newname] in the command line to start a new Engine instance.");
+
                         var targetResource = ARGS_PIPE_RESOURCE;
 
                         var config = new PipeClient.PipeClientConfig
@@ -122,7 +127,7 @@ namespace Wallop
             EngineLog.For<Program>().Info("Incoming message content:\n{content}.", request.Message);
 
             var console = new System.CommandLine.IO.TestConsole();
-            ExecuteCommandLine(false, request.As<string>().Trim(), console);
+            ExecuteCommandLine(request.As<string>().Trim(), console);
 
             var results = console.Out.ToString();
             return results;
@@ -143,27 +148,24 @@ namespace Wallop
             {
                 commandLine = string.Join(" ", Environment.GetCommandLineArgs()[1..]);
             }
-            ExecuteCommandLine(isFirstInstance, commandLine, null);
+
+            LoadSettings();
+            ResolveSettingBindings();
 
 
-            var context = new PluginPantry.PluginContext();
-            LoadPlugins(context);
-
-
-            EngineLog.For<Program>().Info("Running plugin entry points...");
-            context.BeginPluginExecution(new Types.Plugins.EndPoints.EntryPointContext());
-
-
-
-            using (_app = new EngineApp(_config, context))
+            using (_app = new EngineApp(_config))
             {
                 EngineLog.For<Program>().Info("Setting up Engine Application...");
 
-                isFirstInstance = !isFirstInstance;
-                ExecuteCommandLine(isFirstInstance, commandLine, null);
+                ExecuteCommandLine(commandLine, null);
+
+                EngineLog.For<Program>().Info("Running plugin entry points...");
+                var context = new PluginPantry.PluginContext();
+                LoadPlugins(context);
+                context.BeginPluginExecution(new Types.Plugins.EndPoints.EntryPointContext());
 
                 EngineLog.For<Program>().Info("Running Engine...");
-                _app.Run();
+                _app.Run(context);
             }
         }
 
@@ -235,18 +237,11 @@ namespace Wallop
             EngineLog.For<Program>().Info("{enabled} plugins enabled out of {loaded} total plugins loaded.", enabledPlugins, pluginCount);
         }
 
-        private static void ExecuteCommandLine(bool firstInstance, string commandLine, IConsole? console)
+        private static void ExecuteCommandLine(string commandLine, IConsole? console)
         {
             RootCommand root;
-            if(_app != null)
-            {
-                root = _app.BuildCommandTree(firstInstance);
-            }
-            else
-            {
-                root = new RootCommand();
-            }
-            BuildProgramCommandTree(root);
+            root = BuildProgramCommandTree();
+            _app?.BuildCommandTree(root);
 
             var builder = new CommandLineBuilder(root);
             builder.AddMiddleware(async (context, next) =>
@@ -263,22 +258,11 @@ namespace Wallop
             });
             builder.UseDefaults();
             builder.Build().Invoke(commandLine.Trim(), console);
-
-            //root.Invoke(commandLine.Trim(), console);
-
-            if(firstInstance)
-            {
-                //var pipe = new IPC.PipeHost($"{Settings.AppSettings.InstanceName}", $"{Settings.AppSettings.InstanceName}{APP_RESOURCE_DELIMITER}{ARGS_PIPE_RESOURCE}");
-                //pipe.Begin();
-
-                //var host = new IPC.IpcNode(pipe);
-
-                //host.OnDataReceived2 = OtherInstanceMessageReceived;
-            }
         }
 
-        private static void BuildProgramCommandTree(RootCommand root)
+        private static RootCommand BuildProgramCommandTree()
         {
+            var root = new RootCommand();
             var confOption = new Option<string>(new[] { "--configuration", "-c" }, new Func<string>(() => _confFile), description: "The engine configuration to load.");
             root.Add(confOption);
 
@@ -291,6 +275,8 @@ namespace Wallop
                 LoadSettings();
                 ResolveSettingBindings();
             }, confOption);
+
+            return root;
         }
 
         private static Assembly? LoadDep(object sender, ResolveEventArgs e)

@@ -69,14 +69,14 @@ namespace Wallop.Shared.ECS
     public class StoredSetting
     {
         public string Name { get; set; }
-        public string Value { get; set; }
+        public string? Value { get; set; }
         public bool IsTracked { get; set; }
         public Type? TrackedType { get; set; }
 
         public bool IsExplicit { get; set; }
         public Type? ExplicitType { get; set; }
 
-        public StoredSetting(string name, string value, Type? trackedType = null, Type? explicitType = null)
+        public StoredSetting(string name, string? value, Type? trackedType = null, Type? explicitType = null)
         {
             Name = name;
             Value = value;

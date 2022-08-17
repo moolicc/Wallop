@@ -14,6 +14,7 @@ using Wallop.Settings;
 using Wallop.Shared.Types.Plugin;
 using Wallop.Types.Plugins.EndPoints;
 using Wallop.Shared.Messaging.Remoting;
+using PluginPantry;
 
 
 // TODO:
@@ -51,7 +52,7 @@ namespace Wallop
         private List<EngineHandler> _handlers;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        public EngineApp(Cog.Configuration config, PluginPantry.PluginContext pluginContext)
+        public EngineApp(Cog.Configuration config)
         {
             _cancelSource = new CancellationTokenSource();
 
@@ -66,14 +67,13 @@ namespace Wallop
             _relayHost.ProcessMessages(_cancelSource.Token);
 
 
-            _pluginContext = pluginContext;
 
-            AddService(_pluginContext);
             AddService(new ScriptHostFunctions());
 
             EngineLog.For<EngineApp>().Debug("Loading handler configurations...");
             _graphicsHandler = new GraphicsHandler(this, config.Get<GraphicsSettings>() ?? new GraphicsSettings());
             _sceneHandler = new SceneHandler(this, config.Get<SceneSettings>() ?? new SceneSettings());
+
 
 
             _handlers.Add(_graphicsHandler);
@@ -100,7 +100,7 @@ namespace Wallop
         }
 
 
-        public void Run()
+        public void Run(PluginContext context)
         {
             EngineLog.For<EngineApp>().Info("Beginning Engine Execution!");
 
@@ -111,18 +111,16 @@ namespace Wallop
 
             //_relay = new MessageRelay(_relayNode, _messenger);
 
+            _pluginContext = context;
+            AddService(_pluginContext);
             _graphicsHandler.RunWindow();
         }
 
-        public RootCommand BuildCommandTree(bool firstInstance)
+        public Command BuildCommandTree(RootCommand root)
         {
             var startupEndPoint = new EngineStartupEndPoint(Messenger);
-            _pluginContext.ExecuteEndPoint(startupEndPoint);
-            _pluginContext.WaitForEndPointExecutionAsync<EngineStartupEndPoint>().Wait();
-
-
-            RootCommand root = new RootCommand();
-
+            //_pluginContext.ExecuteEndPoint(startupEndPoint);
+            //_pluginContext.WaitForEndPointExecutionAsync<EngineStartupEndPoint>().Wait();
 
             var jsonArg = new Argument<string>("source", "Json text or a path to a json file.");
             var jsonCommand = new Command("json", "Pass messages to the app through json.")
@@ -148,7 +146,7 @@ namespace Wallop
 
             foreach (var handler in _handlers)
             {
-                if (handler.GetCommandLineCommand(firstInstance) is Command cmd)
+                if (handler.GetCommandLineCommand() is Command cmd)
                 {
                     root.AddCommand(cmd);
                 }

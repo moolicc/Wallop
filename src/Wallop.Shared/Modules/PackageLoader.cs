@@ -11,6 +11,8 @@ namespace Wallop.Shared.Modules
 {
     public static class PackageLoader
     {
+        public const string SETTING_NULL_STRING = "$nil";
+
         public static bool PreserveVariables { get; set; }
 
         static PackageLoader()
@@ -165,6 +167,7 @@ namespace Wallop.Shared.Modules
             var typeElement = settingElement.XPathSelectElement("type");
             var typeArgsElement = settingElement.XPathSelectElement("typeArgs");
             var required = settingElement.XPathSelectElement("required")?.Value ?? "false";
+            var nullable = settingElement.XPathSelectElement("nullable")?.Value ?? "false";
             var tracked = settingElement.XPathSelectElement("tracked")?.Value ?? "false";
             var defaultValue = settingElement.XPathSelectElement("defaultValue")?.Value;
             var bindingsElement = settingElement.XPathSelectElement("bindings");
@@ -183,9 +186,17 @@ namespace Wallop.Shared.Modules
             {
                 throw new XmlException("Module setting required value is invalid.");
             }
+            if(!bool.TryParse(nullable, out var nullableBool))
+            {
+                throw new XmlException("Module setting nullable value is invalid.");
+            }
             if (!bool.TryParse(tracked, out var trackedBool))
             {
                 throw new XmlException("Module setting tracked value is invalid.");
+            }
+            if (defaultValue == SETTING_NULL_STRING)
+            {
+                defaultValue = null;
             }
             if (defaultValue == null)
             {
@@ -216,6 +227,7 @@ namespace Wallop.Shared.Modules
                 type,
                 requiredBool,
                 trackedBool,
+                nullableBool,
                 bindings,
                 typeArgs);
         }

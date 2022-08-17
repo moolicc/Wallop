@@ -10,6 +10,5 @@ namespace Wallop.Types.Plugins.EndPoints
     public class EntryPointContext : IEntryPointContext
     {
         public PluginInformation PluginInformation { get; set; }
-
     }
 }
