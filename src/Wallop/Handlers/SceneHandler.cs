@@ -56,6 +56,7 @@ namespace Wallop.Handlers
             SubscribeToEngineMessages<AddLayoutMessage>(HandleAddLayout);
             SubscribeToEngineMessages<SetActiveLayoutMessage>(HandleSetActiveLayout);
             SubscribeToEngineMessages<AddActorMessage>(HandleAddActor);
+            SubscribeToEngineMessages<ActorChangeMessage>(HandleChangeActor);
             SubscribeToEngineMessages<CreateSceneMessage>(HandleCreateScene);
             SubscribeToEngineMessages<SceneSaveMessage>(HandleSceneSave);
 
@@ -749,7 +750,7 @@ namespace Wallop.Handlers
             };
 
 
-            // If there was no specified scene, or the specified scene is active then we add the director
+            // If there was no specified scene, or the specified scene is active then we add the actor
             // to the current scene.
 
             // Otherwise, we add it to the specified scene in storage.
@@ -828,6 +829,57 @@ namespace Wallop.Handlers
 
             return Success(messageId);
         }
+
+        private object? HandleChangeActor(ActorChangeMessage message, uint messageId)
+        {
+            var scene = _activeScene.Name;
+            if(message.Scene != null)
+            {
+                scene = message.Scene;
+            }
+
+            var layout = ActiveScene.Layouts.FirstOrDefault(l => l.Name == message.ActorLayout);
+            if(layout == null)
+            {
+                return Invalid(messageId, "Failed to find layout of that name.");
+            }
+
+            var actor = layout.EntityRoot.GetActors<ScriptedActor>().FirstOrDefault(a => a.Name == message.ActorName);
+            if (actor == null)
+            {
+                return Invalid(messageId, "Failed to find an actor of that name.");
+            }
+
+            var context = actor.GetAttachedScriptContext();
+
+            if (message.ModuleSettings != null)
+            {
+                foreach (var setting in message.ModuleSettings)
+                {
+                    var storedSetting = actor.ModuleDeclaration.ModuleSettings.FirstOrDefault(s => s.SettingName == setting.Key);
+
+                    if(storedSetting == null || storedSetting.CachedType == null || setting.Value == null)
+                    {
+                        context.SetValue(setting.Key, setting.Value);
+                    }
+                    else
+                    {
+                        if(storedSetting.CachedType.TryDeserialize(setting.Value, out var value, null))
+                        {
+                            context.SetValue(setting.Key, value);
+                        }
+                        else
+                        {
+                            return Invalid(messageId, "Failed to deserialize setting value.");
+                        }
+                    }
+                }
+            }
+
+
+            return Success(messageId);
+        }
+
 
         private object HandleCreateScene(CreateSceneMessage message, uint messageId)
         {
