@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -95,7 +96,7 @@ namespace Wallop.Shared.Modules.SettingTypes
             throw new InvalidOperationException("Failed to serialize choice.");
         }
 
-        public bool TrySerialize(object value, out string? result, IEnumerable<KeyValuePair<string, string>>? args)
+        public bool TrySerialize(object value, [NotNullWhen(true)] out string? result, IEnumerable<KeyValuePair<string, string>>? args)
         {
             result = null;
             if (value == null || (value is not int && value is not string && value is not Enum))
@@ -115,7 +116,7 @@ namespace Wallop.Shared.Modules.SettingTypes
             return true;
         }
 
-        public bool TryDeserialize(string value, out object? result, IEnumerable<KeyValuePair<string, string>>? args)
+        public bool TryDeserialize(string value, [NotNullWhen(true)] out object? result, IEnumerable<KeyValuePair<string, string>>? args)
         {
             var choices = GetOptions(args);
 

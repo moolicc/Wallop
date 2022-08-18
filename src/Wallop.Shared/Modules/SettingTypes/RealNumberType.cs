@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,13 +23,13 @@ namespace Wallop.Shared.Modules.SettingTypes
             return value.ToString() ?? "0.0";
         }
 
-        public bool TrySerialize(object value, out string? result, IEnumerable<KeyValuePair<string, string>>? args)
+        public bool TrySerialize(object value, [NotNullWhen(true)] out string? result, IEnumerable<KeyValuePair<string, string>>? args)
         {
             result = value.ToString();
-            return true;
+            return result != null;
         }
 
-        public bool TryDeserialize(string value, out object? result, IEnumerable<KeyValuePair<string, string>>? args)
+        public bool TryDeserialize(string value, [NotNullWhen(true)] out object? result, IEnumerable<KeyValuePair<string, string>>? args)
         {
             var precision = RealNumberPrecision.Single;
             foreach (var arg in args)
