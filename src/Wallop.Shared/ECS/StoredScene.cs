@@ -99,6 +99,9 @@ namespace Wallop.Shared.ECS
     {
         public string Name { get; set; }
         public bool Active { get; set; }
+        public int ScreenIndex { get; set; }
+        public int RenderWidth { get; set; }
+        public int RenderHeight { get; set; }
         public List<StoredModule> ActorModules { get; set; }
 
         public StoredLayout()
@@ -106,6 +109,7 @@ namespace Wallop.Shared.ECS
             Name = "";
             Active = false;
             ActorModules = new List<StoredModule>();
+            ScreenIndex = 0;
         }
     }
     

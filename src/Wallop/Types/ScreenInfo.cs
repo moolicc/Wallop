@@ -1,11 +1,5 @@
-﻿using Silk.NET.Maths;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Silk.NET.Windowing;
-using Monitor = Silk.NET.Windowing.Monitor;
+﻿using Monitor = Silk.NET.Windowing.Monitor;
+using System.Numerics;
 
 namespace Wallop.Types
 {
@@ -18,49 +12,69 @@ namespace Wallop.Types
 
         public static ScreenInfo[] GetScreens()
         {
+            var screens = new ScreenInfo[GetScreenCount() + 1];
+
+            screens[0] = GetVirtualScreen();
+            var physical = GetPhysicalScreens();
+            Array.Copy(screens, 1, physical, 0, physical.Length);
+
+            return screens;
+        }
+
+        public static ScreenInfo[] GetPhysicalScreens()
+        {
             var monitors = Monitor.GetMonitors(null).ToArray();
             var screens = new ScreenInfo[monitors.Length];
             for (int i = 0; i < monitors.Length; i++)
             {
-                var bounds = monitors[i].Bounds;
-                var refreshRate = monitors[i].VideoMode.RefreshRate ?? -1;
-                screens[i] = new ScreenInfo(monitors[i].Name, bounds, monitors[i].VideoMode.Resolution, refreshRate);
+                var monitor = monitors[i];
+                var refreshRate = monitor.VideoMode.RefreshRate ?? -1;
+
+                Vector4 bounds = new Vector4(monitor.Bounds.Origin.X, monitor.Bounds.Origin.Y, monitor.Bounds.Size.X, monitor.Bounds.Size.Y);
+                Vector2? resolution = null;
+
+                if(monitor.VideoMode.Resolution != null)
+                {
+                    resolution = new Vector2(monitor.VideoMode.Resolution.Value.X, monitor.VideoMode.Resolution.Value.Y);
+                }
+
+                screens[i] = new ScreenInfo(monitors[i].Name, bounds, resolution, refreshRate);
             }
             return screens;
         }
 
         public static ScreenInfo GetVirtualScreen()
         {
-            var bounds = new Rectangle<int>();
+            var bounds = new Vector4();
             int refreshRate = int.MaxValue;
 
-            var screens = GetScreens();
-            var xStarts = new List<int>(screens.Length);
-            var yStarts = new List<int>(screens.Length);
+            var screens = GetPhysicalScreens();
+            var xStarts = new List<float>(screens.Length);
+            var yStarts = new List<float>(screens.Length);
 
             for (int i = 0; i < screens.Length; i++)
             {
                 ScreenInfo screen = screens[i];
 
-                if(!xStarts.Any(xs => xs == screen.Bounds.Origin.X))
+                if(!xStarts.Any(xs => xs == screen.Bounds.X))
                 {
-                    if(xStarts.All(xs => xs >= screen.Bounds.Origin.X))
+                    if(xStarts.All(xs => xs >= screen.Bounds.X))
                     {
-                        bounds.Origin.X = screen.Bounds.Origin.X;
+                        bounds.X = screen.Bounds.X;
                     }
 
-                    xStarts.Add(screen.Bounds.Origin.X);
-                    bounds.Size.X += screen.Bounds.Size.X;
+                    xStarts.Add(screen.Bounds.X);
+                    bounds.Z += screen.Bounds.Z;
                 }
-                if (!yStarts.Any(ys => ys == screen.Bounds.Origin.Y))
+                if (!yStarts.Any(ys => ys == screen.Bounds.Y))
                 {
-                    if (yStarts.All(ys => ys >= screen.Bounds.Origin.Y))
+                    if (yStarts.All(ys => ys >= screen.Bounds.Y))
                     {
-                        bounds.Origin.Y = screen.Bounds.Origin.Y;
+                        bounds.Y = screen.Bounds.Y;
                     }
 
-                    yStarts.Add(screen.Bounds.Origin.Y);
-                    bounds.Size.Y += screen.Bounds.Size.Y;
+                    yStarts.Add(screen.Bounds.Y);
+                    bounds.W += screen.Bounds.W;
                 }
 
                 if(screen.RefreshRate < refreshRate)
@@ -68,20 +82,20 @@ namespace Wallop.Types
                     refreshRate = screen.RefreshRate;
                 }
             }
-            return new ScreenInfo("[VIRT]", bounds, null, refreshRate);
+            return new ScreenInfo("extended", bounds, null, refreshRate);
         }
 
         public string Name { get; private set; }
-        public Rectangle<int> Bounds { get; private set; }
-        public Vector2D<int>? NativeResolution { get; private set; }
+        public Vector4 Bounds { get; private set; }
+        public Vector2 NativeResolution { get; private set; }
         public int RefreshRate { get; private set; }
 
 
-        internal ScreenInfo(string name, Rectangle<int> bounds, Vector2D<int>? resolution, int refreshRate)
+        internal ScreenInfo(string name, Vector4 bounds, Vector2? resolution, int refreshRate)
         {
             Name = name;
             Bounds = bounds;
-            NativeResolution = resolution;
+            NativeResolution = resolution ?? Vector2.Zero;
             RefreshRate = refreshRate;
         }
     }

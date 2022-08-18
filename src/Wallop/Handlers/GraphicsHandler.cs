@@ -217,6 +217,7 @@ namespace Wallop.Handlers
         {
             var pluginContext = App.GetService<PluginPantry.PluginContext>().OrThrow();
             _gl = _window.CreateOpenGL();
+            _window.GLContext.MakeCurrent();
             
 
             var GLMajorVersion = _gl.GetInteger(GLEnum.MajorVersion);
@@ -225,7 +226,7 @@ namespace Wallop.Handlers
 
 
             var allScreenBounds = Types.ScreenInfo.GetVirtualScreen().Bounds;
-            Console.WriteLine("Virtual screen bounds: {{ {0}, {1}, {2}, {3} }}", allScreenBounds.Origin.X, allScreenBounds.Origin.Y, allScreenBounds.Size.X, allScreenBounds.Size.Y);
+            Console.WriteLine("Virtual screen bounds: {{ {0}, {1}, {2}, {3} }}", allScreenBounds.X, allScreenBounds.Y, allScreenBounds.Z, allScreenBounds.W);
             
 
             if (_graphicsSettings.Overlay)

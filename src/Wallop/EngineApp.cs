@@ -60,12 +60,6 @@ namespace Wallop
             _services = new List<object>();
             _messenger = new Messenger();
 
-            _relayHost = new IPC.PipeHost(AppSettings.InstanceName, $"{AppSettings.InstanceName}{Program.APP_RESOURCE_DELIMITER}{Program.MESSENGER_PIPE_RESOURCE}");
-            _relay = new MessageRelay(_relayHost, _messenger);
-            _relayHost.AllowMultipleClients = true;
-            _relayHost.Listen(_cancelSource.Token);
-            _relayHost.ProcessMessages(_cancelSource.Token);
-
 
 
             AddService(new ScriptHostFunctions());
@@ -104,10 +98,13 @@ namespace Wallop
         {
             EngineLog.For<EngineApp>().Info("Beginning Engine Execution!");
 
-            _relayHost = new IPC.PipeHost(AppSettings.InstanceName, $"{AppSettings.InstanceName}{Program.APP_RESOURCE_DELIMITER}{Program.MESSENGER_PIPE_RESOURCE}");
-            _relayHost.Listen(_cancelSource.Token);
 
+            _relayHost = new IPC.PipeHost(AppSettings.InstanceName, $"{AppSettings.InstanceName}{Program.APP_RESOURCE_DELIMITER}{Program.MESSENGER_PIPE_RESOURCE}");
             _relay = new MessageRelay(_relayHost, _messenger);
+            _relayHost.AllowMultipleClients = true;
+            _relayHost.Listen(_cancelSource.Token);
+            _relayHost.ProcessMessages(_cancelSource.Token);
+
 
             _pluginContext = context;
             AddService(_pluginContext);

@@ -32,6 +32,8 @@
     <PackageReference Include="Silk.NET.OpenGL" Version="2.15.0" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
     <PackageReference Include="System.CommandLine.NamingConventionBinder" Version="2.0.0-beta4.22272.1" />
+    <PackageReference Include="TrippyGL" Version="1.1.1" />
+    <PackageReference Include="TrippyGL.ImageSharp" Version="1.1.1" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="SceneManagement\" />

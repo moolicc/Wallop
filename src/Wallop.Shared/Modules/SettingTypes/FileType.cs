@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,7 +24,7 @@ namespace Wallop.Shared.Modules.SettingTypes
             throw new ArgumentException("File setting only supports serializing FileInfo and FileStream objects.", nameof(value));
         }
 
-        public bool TryDeserialize(string value, out object? result, IEnumerable<KeyValuePair<string, string>>? args)
+        public bool TryDeserialize(string value, [NotNullWhen(true)] out object? result, IEnumerable<KeyValuePair<string, string>>? args)
         {
             result = null;
 
@@ -38,7 +39,7 @@ namespace Wallop.Shared.Modules.SettingTypes
             return true;
         }
 
-        public bool TrySerialize(object value, out string? result, IEnumerable<KeyValuePair<string, string>>? args)
+        public bool TrySerialize(object value, [NotNullWhen(true)] out string? result, IEnumerable<KeyValuePair<string, string>>? args)
         {
             result = null;
             if (value is FileInfo fi)

@@ -194,7 +194,7 @@ namespace Wallop.Scripting
         {
             if (tag is ScriptedActor actor)
             {
-                return new Func<Vector2>(() => actor.OwningLayout.PresentationSize);
+                return new Func<Vector2>(() => new Vector2(actor.OwningLayout.PresentationBounds.X, actor.OwningLayout.PresentationBounds.Y));
             }
             else if (tag is ScriptedDirector director)
             {
