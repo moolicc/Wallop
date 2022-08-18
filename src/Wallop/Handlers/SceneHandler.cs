@@ -410,6 +410,18 @@ namespace Wallop.Handlers
                     {
                         Name = "layout1",
                         Active = true,
+                        ActorModules = new List<StoredModule>()
+                        {
+                            new StoredModule()
+                            {
+                                InstanceName = "actor1",
+                                ModuleId = "Image1.0",
+                                Settings = new List<StoredSetting>()
+                                {
+                                    new StoredSetting("file", "C:\\test.png")
+                                }
+                            }
+                        }
                     }
                 }
             };
@@ -581,6 +593,8 @@ namespace Wallop.Handlers
                 {
                     throw new NullReferenceException();
                 }
+                owner.EntityRoot.AddActor(actor);
+                actor.AddedToLayout(owner);
                 EngineLog.For<SceneLoader>().Info("Actor {actor} loaded with module {module}!", stored.InstanceName, stored.ModuleId);
             }
             catch (Exception ex)

@@ -217,6 +217,7 @@ namespace Wallop.Handlers
         {
             var pluginContext = App.GetService<PluginPantry.PluginContext>().OrThrow();
             _gl = _window.CreateOpenGL();
+            _window.GLContext.MakeCurrent();
             
 
             var GLMajorVersion = _gl.GetInteger(GLEnum.MajorVersion);

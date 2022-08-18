@@ -58,7 +58,11 @@ namespace Wallop.IPC
             }
 
             var received = await DequeueDataAsync(ApplicationId, cancelSource.Token).ConfigureAwait(false);
-            packet = received.Value.Packet;
+
+            if (received.HasValue)
+            {
+                packet = received.Value.Packet;
+            }
 
             if (!cancelSource.IsCancellationRequested)
             {
