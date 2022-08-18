@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -21,12 +22,12 @@ namespace Wallop.IPC
         private NamedPipeServerStream? _pipeServerStream;
         private Task? _listenTask;
 
-        private ConcurrentQueue<IpcData> _queue;
+        private ConcurrentDictionary<string, ConcurrentQueue<IpcData>> _queues;
 
         public PipeHost(string applicationId, string resourceName)
             : base(applicationId, resourceName)
         {
-            _queue = new ConcurrentQueue<IpcData>();
+            _queues = new ConcurrentDictionary<string, ConcurrentQueue<IpcData>>();
             Encoding = Encoding.ASCII;
             AllowMultipleClients = true;
         }
@@ -40,27 +41,43 @@ namespace Wallop.IPC
 
 
 
-        public override async Task<IpcData?> DequeueDataAsync(CancellationToken? cancelToken = null)
+        public override async Task<IpcData?> DequeueDataAsync(string queueName, CancellationToken? cancelToken = null)
         {
             var data = await Task.Run<IpcData?>(() =>
             {
                 while (!cancelToken.HasValue || (cancelToken.HasValue && !cancelToken.Value.IsCancellationRequested))
                 {
-                    if(_queue.TryDequeue(out var data))
+                    if (_queues.TryGetValue(queueName, out var queue))
                     {
-                        return data;
+                        if (queue.TryDequeue(out var data))
+                        {
+                            return data;
+                        }
+                    }
+                    else
+                    {
+                        _queues.TryAdd(queueName, new ConcurrentQueue<IpcData>());
                     }
                 }
 
                 return null;
             }).ConfigureAwait(false);
 
+            Console.WriteLine("[{0}] Dequeueing: {1}", ResourceName, data);
             return data;
         }
 
-        public override Task<bool> QueueDataAsync(IpcData data, CancellationToken? cancelToken = null)
+        public override Task<bool> QueueDataAsync(IpcData data, string queueName, CancellationToken? cancelToken = null)
         {
-            _queue.Enqueue(data);
+            Console.WriteLine("[{0}] Enqueuing: {1}", ResourceName, data);
+
+            if(!_queues.TryGetValue(queueName, out var queue))
+            {
+                queue = new ConcurrentQueue<IpcData>();
+                while(!_queues.TryAdd(queueName, queue));
+            }
+            queue.Enqueue(data);
+
             return Task.FromResult(true);
         }
 
@@ -139,13 +156,13 @@ namespace Wallop.IPC
                 if(ipcData != null)
                 {
                     //var ipcData = Serializer.Deserialize<IpcData>(datagram.IpcData);
-                    await QueueDataAsync((IpcData)ipcData).ConfigureAwait(false);
+                    await QueueDataAsync(ipcData.Value, ipcData.Value.Packet.TargetApplication).ConfigureAwait(false);
                 }
                 return true;
             }
             else if(datagram.Command == PipeCommand.Dequeue)
             {
-                ipcData = await DequeueDataAsync().ConfigureAwait(false);
+                ipcData = await DequeueDataAsync(ipcData.Value.Packet.SourceApplication).ConfigureAwait(false);
                 if(ipcData != null)
                 {
                     await WriteIpcResponse((IpcData)ipcData).ConfigureAwait(false);

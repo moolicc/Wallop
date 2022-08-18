@@ -35,14 +35,12 @@ namespace Wallop.IPC
         {
             //var serialized = Serializer.Serialize(packet);
             var data = new IpcData(packet);
-            return await QueueDataAsync(data).ConfigureAwait(false);
+            return await QueueDataAsync(data, packet.TargetApplication).ConfigureAwait(false);
         }
 
         protected virtual async Task<IpcPacket?> RecvAsync(TimeSpan? timeout = null)
         {
             IpcPacket? packet = null;
-
-            var failedTasks = new List<Task>(3);
 
             var cancelSource = new CancellationTokenSource();
 
@@ -63,22 +61,13 @@ namespace Wallop.IPC
 
             while (!cancelSource.Token.IsCancellationRequested)
             {
-                var received = await DequeueDataAsync(cancelSource.Token).ConfigureAwait(false);
+                var received = await DequeueDataAsync(ApplicationId, cancelSource.Token).ConfigureAwait(false);
                 if (received == null)
                 {
                     break;
                 }
 
-                //packet = Serializer.Deserialize<IpcPacket>(received.Value.Content);
                 packet = received.Value.Packet;
-                if (packet.Value.TargetApplication != ApplicationId && packet.Value.TargetApplication != AnyApplication)
-                {
-                    failedTasks.Add(SendAsync(packet.Value));
-                }
-                else
-                {
-                    break;
-                }
             }
 
             if (!cancelSource.IsCancellationRequested)
@@ -90,8 +79,8 @@ namespace Wallop.IPC
             return packet;
         }
 
-        public abstract Task<bool> QueueDataAsync(IpcData data, CancellationToken? cancelToken = null);
+        public abstract Task<bool> QueueDataAsync(IpcData data, string queueName, CancellationToken? cancelToken = null);
 
-        public abstract Task<IpcData?> DequeueDataAsync(CancellationToken? cancelToken = null);
+        public abstract Task<IpcData?> DequeueDataAsync(string queueName, CancellationToken? cancelToken = null);
     }
 }
