@@ -57,18 +57,8 @@ namespace Wallop.IPC
                 }, cancelSource.Token);
             }
 
-
-
-            while (!cancelSource.Token.IsCancellationRequested)
-            {
-                var received = await DequeueDataAsync(ApplicationId, cancelSource.Token).ConfigureAwait(false);
-                if (received == null)
-                {
-                    break;
-                }
-
-                packet = received.Value.Packet;
-            }
+            var received = await DequeueDataAsync(ApplicationId, cancelSource.Token).ConfigureAwait(false);
+            packet = received.Value.Packet;
 
             if (!cancelSource.IsCancellationRequested)
             {
