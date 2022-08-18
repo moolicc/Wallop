@@ -418,7 +418,9 @@ namespace Wallop.Handlers
                                 ModuleId = "Image1.0",
                                 Settings = new List<StoredSetting>()
                                 {
-                                    new StoredSetting("file", "C:\\test.png")
+                                    new StoredSetting("file", "C:\\test.png"),
+                                    new StoredSetting("X", "1.0"),
+                                    new StoredSetting("Y", "1.0"),
                                 }
                             }
                         }
