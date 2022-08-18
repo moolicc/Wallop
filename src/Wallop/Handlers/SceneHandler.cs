@@ -17,6 +17,7 @@ using Wallop.Shared.Scripting;
 using Wallop.Shared.ECS;
 using Wallop.Shared.ECS.Serialization;
 using Wallop.Shared.Modules;
+using Wallop.Types;
 
 namespace Wallop.Handlers
 {
@@ -207,7 +208,7 @@ namespace Wallop.Handlers
             sceneCreateLayoutCommand.Handler = CommandHandler.Create<string, string, string, bool>(
                 (basedOnLayout, newLayoutName, newLayoutTargetScene, makeActive) =>
                 {
-                    var message = new AddLayoutMessage(newLayoutName, basedOnLayout, newLayoutTargetScene, makeActive);
+                    var message = new AddLayoutMessage(newLayoutName, basedOnLayout, newLayoutTargetScene, makeActive, 0, null, null);
                     App.Messenger.Put(message);
                 });
 
@@ -577,6 +578,11 @@ namespace Wallop.Handlers
         private ILayout LoadLayout(Scene scene, StoredLayout stored)
         {
             var layout = new Layout(stored.Name);
+            var screens = ScreenInfo.GetScreens();
+
+            layout.Screen = screens[stored.ScreenIndex];
+            layout.RenderSize = new System.Numerics.Vector2(stored.RenderWidth, stored.RenderHeight);
+
             if(stored.Active)
             {
                 layout.Activate();
@@ -702,6 +708,10 @@ namespace Wallop.Handlers
             if (message.TargetScene == null)
             {
                 var newLayout = new Layout(message.Name);
+
+                newLayout.Screen = ScreenInfo.GetScreens()[message.ScreenIndex];
+                newLayout.RenderSize = message.RenderSize ?? new System.Numerics.Vector2(newLayout.Screen.Bounds.Z / 2, newLayout.Screen.Bounds.W / 2);
+                newLayout.PresentationBounds = message.PresentationBounds ?? newLayout.Screen.Bounds;
 
                 var scene = _activeScene;
                 scene.Layouts.Add(newLayout);

@@ -226,7 +226,7 @@ namespace Wallop.Handlers
 
 
             var allScreenBounds = Types.ScreenInfo.GetVirtualScreen().Bounds;
-            Console.WriteLine("Virtual screen bounds: {{ {0}, {1}, {2}, {3} }}", allScreenBounds.Origin.X, allScreenBounds.Origin.Y, allScreenBounds.Size.X, allScreenBounds.Size.Y);
+            Console.WriteLine("Virtual screen bounds: {{ {0}, {1}, {2}, {3} }}", allScreenBounds.X, allScreenBounds.Y, allScreenBounds.Z, allScreenBounds.W);
             
 
             if (_graphicsSettings.Overlay)

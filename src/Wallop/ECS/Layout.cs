@@ -17,28 +17,16 @@ namespace Wallop.ECS
         public bool IsActive { get; private set; }
 
         public Vector2 RenderSize { get; set; }
-        public Vector2 PresentationSize
-        {
-            get => _presentationSize;
-            set
-            {
-                //if(value.X > Screen.Bounds.Size.X ||
-                //    value.Y > Screen.Bounds.Size.Y)
-                //{
-                //    throw new ArgumentException("Actual size must be contained within the screen's bounds.", nameof(value));
-                //}
-                _presentationSize = value;
-            }
-        }
 
-        private Vector2 _presentationSize;
+        // TODO: Implement this, including exposing related functionality to the gui and scripts.
+        public Vector4 PresentationBounds { get; set; }
 
         public Layout(string name)
         {
             Name = name;
             Screen = ScreenInfo.GetVirtualScreen();
             EntityRoot = new Manager();
-            _presentationSize = Vector2.Zero;
+            PresentationBounds = new Vector4(0, 0, 0, 0);
         }
 
         public void Activate()
