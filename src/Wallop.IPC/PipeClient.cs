@@ -75,7 +75,7 @@ namespace Wallop.IPC
             await _pipeClient.DisposeAsync().ConfigureAwait(false);
         }
 
-        public override async Task<bool> QueueDataAsync(IpcData data, CancellationToken? cancelToken)
+        public override async Task<bool> QueueDataAsync(IpcData data, string queueName, CancellationToken? cancelToken)
         {
             if (_pipeClient == null)
             {
@@ -106,7 +106,7 @@ namespace Wallop.IPC
             return true;
         }
 
-        public override async Task<IpcData?> DequeueDataAsync(CancellationToken? cancelToken)
+        public override async Task<IpcData?> DequeueDataAsync(string queueName, CancellationToken? cancelToken)
         {
             if (_pipeClient == null)
             {
@@ -115,7 +115,7 @@ namespace Wallop.IPC
 
             try
             {
-                var datagram = new PipeDatagram(PipeCommand.Dequeue, null);
+                var datagram = new PipeDatagram(PipeCommand.Dequeue, new IpcData(new IpcPacket(new IpcMessage(), ApplicationId, "")));
                 var outgoing = Serializer.Serialize(datagram);
                 var buffer = GetBytes(outgoing);
 

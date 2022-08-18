@@ -104,12 +104,10 @@ namespace Wallop
         {
             EngineLog.For<EngineApp>().Info("Beginning Engine Execution!");
 
-            //_relayHost = new IPC.PipeHost(AppSettings.InstanceName, $"{AppSettings.InstanceName}{Program.APP_RESOURCE_DELIMITER}{Program.MESSENGER_PIPE_RESOURCE}");
-            //_relayHost.Begin();
+            _relayHost = new IPC.PipeHost(AppSettings.InstanceName, $"{AppSettings.InstanceName}{Program.APP_RESOURCE_DELIMITER}{Program.MESSENGER_PIPE_RESOURCE}");
+            _relayHost.Listen(_cancelSource.Token);
 
-            //_relayNode = new IPC.IpcConnection(_relayHost);
-
-            //_relay = new MessageRelay(_relayNode, _messenger);
+            _relay = new MessageRelay(_relayHost, _messenger);
 
             _pluginContext = context;
             AddService(_pluginContext);

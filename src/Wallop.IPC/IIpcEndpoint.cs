@@ -13,7 +13,7 @@ namespace Wallop.IPC
         string ApplicationId { get; }
 
 
-        Task<bool> QueueDataAsync(IpcData data, CancellationToken? cancelToken = null);
-        Task<IpcData?> DequeueDataAsync(CancellationToken? cancelToken = null);
+        Task<bool> QueueDataAsync(IpcData data, string queueName, CancellationToken? cancelToken = null);
+        Task<IpcData?> DequeueDataAsync(string queueName, CancellationToken? cancelToken = null);
     }
 }
