@@ -55,6 +55,7 @@ namespace Wallop.Handlers
             SubscribeToEngineMessages<SceneSettingsMessage>(HandleSceneSettings);
             SubscribeToEngineMessages<SceneChangeMessage>(HandleSceneChange);
             SubscribeToEngineMessages<AddLayoutMessage>(HandleAddLayout);
+            SubscribeToEngineMessages<LayoutChangeMessage>(HandleChangeLayout);
             SubscribeToEngineMessages<SetActiveLayoutMessage>(HandleSetActiveLayout);
             SubscribeToEngineMessages<AddActorMessage>(HandleAddActor);
             SubscribeToEngineMessages<ActorChangeMessage>(HandleChangeActor);
@@ -748,6 +749,11 @@ namespace Wallop.Handlers
             }
 
             return Success(messageId);
+        }
+
+        private object? HandleChangeLayout(LayoutChangeMessage message, uint messageId)
+        {
+            throw new NotImplementedException();
         }
 
         private object HandleSetActiveLayout(SetActiveLayoutMessage message, uint messageId)
