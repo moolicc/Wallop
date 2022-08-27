@@ -28,9 +28,9 @@ namespace EnginePlugins
         {
 
             var bounds = Wallop.Types.ScreenInfo.GetVirtualScreen().Bounds;
-            Console.WriteLine("Setting SDL window bounds: {{ {0}, {1}, {2}, {3} }}", bounds.Origin.X, bounds.Origin.Y, bounds.Size.X, bounds.Size.Y);
+            Console.WriteLine("Setting SDL window bounds: {{ {0}, {1}, {2}, {3} }}", (int)bounds.X, (int)bounds.Y, (int)bounds.Z, (int)bounds.W);
             window.Position = new Silk.NET.Maths.Vector2D<int>(0, 0);
-            window.Size = bounds.Size;
+            window.Size = new Silk.NET.Maths.Vector2D<int>((int)bounds.Z, (int)bounds.W);
             window.WindowBorder = Silk.NET.Windowing.WindowBorder.Hidden;
 
             Console.WriteLine("Setting parent for handler: 0x{0:X}", window.Handle);
