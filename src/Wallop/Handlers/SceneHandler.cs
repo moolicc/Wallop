@@ -61,6 +61,7 @@ namespace Wallop.Handlers
             SubscribeToEngineMessages<ActorChangeMessage>(HandleChangeActor);
             SubscribeToEngineMessages<CreateSceneMessage>(HandleCreateScene);
             SubscribeToEngineMessages<SceneSaveMessage>(HandleSceneSave);
+            SubscribeToEngineMessages<GetSceneMessage>(HandleGetScene);
 
             SubscribeToEngineMessages<AddDirectorMessage>(HandleAddDirector);
             SubscribeToEngineMessages<ReloadModuleMessage>(HandleReloadModule);
@@ -412,6 +413,7 @@ namespace Wallop.Handlers
                     {
                         Name = "layout1",
                         Active = true,
+                        ScreenIndex = 1,
                         ActorModules = new List<StoredModule>()
                         {
                             new StoredModule()
@@ -711,7 +713,7 @@ namespace Wallop.Handlers
                 var newLayout = new Layout(message.Name);
 
                 newLayout.Screen = ScreenInfo.GetScreens()[message.ScreenIndex];
-                newLayout.RenderSize = message.RenderSize ?? new System.Numerics.Vector2(newLayout.Screen.Bounds.Z / 2, newLayout.Screen.Bounds.W / 2);
+                newLayout.RenderSize = new System.Numerics.Vector2(100, 100); //message.RenderSize ?? new System.Numerics.Vector2(newLayout.Screen.Bounds.Z / 2, newLayout.Screen.Bounds.W / 2);
                 newLayout.PresentationBounds = message.PresentationBounds ?? newLayout.Screen.Bounds;
 
                 var scene = _activeScene;
@@ -753,7 +755,48 @@ namespace Wallop.Handlers
 
         private object? HandleChangeLayout(LayoutChangeMessage message, uint messageId)
         {
-            throw new NotImplementedException();
+            var layout = _activeScene.Layouts.FirstOrDefault(l => l.Name == message.Layout) as Layout;
+
+            if(layout == null)
+            {
+                return Invalid(messageId, "Failed to find layout.");
+            }
+
+            if(message.NewName != null)
+            {
+                // TODO:
+                //layout.Name = message.NewName;
+            }
+
+            if (message.NewActive != null)
+            {
+                if (message.NewActive.Value && !layout.IsActive)
+                {
+                    layout.Activate();
+                }
+                else if (layout.IsActive)
+                {
+                    layout.Deactivate();
+                }
+            }
+
+            if(message.NewScreen != null)
+            {
+                var screens = ScreenInfo.GetScreens();
+                layout.Screen = screens[message.NewScreen.Value];
+            }
+
+            if(message.NewRenderSize != null)
+            {
+                layout.RenderSize = message.NewRenderSize.Value;
+            }
+
+            if(message.NewPresentationBounds != null)
+            {
+                layout.PresentationBounds = message.NewPresentationBounds.Value;
+            }
+
+            return Success(messageId);
         }
 
         private object HandleSetActiveLayout(SetActiveLayoutMessage message, uint messageId)
@@ -942,6 +985,15 @@ namespace Wallop.Handlers
             }
             return Success(messageId);
         }
+
+        private object? HandleGetScene(GetSceneMessage message, uint messageId)
+        {
+            var saver = new SceneSaver(SettingsSaveOptions.EntireState, PackageCache);
+            var stored = saver.Save(_activeScene);
+
+            return Success(messageId, stored);
+        }
+
 
         private object HandleAddDirector(AddDirectorMessage message, uint messageId)
         {

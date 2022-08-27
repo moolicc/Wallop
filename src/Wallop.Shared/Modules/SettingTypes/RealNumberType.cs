@@ -32,11 +32,14 @@ namespace Wallop.Shared.Modules.SettingTypes
         public bool TryDeserialize(string value, [NotNullWhen(true)] out object? result, IEnumerable<KeyValuePair<string, string>>? args)
         {
             var precision = RealNumberPrecision.Single;
-            foreach (var arg in args)
+            if(args != null)
             {
-                if (arg.Key.Equals("precision", StringComparison.OrdinalIgnoreCase))
+                foreach (var arg in args)
                 {
-                    Enum.TryParse(arg.Value, out precision);
+                    if (arg.Key.Equals("precision", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Enum.TryParse(arg.Value, out precision);
+                    }
                 }
             }
             bool successful = false;

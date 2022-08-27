@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -18,6 +19,7 @@ namespace HostApis
         public const string VAR_BATCHER = "batcher";
 
         private delegate void DrawSeparateCoords(string texture, float x, float y);
+        private delegate void DrawSeparateCoordsSized(string texture, float x, float y, float width, float height);
         private delegate void DrawVectorCoords(string texture, Vector2 coords);
 
 
@@ -79,11 +81,12 @@ namespace HostApis
 
             boundContext.SetDelegate(nameof(Image), new DrawSeparateCoords(Image));
             //boundContext.AddDelegate(nameof(Image), new DrawVectorCoords(Image));
+            boundContext.SetDelegate(nameof(Image), new DrawSeparateCoordsSized(ImageSized));
 
             //boundContext.AddDelegate(nameof(Image), new DrawSeparateCoordsScale(Image));
             //boundContext.AddDelegate(nameof(Image), new DrawVectorCoordsScale(Image));
 
-            boundContext.SetDelegate(nameof(ImageScaled), new DrawSeparateCoordsSeparateScale(ImageScaled));
+            boundContext.SetDelegate(nameof(ImageSized), new DrawSeparateCoordsSeparateScale(ImageSized));
             //boundContext.AddDelegate(nameof(Image), new DrawVectorCoordsVectorScale(Image));
 
 
@@ -94,6 +97,7 @@ namespace HostApis
 
         public void Image(string texture, float x, float y)
             => Image(texture, new Vector2(x, y));
+
 
         public void Image(string texture, Vector2 coords)
         {
@@ -113,13 +117,13 @@ namespace HostApis
         }
 
 
-        public void ImageScaled(string texture, float x, float y, float scaleX, float scaleY)
-            => Image(texture, new Vector2(x, y), new Vector2(scaleX, scaleY));
+        public void ImageSized(string texture, float x, float y, float width, float height)
+            => ImageSized(texture, new Vector2(x, y), new Vector2(width, height));
 
-        public void Image(string texture, Vector2 coords, Vector2 scale)
+        public void ImageSized(string texture, Vector2 pos, Vector2 size)
         {
             var batcher = BoundContext.GetValue<TextureBatcher>("batcher");
-            batcher?.Draw(GetTexture(BoundContext, texture), coords, null, Color4b.White, scale, 0.0f);
+            batcher?.Draw(GetTexture(BoundContext, texture), new RectangleF(pos.X, pos.Y, size.X, size.Y), 0.0f);
         }
 
 

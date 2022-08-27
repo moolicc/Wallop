@@ -280,7 +280,7 @@ namespace Wallop.Shared.Modules
             }
 
             var subElements = apiRoot.XPathSelectElements("./api");
-            return subElements.Select(e => e.Value);
+            return subElements.Select(e => e.Value).ToArray();
         }
 
         private static (string Name, string Version, string Description, IEnumerable<KeyValuePair<string, string>> Variables) GetCommonMetadataValues(XElement? metadataRoot)
