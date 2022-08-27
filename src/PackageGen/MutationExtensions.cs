@@ -344,7 +344,7 @@ namespace PackageGen
         public static void AddModuleSetting(this Module module, string key)
         {
             var settings = new List<ModuleSetting>(module.ModuleSettings);
-            settings.Add(new ModuleSetting(key, "", "", "", false, false, Array.Empty<ModuleSettingBinding>(), _emptyStringKvp));
+            settings.Add(new ModuleSetting(key, "", "", "", false, false, true, Array.Empty<ModuleSettingBinding>(), _emptyStringKvp));
 
             module.ModuleSettings = settings;
         }
