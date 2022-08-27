@@ -99,6 +99,8 @@ namespace Wallop.IPC
                 //{
                 //    await handler;
                 //}
+                _pipeServerStream.Disconnect();
+                _pipeServerStream.Dispose();
             }
         }
 

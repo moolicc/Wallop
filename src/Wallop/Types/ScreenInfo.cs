@@ -16,7 +16,7 @@ namespace Wallop.Types
 
             screens[0] = GetVirtualScreen();
             var physical = GetPhysicalScreens();
-            Array.Copy(screens, 1, physical, 0, physical.Length);
+            Array.Copy(physical, 0, screens, 1, physical.Length);
 
             return screens;
         }
