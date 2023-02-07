@@ -8,11 +8,16 @@ using Wallop.ECS;
 using Wallop.IPC;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace Wallop
 {
     class Program
     {
+        public const string SYS_GET_APPLICATION_NAME = "GetApplicationName";
+        public const string SYS_GET_SCENE_NAME = "GetSceneName";
+
+
         public const string APP_RESOURCE_DELIMITER = "-";
         public const string DEFAULT_NAME = "wallop.exe";
         public const string MY_NAME_DIRECTIVE = "my-name";
@@ -22,6 +27,7 @@ namespace Wallop
 
         public const string MESSENGER_PIPE_RESOURCE = "msg";
         private const string ARGS_PIPE_RESOURCE = "args";
+        private const string SYS_PIPE_RESOURCE = "sys";
         private const string MUTEX_RESOURCE = "single-instance-mutex";
 
         private static EngineApp? _app;
@@ -61,13 +67,20 @@ namespace Wallop
                     _cancellationTokenSource = new CancellationTokenSource();
                     if (isOnlyInstance)
                     {
-                        var pipe = new IPC.PipeHost($"{Settings.AppSettings.InstanceName}", $"{Settings.AppSettings.InstanceName}{APP_RESOURCE_DELIMITER}{ARGS_PIPE_RESOURCE}");
+                        var pipe = new PipeHost($"{Settings.AppSettings.InstanceName}", $"{Settings.AppSettings.InstanceName}{APP_RESOURCE_DELIMITER}{ARGS_PIPE_RESOURCE}");
                         pipe.Listen(_cancellationTokenSource.Token);
 
                         pipe.RequestReceivedCallback = OnIpcRequestReceived;
                         pipe.StatementReceivedCallback = OnIpcStatementReceived;
 
                         pipe.ProcessMessages(_cancellationTokenSource.Token);
+
+
+                        var procId = Process.GetCurrentProcess().Id;
+                        var sysPipe = new PipeHost(procId.ToString(), $"{procId}{APP_RESOURCE_DELIMITER}{SYS_PIPE_RESOURCE}");
+                        sysPipe.Listen(_cancellationTokenSource.Token);
+                        sysPipe.RequestReceivedCallback += OnSysPipeRequestReceived;
+                        sysPipe.ProcessMessages(_cancellationTokenSource.Token);
                     }
                     else if (!isOnlyInstance && args.Length > 0)
                     {
@@ -115,6 +128,29 @@ namespace Wallop
             return 0;
         }
 
+        private static object? OnSysPipeRequestReceived(Request request)
+        {
+            var content = request.As<string>();
+
+            if(content.Equals(SYS_GET_APPLICATION_NAME, StringComparison.OrdinalIgnoreCase))
+            {
+                return Settings.AppSettings.InstanceName;
+            }
+            else if(content.Equals(SYS_GET_SCENE_NAME, StringComparison.OrdinalIgnoreCase))
+            {
+                while (_app == null) ;
+
+                var handler = _app.GetHandler<Handlers.SceneHandler>();
+                if(handler == null)
+                {
+                    return "$nil";
+                }
+
+                return handler.ActiveScene.Name;
+            }
+
+            return OnIpcRequestReceived(request);
+        }
 
         private static object? OnIpcRequestReceived(Request request)
         {
