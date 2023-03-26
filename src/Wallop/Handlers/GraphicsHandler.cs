@@ -232,11 +232,8 @@ namespace Wallop.Handlers
             if (_graphicsSettings.Overlay)
             {
                 EngineLog.For<GraphicsHandler>().Info("Running execution of Engine Overlay plugin...");
-                pluginContext.ExecuteEndPoint(new OverlayerEndPoint(App.Messenger, _window));
-                pluginContext.WaitForEndPointExecutionAsync<OverlayerEndPoint>().ContinueWith(_ =>
-                {
-                    _window.IsVisible = true;
-                });
+                pluginContext.RunAction(new OverlayerEndPoint(App.Messenger, _window));
+                _window.IsVisible = true;
             }
             else
             {
@@ -298,11 +295,8 @@ namespace Wallop.Handlers
                 var pluginContext = App.GetService<PluginPantry.PluginContext>().OrThrow();
                 EngineLog.For<GraphicsHandler>().Info("Running execution of Engine Overlay plugin...");
 
-                pluginContext.ExecuteEndPoint(new OverlayerEndPoint(App.Messenger, _window));
-                pluginContext.WaitForEndPointExecutionAsync<OverlayerEndPoint>().ContinueWith(_ =>
-                {
-                    _window.IsVisible = true;
-                });
+                pluginContext.RunAction(new OverlayerEndPoint(App.Messenger, _window));
+                _window.IsVisible = true;
             }
         }
 

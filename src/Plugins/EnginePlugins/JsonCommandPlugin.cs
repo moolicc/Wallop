@@ -15,10 +15,10 @@ namespace EnginePlugins
 
     public class JsonCommandPlugin
     {
-        [PluginPantry.Extending.PluginEntryPoint("Json Command", "1.0.0.0")]
-        public void PluginEntryPoint(PluginPantry.Extending.PluginInformation pluginInfo)
+        [PluginPantry.EntryPoint("name", "Json Command", "version", "1.0.0.0")]
+        public void PluginEntryPoint(PluginPantry.PluginContext context, Guid guid)
         {
-            pluginInfo.Exposed.RegisterEndPoint<EngineStartupEndPoint>(HandleCommandLine, pluginInfo.PluginId);
+            context.RegisterAction<EngineStartupEndPoint, JsonCommandPlugin>(guid, nameof(HandleCommandLine), this);
         }
 
         public void HandleCommandLine(Wallop.Types.Plugins.EndPoints.EngineStartupEndPoint context)

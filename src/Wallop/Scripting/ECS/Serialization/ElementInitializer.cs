@@ -296,16 +296,13 @@ namespace Wallop.Scripting.ECS.Serialization
             // Execute the injection endpoint.
             EngineLog.For<ElementInitializer>().Info("Calling " + nameof(ScriptInjectEndPoint) + " plugin end point...");
             var endPointContext = new ScriptInjectEndPoint(_app.Messenger, component.ModuleDeclaration, context);
-            _pluginContext.ExecuteEndPoint<IInjectScriptContextEndPoint>(endPointContext);
-
-            _pluginContext.WaitForEndPointExecutionAsync<IInjectScriptContextEndPoint>().WaitAndCall(component, (e, c)
-                => EngineLog.For<ElementInitializer>().Error(e, "Plugin execution error on ECS element {element}!", c.Name));
+            _pluginContext.RunAction<IInjectScriptContextEndPoint>(endPointContext);
         }
 
         private void SetupHostApisForContext(IScriptContext context, ScriptedElement component)
         {
             // Enumerate all HostAPI plugins and for each that this component uses, run the entry point.
-            var hostApis = _pluginContext.GetImplementations<IHostApi>();
+            var hostApis = _pluginContext.GetExtensions<IHostApi>();
             foreach (var targetApi in component.ModuleDeclaration.ModuleInfo.HostApis)
             {
                 EngineLog.For<ElementInitializer>().Debug("Using HostAPI {api} on ECS element {element}...", targetApi, component.Name);

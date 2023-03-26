@@ -9,6 +9,7 @@ using Wallop.IPC;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using PluginPantry;
 
 namespace Wallop
 {
@@ -195,10 +196,9 @@ namespace Wallop
 
                 ExecuteCommandLine(commandLine, null);
 
-                EngineLog.For<Program>().Info("Running plugin entry points...");
-                var context = new PluginPantry.PluginContext();
+                EngineLog.For<Program>().Info("Loading plugins...");
+                var context = new PluginContext();
                 LoadPlugins(context);
-                context.BeginPluginExecution(new Types.Plugins.EndPoints.EntryPointContext());
 
                 EngineLog.For<Program>().Info("Running Engine...");
                 _app.Run(context);
@@ -244,29 +244,57 @@ namespace Wallop
             }
         }
 
-        private static void LoadPlugins(PluginPantry.PluginContext context)
+        private static void LoadPlugins(PluginContext context)
         {
             EngineLog.For<Program>().Info("Loading plugins...");
-            var pluginLoader = new PluginPantry.PluginLoader();
+            var pluginLoader = new PluginResolver();
+            
 
             int pluginCount = 0;
             int enabledPlugins = 0;
+
+            Dictionary<string, PluginLoadResult> loadedPlugins = new Dictionary<string, PluginLoadResult>();
 
             foreach (var plugin in _pluginSettings.Plugins)
             {
                 pluginCount++;
                 if(plugin.PluginEnabled)
                 {
-
                     if(!File.Exists(plugin.PluginDll))
                     {
                         EngineLog.For<Program>().Error("Plugin assembly not found. Path: {path}.", plugin.PluginDll);
                         continue;
                     }
 
-                    enabledPlugins++;
-                    var newPlugins = pluginLoader.LoadPluginAssembly(plugin.PluginDll);
-                    context.IncludePlugins(newPlugins);
+                    if(!loadedPlugins.TryGetValue(plugin.PluginName, out var result))
+                    {
+                        var asm = AssemblyResolver.LoadAssembly(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "plugins"), plugin.PluginDll);
+                        var newPlugins = pluginLoader.LoadPlugins(asm);
+
+                        foreach (var item in newPlugins)
+                        {
+                            if(item.LoadedData != null)
+                            {
+                                if(!loadedPlugins.TryAdd(item.LoadedData.Parameters["name"], item))
+                                {
+                                    EngineLog.For<Program>().Error("Plugin name collision detected! Name: {name}", item.LoadedData.Parameters["name"]);
+                                }
+                            }
+                            else if(item.Exception != null)
+                            {
+                                EngineLog.For<Program>().Error(item.Exception, "Failed to load plugin! Reason: {message}", item.Exception.Message);
+                            }
+                        }
+                    }
+
+                    if(loadedPlugins.TryGetValue(plugin.PluginName, out result))
+                    {
+                        if(result.LoadedData != null)
+                        {
+                            enabledPlugins++;
+                            context.RegisterPlugin(result.LoadedData);
+                        }
+                    }
                 }
             }
 
