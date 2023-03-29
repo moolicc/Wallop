@@ -157,7 +157,7 @@ namespace Wallop.ECS
         private void ForMatchingHostApis(ScriptedElement element, Action<IHostApi, IScriptContext> action)
         {
             var context = element.GetAttachedScriptContext();
-            var apis = PluginContext.OrThrow("PluginContext not found.").GetImplementations<IHostApi>();
+            var apis = PluginContext.OrThrow("PluginContext not found.").GetExtensions<IHostApi>();
             foreach (var targetApi in element.ModuleDeclaration.ModuleInfo.HostApis)
             {
                 var api = apis.FirstOrDefault(a => a.Name == targetApi);

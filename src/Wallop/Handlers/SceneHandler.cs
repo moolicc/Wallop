@@ -988,7 +988,7 @@ namespace Wallop.Handlers
 
         private object? HandleGetScene(GetSceneMessage message, uint messageId)
         {
-            var saver = new SceneSaver(SettingsSaveOptions.EntireState, PackageCache);
+            var saver = new SceneSaver(SettingsSaveOptions.OptionalSettings | SettingsSaveOptions.RequiredSettings, PackageCache);
             var stored = saver.Save(_activeScene);
 
             return Success(messageId, stored);

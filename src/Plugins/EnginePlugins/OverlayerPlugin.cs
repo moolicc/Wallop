@@ -11,16 +11,16 @@ namespace EnginePlugins
 {
     public class OverlayerPlugin
     {
-        [PluginPantry.Extending.PluginEntryPoint("Overlayer Backend", "1.0.0.0")]
-        public void PluginEntryPoint(PluginPantry.Extending.PluginInformation pluginInfo)
+        [PluginPantry.EntryPoint("name", "Overlayer Backend", "version", "1.0.0.0")]
+        public void PluginEntryPoint(PluginPantry.PluginContext context, Guid guid)
         {
             if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                pluginInfo.Exposed.RegisterEndPoint<OverlayerEndPoint>(nameof(OverlayWindowEndPoint_Windows), this, pluginInfo.PluginId);
+                context.RegisterAction<OverlayerEndPoint, OverlayerPlugin>(guid, nameof(OverlayWindowEndPoint_Windows), this);
             }
             else if(RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                pluginInfo.Exposed.RegisterEndPoint<OverlayerEndPoint>(nameof(OverlayWindowEndPoint_Linux), this, pluginInfo.PluginId);
+                context.RegisterAction<OverlayerEndPoint, OverlayerPlugin>(guid, nameof(OverlayWindowEndPoint_Linux), this);
             }
         }
 

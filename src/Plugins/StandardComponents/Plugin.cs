@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PluginPantry;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,10 +10,10 @@ namespace StandardComponents
 {
     public class Plugin
     {
-        [PluginPantry.Extending.PluginEntryPoint("StandardComponents", "1.0.0.0")]
-        public void Startup(PluginPantry.Extending.PluginInformation pluginInfo)
+        [EntryPoint("name", "StandardComponents", "version", "1.0.0.0")]
+        public void Startup(PluginContext context, Guid id)
         {
-            pluginInfo.Exposed.RegisterEndPoint<IBindableTypeRegistrationEndPoint>(nameof(RegisterComponents), this, pluginInfo.PluginId);
+            context.RegisterAction<IBindableTypeRegistrationEndPoint, Plugin>(id, nameof(RegisterComponents), this);
         }
 
         public void RegisterComponents(IBindableTypeRegistrationEndPoint ctx)

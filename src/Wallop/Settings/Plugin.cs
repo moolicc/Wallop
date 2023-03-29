@@ -9,6 +9,7 @@ namespace Wallop.Settings
     public class Plugin
     {
         public string PluginDll { get; set; } = string.Empty;
+        public string PluginName { get; set; } = string.Empty;
         public bool PluginEnabled { get; set; }
     }
 }

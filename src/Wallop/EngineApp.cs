@@ -177,8 +177,7 @@ namespace Wallop
         {
             EngineLog.For<EngineApp>().Info("Initializing BindableType registrations...");
             var bindableConext = new BindableTypeEndPoint(Messenger);
-            _pluginContext.ExecuteEndPoint<IBindableTypeRegistrationEndPoint>(bindableConext);
-            _pluginContext.WaitForEndPointExecutionAsync<IBindableTypeRegistrationEndPoint>().WaitAndThrow();
+            _pluginContext.RunAction<IBindableTypeRegistrationEndPoint>(bindableConext);
             var bindableComponentTypes = new BindableComponentTypeCache(bindableConext.BindableTypes);
             AddService(bindableComponentTypes);
             EngineLog.For<EngineApp>().Info("{types} BindableTypes found.", bindableComponentTypes.Count);

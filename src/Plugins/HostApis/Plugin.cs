@@ -1,4 +1,4 @@
-﻿using PluginPantry.Extending;
+﻿using PluginPantry;
 using Wallop.Shared.Scripting;
 using Wallop.Shared.Types.Plugin;
 
@@ -6,11 +6,11 @@ namespace HostApis
 {
     public class Plugin
     {
-        [PluginEntryPoint("Host APIs", "1.0.0.0")]
-        public void Startup(PluginInformation pluginInfo)
+        [EntryPoint("Host APIs", "1.0.0.0")]
+        public void Startup(PluginContext context, Guid id)
         {
-            pluginInfo.Exposed.RegisterImplementation<IHostApi, TrippyGLApi>();
-            pluginInfo.Exposed.RegisterImplementation<IHostApi, EasyRenderApi>();
+            context.RegisterExtension<IHostApi, TrippyGLApi>(id);
+            context.RegisterExtension<IHostApi, EasyRenderApi>(id);
         }
     }
 }

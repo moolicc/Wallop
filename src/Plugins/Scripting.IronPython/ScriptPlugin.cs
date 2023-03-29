@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PluginPantry;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,11 +12,11 @@ namespace Scripting.IronPython
     public class ScriptPlugin
     {
 
-        [PluginPantry.Extending.PluginEntryPoint("Scripting", "1.0.0.0")]
-        public void Startup(PluginPantry.Extending.PluginInformation pluginInfo)
+        [EntryPoint("name", "Scripting", "version", "1.0.0.0")]
+        public void Startup(PluginContext context, Guid id)
         {
-            pluginInfo.Exposed.RegisterEndPoint<ILoadingScriptEnginesEndPoint>(nameof(LoadEngines), this, pluginInfo.PluginId);
-            pluginInfo.Exposed.RegisterEndPoint<IInjectScriptContextEndPoint>(nameof(InjectScriptContext), this, pluginInfo.PluginId);
+            context.RegisterAction<ILoadingScriptEnginesEndPoint, ScriptPlugin>(id, nameof(LoadEngines), this);
+            context.RegisterAction<IInjectScriptContextEndPoint, ScriptPlugin>(id, nameof(InjectScriptContext), this);
         }
 
         public void LoadEngines(ILoadingScriptEnginesEndPoint endPoint)
