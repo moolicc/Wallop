@@ -240,7 +240,6 @@ namespace Wallop.Handlers
                 EngineLog.For<GraphicsHandler>().Info("Skipping execution of Engine Overlay plugin due to settings specified in configuration.");
             }
 
-
             App.WindowLoaded();
             _gl.Viewport(_window.Size);
         }
