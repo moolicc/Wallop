@@ -89,6 +89,7 @@ namespace Wallop
 
 
                         EngineLog.For<Program>().Info("Forwarding commands to pre-existing engine instance... Include [my-name:newname] in the command line to start a new Engine instance.");
+                        EngineLog.For<Program>().Info("Include [send-to:name] in the command line to start a new Engine instance.");
 
                         var targetResource = ARGS_PIPE_RESOURCE;
 
