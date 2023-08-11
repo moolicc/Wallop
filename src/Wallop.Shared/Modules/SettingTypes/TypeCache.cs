@@ -16,6 +16,9 @@ namespace Wallop.Shared.Modules.SettingTypes
 
             Add(new RealNumberType());
             Add(new FileType());
+            Add(new BoolSettingType());
+            Add(new ChoiceType());
+            Add(new StringSettingType());
         }
 
         public T GetType<T>(string name) where T : ISettingType

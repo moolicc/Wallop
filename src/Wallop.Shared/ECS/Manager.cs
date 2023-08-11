@@ -52,6 +52,21 @@ namespace Wallop.Shared.ECS
             _actors.Remove(actor);
         }
 
+        public void RemoveFirst<TActor>(Predicate<TActor> predicate) where TActor : IActor
+        {
+            for(int i = 0; i < _actors.Count; i++)
+            {
+                if (_actors[i] is TActor tactor)
+                {
+                    if (predicate(tactor))
+                    {
+                        _actors.RemoveAt(i);
+                        return;
+                    }
+                }
+            }
+        }
+
         public int RemoveNull()
         {
             int count = 0;

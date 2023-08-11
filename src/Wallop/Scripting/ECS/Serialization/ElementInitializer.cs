@@ -53,13 +53,14 @@ namespace Wallop.Scripting.ECS.Serialization
             _instance = this;
         }
 
-        public void InitializeElement(ScriptedElement component, Scene? scene = null)
+        public bool InitializeElement(ScriptedElement component, Scene? scene = null)
         {
             var engineProvider = _scriptEngineProviders.Providers.FirstOrDefault(ep => ep.Name == component.ModuleDeclaration.ModuleInfo.ScriptEngineId);
             if (engineProvider == null)
             {
                 EngineLog.For<ElementInitializer>().Error("Failed to find ScriptEngineProvider {engine} from module {module} for ECS element {element}.", component.ModuleDeclaration.ModuleInfo.ScriptEngineId, component.ModuleDeclaration.ModuleInfo.Id, component.Name);
-                throw new ElementInitializationException("Failed to find ScriptEngineProvider.");
+                //throw new ElementInitializationException("Failed to find ScriptEngineProvider.");
+                return false;
             }
 
             try
@@ -96,7 +97,7 @@ namespace Wallop.Scripting.ECS.Serialization
 
 
                 EngineLog.For<ElementInitializer>().Debug("Executing script initialization...");
-                component.InitializeScript(_taskHandler, engine, source);
+                component.InitializeScript(_taskHandler, engine, sourceFullpath);
 
                 EngineLog.For<ElementInitializer>().Debug("Setting up ECS element callback scene triggers...");
                 if (scene == null)
@@ -114,6 +115,7 @@ namespace Wallop.Scripting.ECS.Serialization
 
 
                 EngineLog.For<ElementInitializer>().Info("Script initialized!");
+                return true;
             }
             catch (Exception ex)
             {

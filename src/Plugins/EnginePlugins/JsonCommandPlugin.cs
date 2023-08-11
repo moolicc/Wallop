@@ -12,16 +12,15 @@ using Wallop.Types.Plugins.EndPoints;
 
 namespace EnginePlugins
 {
-
     public class JsonCommandPlugin
     {
-        [PluginPantry.EntryPoint("name", "Json Command", "version", "1.0.0.0")]
-        public void PluginEntryPoint(PluginPantry.PluginContext context, Guid guid)
+        [PluginPantry.EntryPoint(new string[] { "name", "Json Command", "version", "1.0.0.0" })]
+        public static void PluginEntryPoint(PluginPantry.PluginContext context, Guid guid)
         {
-            context.RegisterAction<EngineStartupEndPoint, JsonCommandPlugin>(guid, nameof(HandleCommandLine), this);
+            context.RegisterAction<EngineStartupEndPoint, JsonCommandPlugin>(guid, nameof(HandleCommandLine));
         }
 
-        public void HandleCommandLine(Wallop.Types.Plugins.EndPoints.EngineStartupEndPoint context)
+        public static void HandleCommandLine(Wallop.Types.Plugins.EndPoints.EngineStartupEndPoint context)
         {
             var sourceArg = new Argument<string>("source", description: "The source or filepath to the source of the json. NOTE (if providing raw json): You may escape double quotes around json values with single quotes.");
             var command = new Command("json", "Executes commands contained in a json string or file.")

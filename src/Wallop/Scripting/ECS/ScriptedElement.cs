@@ -41,11 +41,11 @@ namespace Wallop.Scripting.ECS
             Config = new Dictionary<string, string>(storedModule.Config.Select(v => new KeyValuePair<string, string>(v.Name, v.Value)));
         }
 
-        public void InitializeScript(TaskHandler taskHandler, IScriptEngine engine, string source)
+        public void InitializeScript(TaskHandler taskHandler, IScriptEngine engine, string sourceFile)
         {
             _taskHandler = taskHandler;
             ScriptEngine = engine;
-            _taskHandler.QueueUpdateTask(this, (src) => engine.Execute(src.OrThrow().ToString().OrThrow()), source);
+            _taskHandler.QueueUpdateTask(this, (f) => engine.ExecuteFile(f.OrThrow().ToString().OrThrow()), sourceFile);
         }
 
         public async Task WaitForExecuteAsync()
@@ -142,7 +142,7 @@ namespace Wallop.Scripting.ECS
 
         public void Panic(string reason, bool generatedByScript)
         {
-            Panic(new ScriptPanicException(reason, this, generatedByScript));
+            Panic(new ScriptPanicException(reason, this, generatedByScript, ScriptEngine));
         }
 
         public void Panic(Exception cause, bool generatedByScript)
@@ -151,7 +151,7 @@ namespace Wallop.Scripting.ECS
             {
                 throw new InvalidOperationException($"Panic should not be called with an inner-exception cause of type {nameof(ScriptPanicException)}.");
             }
-           Panic(new ScriptPanicException(cause.Message, this, generatedByScript, cause));
+           Panic(new ScriptPanicException(cause.Message, this, generatedByScript, ScriptEngine, cause));
         }
 
         public void Panic(ScriptPanicException exception)
@@ -208,7 +208,7 @@ namespace Wallop.Scripting.ECS
                 return;
             }
 
-            EngineLog.For<ScriptedElement>().Error(_panic, "ECS element {element} is panicking! {reason} Last line executed: {line}, Panic Exception: {exc}", Name, _panic.PanicReason, ScriptEngine?.GetLastLineExecuted(), _panic);
+            EngineLog.For<ScriptedElement>().Error(_panic, "ECS element {element} is panicking! {reason} Script generated: {script}.\n{exc}", Name, _panic.PanicReason, _panic.GeneratedByScript, _panic);
             Shutdown();
             PanicCallback?.Invoke(this);
 

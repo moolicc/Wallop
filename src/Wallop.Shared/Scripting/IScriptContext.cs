@@ -13,6 +13,7 @@ namespace Wallop.Shared.Scripting
 
     public interface IScriptContext
     {
+
         /// <summary>
         /// Formats the specified member name as a variable and returns the results.
         /// </summary>

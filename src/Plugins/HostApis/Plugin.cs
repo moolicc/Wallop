@@ -6,8 +6,8 @@ namespace HostApis
 {
     public class Plugin
     {
-        [EntryPoint("Host APIs", "1.0.0.0")]
-        public void Startup(PluginContext context, Guid id)
+        [EntryPoint(new string[] { "name", "Host APIs", "version", "1.0.0.0" })]
+        public static void Startup(PluginContext context, Guid id)
         {
             context.RegisterExtension<IHostApi, TrippyGLApi>(id);
             context.RegisterExtension<IHostApi, EasyRenderApi>(id);

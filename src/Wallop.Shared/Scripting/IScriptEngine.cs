@@ -15,10 +15,10 @@ namespace Wallop.Shared.Scripting
 
         public IScriptContext? GetAttachedScriptContext();
 
+        public void ExecuteRaw(string script);
+        public void ExecuteFile(string scriptFile);
+
+        public EngineState GetState();
         public void Panic();
-
-        public int GetLastLineExecuted();
-
-        public void Execute(string script);
     }
 }

@@ -1,6 +1,7 @@
 ﻿using IronPython.Hosting;
 using IronPython.Runtime.Exceptions;
 using Microsoft.Scripting.Hosting;
+using Wallop.Shared.ECS.ActorQuerying.FilterMachine;
 using Wallop.Shared.Scripting;
 using IronPy = IronPython;
 
@@ -18,18 +19,12 @@ namespace Scripting.IronPython
 
         public IScriptEngine CreateScriptEngine(IEnumerable<KeyValuePair<string, string>> args)
         {
-            var engineArgs = args.Select(x => new KeyValuePair<string, object>(x.Key, x.Value));
-            return new PythonScriptEngine(new Dictionary<string, object>(engineArgs));
-        }
-
-        public bool TryDeserialize(string value, string targetType, out object? result)
-        {
-            result = null;
-            if(targetType == "number")
+            var engineArgs = ScriptEngineServices.CastArgs(args, new Dictionary<string, Type>
             {
-                result = float.Parse(value);
-            }
-            return true;
+                { "debug", typeof(bool) }
+            });
+
+            return new PythonScriptEngine(new Dictionary<string, object>(engineArgs));
         }
     }
 
@@ -38,7 +33,7 @@ namespace Scripting.IronPython
         private PythonScriptContext? _scriptContext;
         private ScriptEngine _pyEngine;
         private ScriptScope _pyScope;
-        private int _lastLine;
+        private EngineState _state;
 
         public PythonScriptEngine(Dictionary<string, object> args)
         {
@@ -46,8 +41,14 @@ namespace Scripting.IronPython
             _pyScope = _pyEngine.CreateScope();
             _pyScope.ImportModule("clr");
             _pyEngine.Execute("import clr", _pyScope);
-            _lastLine = -1;
-            //_pyEngine.Runtime.SetTrace(OnTraceback);
+
+            _state = new EngineState();
+            _state.ReportedStatus = "<Not implemented>";
+
+            if (args.TryGetValue("debug", out var debug) && debug is bool b && b)
+            {
+                _pyEngine.Runtime.SetTrace(OnTraceback);
+            }
         }
 
 
@@ -77,29 +78,103 @@ namespace Scripting.IronPython
             throw new NotImplementedException();
         }
 
-        public void Execute(string script)
+        public void ExecuteRaw(string script)
         {
             var source = _pyEngine.CreateScriptSourceFromString(script);
             source.Execute(_pyScope);
         }
 
+        public void ExecuteFile(string scriptFile)
+        {
+            var source = _pyEngine.CreateScriptSourceFromFile(scriptFile);
+            source.Execute(_pyScope);
+        }
+
+
         public void Panic()
         {
         }
 
-        public int GetLastLineExecuted()
+        public EngineState GetState()
         {
-            return _lastLine;
+            return _state;
         }
 
-        private TracebackDelegate OnTraceback(TraceBackFrame frame, string result, object payload)
+        private TracebackDelegate OnTraceback(TraceBackFrame frame, string action, object payload)
         {
+            const string ACTION_ENTER = "call";
+            const string ACTION_LINE = "line";
+            const string ACTION_EXIT = "return";
+            const string ACTION_ERROR = "exception";
+
+            int lineNo = -1;
             if(frame.f_lineno is int i)
             {
-                _lastLine = i;
+                lineNo = i;
+            }
+
+            if(action == ACTION_ENTER)
+            {
+                State_EnterMethod(frame.f_code.co_filename, frame.f_code.co_name, lineNo);
+            }
+            else if(action == ACTION_LINE)
+            {
+                State_LineChange(lineNo);
+            }
+            else if(action == ACTION_EXIT)
+            {
+                State_ExitMethod();
+            }
+            else if (action == ACTION_ERROR)
+            {
+                State_Error(lineNo);
             }
 
             return OnTraceback;
+        }
+
+        private void State_EnterMethod(string ns, string funcName, int lineNo)
+        {
+            var frame = new CallFrame(ns, funcName, lineNo, false);
+            _state.CallStack.Add(frame);
+        }
+
+        private void State_LineChange(int lineNo)
+        {
+            // If we've reached a new line (not a return) and we're in an error state, then we must have caught the exception.
+            if (_state.CallStack[_state.CallStack.Count - 1].ExceptionState)
+            {
+                _state.CallStack[_state.CallStack.Count - 1] = _state.CallStack[_state.CallStack.Count - 1] with
+                {
+                    ExceptionState = false,
+                    LineNumber = lineNo
+                };
+            }
+            else
+            {
+                _state.CallStack[_state.CallStack.Count - 1] = _state.CallStack[_state.CallStack.Count - 1] with
+                {
+                    LineNumber = lineNo
+                };
+            }
+        }
+
+        private void State_ExitMethod()
+        {
+            if (!_state.CallStack[_state.CallStack.Count - 1].ExceptionState)
+            {
+                _state.CallStack.RemoveAt(_state.CallStack.Count - 1);
+            }
+        }
+
+        private void State_Error(int lineNo)
+        {
+            // The provided line number will be the last line to have executed without error.
+            _state.CallStack[_state.CallStack.Count - 1] = _state.CallStack[_state.CallStack.Count - 1] with
+            {
+                LineNumber = lineNo + 1,
+                ExceptionState = true
+            };
         }
     }
 }

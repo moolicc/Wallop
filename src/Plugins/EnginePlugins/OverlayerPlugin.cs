@@ -11,20 +11,20 @@ namespace EnginePlugins
 {
     public class OverlayerPlugin
     {
-        [PluginPantry.EntryPoint("name", "Overlayer Backend", "version", "1.0.0.0")]
-        public void PluginEntryPoint(PluginPantry.PluginContext context, Guid guid)
+        [PluginPantry.EntryPoint(new string[] { "name", "Overlayer Backend", "version", "1.0.0.0" })]
+        public static void PluginEntryPoint(PluginPantry.PluginContext context, Guid guid)
         {
             if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                context.RegisterAction<OverlayerEndPoint, OverlayerPlugin>(guid, nameof(OverlayWindowEndPoint_Windows), this);
+                context.RegisterAction<OverlayerEndPoint, OverlayerPlugin>(guid, nameof(OverlayWindowEndPoint_Windows));
             }
             else if(RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                context.RegisterAction<OverlayerEndPoint, OverlayerPlugin>(guid, nameof(OverlayWindowEndPoint_Linux), this);
+                context.RegisterAction<OverlayerEndPoint, OverlayerPlugin>(guid, nameof(OverlayWindowEndPoint_Linux));
             }
         }
 
-        public void OverlayWindowEndPoint_Windows(Silk.NET.Windowing.IWindow window)
+        public static void OverlayWindowEndPoint_Windows(Silk.NET.Windowing.IWindow window)
         {
 
             var bounds = Wallop.Types.ScreenInfo.GetVirtualScreen().Bounds;

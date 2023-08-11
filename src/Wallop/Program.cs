@@ -287,6 +287,10 @@ namespace Wallop
                             }
                         }
                     }
+                    else
+                    {
+                        EngineLog.For<Program>().Warn("Plugin assembly attempted to load more than once! Plugin: {plugin}", plugin.PluginName);
+                    }
 
                     if(loadedPlugins.TryGetValue(plugin.PluginName, out result))
                     {
@@ -295,6 +299,18 @@ namespace Wallop
                             enabledPlugins++;
                             context.RegisterPlugin(result.LoadedData);
                         }
+                    }
+                    else if(string.IsNullOrEmpty(plugin.PluginName))
+                    {
+                        EngineLog.For<Program>().Warn("Plugin loaded but name not specified in settings. Plugin assembly: {assembly}", plugin.PluginDll);
+                    }
+                    else if (!plugin.PluginEnabled)
+                    {
+                        EngineLog.For<Program>().Info("Plugin loaded but disabled in settings. Plugin: {plugin}", plugin.PluginName);
+                    }
+                    else
+                    {
+                        EngineLog.For<Program>().Info("Plugin loaded but not present in settings. Plugin: {plugin}", plugin.PluginName);
                     }
                 }
             }

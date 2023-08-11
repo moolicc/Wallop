@@ -25,7 +25,20 @@ namespace Wallop.Scripting
             EngineLog.For<ScriptEngineProviderCache>().Info("Initializing ScriptEngines providers...");
 
             var engineEndPointPluginContext = new ScriptEngineEndPoint(app.Messenger);
-            pluginContext.RunAction<ILoadingScriptEnginesEndPoint>(engineEndPointPluginContext);
+
+            // Note that the results from RunAction must be enumerated over PRIOR to the 
+            //     Providers = engineEndPointPluginContext.GetScriptEngineProviders();
+            // line being executed.
+            // RunAction yield returns its results, so unless enumerated, no providers will be loaded.
+            var results = pluginContext.RunAction<ILoadingScriptEnginesEndPoint>(engineEndPointPluginContext);
+            foreach (var result in results)
+            {
+                if(!result.Success)
+                {
+                    EngineLog.For<ScriptEngineProviderCache>().Error("'{plugin}' plugin failed. {exception}", result.PluginId, result.Exception);
+                }
+            }
+
             Providers = engineEndPointPluginContext.GetScriptEngineProviders();
             EngineLog.For<ScriptEngineProviderCache>().Info("{engines} ScriptEngines found.", Providers.Count());
         }

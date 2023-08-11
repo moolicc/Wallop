@@ -12,19 +12,20 @@ namespace Scripting.IronPython
     public class ScriptPlugin
     {
 
-        [EntryPoint("name", "Scripting", "version", "1.0.0.0")]
-        public void Startup(PluginContext context, Guid id)
+        [EntryPoint(new string[] { "name", "Scripting", "version", "1.0.0.0" })]
+        public static void Startup(PluginContext context, Guid id)
         {
-            context.RegisterAction<ILoadingScriptEnginesEndPoint, ScriptPlugin>(id, nameof(LoadEngines), this);
-            context.RegisterAction<IInjectScriptContextEndPoint, ScriptPlugin>(id, nameof(InjectScriptContext), this);
+            context.RegisterAction<ILoadingScriptEnginesEndPoint, ScriptPlugin>(id, nameof(LoadEngines));
+            context.RegisterAction<IInjectScriptContextEndPoint, ScriptPlugin>(id, nameof(InjectScriptContext));
+            Console.WriteLine("PLUGIN REGISTERED");
         }
 
-        public void LoadEngines(ILoadingScriptEnginesEndPoint endPoint)
+        public static void LoadEngines(ILoadingScriptEnginesEndPoint endPoint)
         {
             endPoint.RegisterScriptEngineProvider(new PythonScriptEngineProvider());
         }
 
-        public void InjectScriptContext(IScriptContext context)
+        public static void InjectScriptContext(IScriptContext context)
         {
         }
     }
