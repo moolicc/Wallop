@@ -8,4 +8,4 @@ def draw():
 
 def testfunc():
     global x, y
-    image(file.FullName, x, y)
+    image0(file.FullName, x, y)

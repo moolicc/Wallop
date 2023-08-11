@@ -16,10 +16,13 @@ namespace Scripting.IronPython
         private ScriptEngine _engine;
 
         private List<string> _trackedKeys;
+        // TODO: Refactor name collision avoidance out to ScriptEngineServices.
+        private List<string> _renamedFunctions;
 
         public PythonScriptContext()
         {
             _trackedKeys = new List<string>();
+            _renamedFunctions = new List<string>();
         }
 
         internal void SetScope(ScriptScope pyScope)
@@ -38,7 +41,38 @@ namespace Scripting.IronPython
 
         public void SetDelegate(string name, Delegate method)
         {
-            _scope.SetVariable(FormatFunctionName(name), method);
+            string funcName = FormatFunctionName(name);
+            int counter = -1;
+            
+            // If the function already exists, we have to do some name
+            // mangling for python (which doesn't support overloading)
+            if(_scope.TryGetVariable(funcName, out var value))
+            {
+                // So, if the function already exists, rename the existing function to give it a number (0).
+                // But only if such a function does not yet exist.
+                if(!_scope.TryGetVariable($"{funcName}0", out _))
+                {
+                    _scope.RemoveVariable(funcName);
+                    _scope.SetVariable($"{funcName}0", value);
+                }
+                _renamedFunctions.Add(funcName);
+                counter = 1;
+            }
+            else if(_renamedFunctions.Contains(funcName))
+            {
+                counter = 1;
+            }
+
+            while (_scope.TryGetVariable($"{funcName}{counter}", out _))
+            {
+                counter++;
+            }
+
+            if(counter > -1)
+            {
+                funcName = $"{funcName}{counter}";
+            }
+            _scope.SetVariable(funcName, method);
         }
 
 
