@@ -69,124 +69,12 @@ namespace Wallop.Handlers
 
         public override Command? GetCommandLineCommand()
         {
-
-            var defaultSceneNameOpts = new Option<string>(
-                new[] { "--default-scene", "-d" },
-                () => _sceneSettings.DefaultSceneName,
-                "Specifies the name of the default, empty scene");
-            var drawThreadingPolicyOpts = new Option<ThreadingPolicy>(
-                new[] { "--thread-policy-draw", "-tpd" },
-                () => _sceneSettings.DrawThreadingPolicy,
-                "Specifies the render threading policy");
-            var pkgSearchDirOpts = new Option<string>(
-                new[] { "--pkg-dir", "-pdir" },
-                () => _sceneSettings.PackageSearchDirectory,
-                "Specifies the search directory for packages");
-            var scenePreloadsOpts = new Option<IEnumerable<string>>(
-                new[] { "--preload", "-p" },
-                () => _sceneSettings.ScenePreloadList.ToArray(),
-                "Specifies the scene(s), by their json configuration filepath(s), to pre-load or reload");
-            var selectedSceneOpts = new Option<string>(
-                new[] { "--active-scene", "-s" },
-                () => _sceneSettings.SelectedScene,
-                "Specifies the currently active scene by name");
-            var updateThreadingPolicyOpts = new Option<ThreadingPolicy>(
-                new[] { "--thread-policy-update", "-tpu" },
-                () => _sceneSettings.UpdateThreadingPolicy,
-                "Specifies the update threading policy");
-
-
-            var basedOnSceneOpts = new Option<string>(
-                new[] { "--clone", "-c" },
-                () => _sceneSettings.DefaultSceneName,
-                "Bases a scene based on the scene of the specified name or configuration path");
-            var newSceneNameOpts = new Argument<string>("name", 
-                "The scene's name");
-
-            var basedOnLayoutOpts = new Option<string>(
-                new[] { "--clone", "-c" },
-                () => "",
-                "Bases a new layout on the specified existing layout");
-            var newLayoutNameOpts = new Option<string>(
-                new[] { "--name", "-n" },
-                () => "",
-                "The name of the new layout");
-            var newLayoutTargetSceneOpts = new Option<string>(
-                new[] { "--target-scene", "-s" },
-                () => _activeScene.Name,
-                "The name of the scene for which this new layout is being created");
-            var makeActiveOpts = new Option<bool>(
-                new[] { "--make-active", "-a" },
-                () => false,
-                "Whether or not to make this layout active upon creation"
-                );
-
-
-
-            var newActorNameOpts = new Option<string>(
-                new[] { "--actor-name", "-n" },
-                "The new actor's name");
-            var newActorModuleOpts = new Option<string>(
-                new[] { "--module", "-m" },
-                "The new actor's module");
-            var basedOnActorOpts = new Option<string>(
-                new[] { "--clone-actor" },
-                () => "",
-                "The name of an actor to clone");
-            var owningLayoutOpts = new Option<string>(
-                new[] { "--layout", "-l" },
-                () => _activeScene.GetActiveLayouts().FirstOrDefault()?.Name ?? "",
-                "The layout upon-which to place this Actor");
-            var elementSettingsOpts = new Option<Dictionary<string, string>?>(
-                aliases: new[] { "--settings", "-s" },
-                description: "A list of key/value pairs representing the actor's settings.",
-                parseArgument: result =>
-                {
-                    if(result.Tokens.Count > 0 && result.Tokens.Count % 2 == 0)
-                    {
-                        result.ErrorMessage = "--settings command must contain values of the format key=value";
-                        return null;
-                    }
-
-                    var results = new Dictionary<string, string>();
-                    for (int i = 0; i < result.Tokens.Count; i++)
-                    {
-                        var value = result.Tokens[i].Value;
-                        if(!value.Contains('='))
-                        {
-                            result.ErrorMessage = "--settings command must contain values of the format key=value";
-                            return null;
-                        }
-
-                        var split = value.Split('=', StringSplitOptions.RemoveEmptyEntries);
-                        if(split.Length != 2)
-                        {
-                            result.ErrorMessage = "--settings command must contain values of the format key=value";
-                            return null;
-                        }
-
-                        results.Add(split[0], split[1]);
-                    }
-                    return results;
-                });
-            elementSettingsOpts.AllowMultipleArgumentsPerToken = true;
-            elementSettingsOpts.Arity = ArgumentArity.OneOrMore;
-
-
-
             var importLocationOpts = new Argument<string>("location", "Specifies a scene configuration file to import");
 
             var importAsNameOpts = new Option<string>(
                 new[] { "--name", "-n" },
                 () => "",
                 "Specifies a name to apply to the imported scene");
-
-
-            var exportLocationOpts = new Argument<string>("location", "The location to export the scene configuration to");
-
-            var exportAsNameOpts = new Option<string>(
-                new[] { "--name", "-n" },
-                "Specifies a name to export the scene with");
 
 
             var reloadModuleIdOpts = new Argument<string>("moduleid", "The ID of the module to reload");
@@ -198,99 +86,19 @@ namespace Wallop.Handlers
 
 
 
-            // EngineApp.exe scene create layout ...
-            var sceneCreateLayoutCommand = new Command("layout")
-            {
-                basedOnLayoutOpts,
-                newLayoutNameOpts,
-                newLayoutTargetSceneOpts,
-                makeActiveOpts
-            };
 
-            sceneCreateLayoutCommand.Handler = CommandHandler.Create<string, string, string, bool>(
-                (basedOnLayout, newLayoutName, newLayoutTargetScene, makeActive) =>
-                {
-                    var message = new AddLayoutMessage(newLayoutName, basedOnLayout, newLayoutTargetScene, makeActive, 0, null, null);
-                    App.Messenger.Put(message);
-                });
-
-            // EngineApp.exe scene create actor ...
-            var sceneCreateActor = new Command("actor")
-            {
-                newActorNameOpts,
-                newActorModuleOpts,
-                basedOnActorOpts,
-                owningLayoutOpts,
-
-                elementSettingsOpts,
-            };
-
-            sceneCreateActor.SetHandler(new Action<string, string, string, string, Dictionary<string, string>> (
-                (name, module, clone, layout, settings) =>
-                {
-                    if(_activeScene is null)
-                    {
-                        // TODO: Error
-                        return;
-                    }
-                    var newActorMessage = new AddActorMessage(name, _activeScene.Name, layout, module, settings);
-                    App.Messenger.Put(newActorMessage);
-                }), newActorNameOpts, newActorModuleOpts, basedOnActorOpts, owningLayoutOpts, elementSettingsOpts);
-
-
-            // EngineApp.exe scene create scene ...
-            var sceneCreateSceneCommand = new Command("scene", "Creates a new scene")
-            {
-                basedOnSceneOpts,
-                newSceneNameOpts
-            };
-
-            sceneCreateSceneCommand.SetHandler(new Action<string, string>(
-                (string newSceneName, string basedOnScene) =>
-                {
-                    var message = new CreateSceneMessage(newSceneName, basedOnScene);
-                    App.Messenger.Put(message);
-                }), newSceneNameOpts, basedOnSceneOpts);
-
-
-            // EngineApp.exe scene create ...
-            var sceneCreateCommand = new Command("create", "Creates new scene resources")
-            {
-                sceneCreateSceneCommand,
-                sceneCreateLayoutCommand,
-                sceneCreateActor,
-            };
-
-
-
-
-            // EngineApp.exe scene import ...
-            var sceneImportCommand = new Command("import", "Imports a scene configuration")
+            // EngineApp.exe scene load ...
+            var sceneLoadCommand = new Command("load", "Loads a scene configuration")
             {
                 importLocationOpts,
                 importAsNameOpts,
             };
 
-            sceneImportCommand.SetHandler(
+            sceneLoadCommand.SetHandler(
                 (string importLocation, string importName) =>
                 {
                     App.Messenger.Put(new SceneChangeMessage(importLocation));
                 }, importLocationOpts, importAsNameOpts);
-
-
-
-            // EngineApp.exe scene export ...
-            var sceneExportCommand = new Command("export", "Exports a scene configuration")
-            {
-                exportLocationOpts,
-                exportAsNameOpts,
-            };
-
-            sceneExportCommand.SetHandler(
-                (string exportLocationOpts, string exportName) =>
-                {
-                    App.Messenger.Put(new SceneSaveMessage((int)SettingsSaveOptions.Default, exportLocationOpts));
-                }, exportLocationOpts, exportAsNameOpts);
 
 
             // EngineApp.exe scene reload module ...
@@ -324,43 +132,10 @@ namespace Wallop.Handlers
             // EngineApp.exe scene ...
             var sceneCommand = new Command("scene", "Scene operations")
             {
-                sceneCreateCommand,
-                sceneImportCommand,
-                sceneExportCommand,
+                sceneLoadCommand,
                 sceneReloadCommand,
                 sceneInfoCommand,
-
-                defaultSceneNameOpts,
-                drawThreadingPolicyOpts,
-                pkgSearchDirOpts,
-                scenePreloadsOpts,
-                selectedSceneOpts,
-                updateThreadingPolicyOpts,
             };
-
-            sceneCommand.SetHandler(new Action<string, ThreadingPolicy, string, IEnumerable<string>, string, ThreadingPolicy>(
-                (defaultSceneName, drawThreadingPolicy, pkgSearchDir, scenePreloads, selectedScene, updateThreadingPolicy) =>
-                {
-
-                    if(_sceneLoaded)
-                    {
-                        App.Messenger.Put(new SceneSettingsMessage(pkgSearchDir, defaultSceneName, selectedScene, scenePreloads.ToArray(), (int)updateThreadingPolicy, (int)drawThreadingPolicy));
-                    }
-                    else
-                    {
-                        var changes = new SceneSettings()
-                        {
-                            DefaultSceneName = defaultSceneName,
-                            DrawThreadingPolicy = drawThreadingPolicy,
-                            PackageSearchDirectory = pkgSearchDir,
-                            ScenePreloadList = new List<string>(scenePreloads),
-                            SelectedScene = selectedScene,
-                            UpdateThreadingPolicy = updateThreadingPolicy
-                        };
-                        _sceneSettings = changes;
-                    }
-                }), defaultSceneNameOpts, drawThreadingPolicyOpts, pkgSearchDirOpts, scenePreloadsOpts, selectedSceneOpts, updateThreadingPolicyOpts);
-
 
 
             return sceneCommand;
