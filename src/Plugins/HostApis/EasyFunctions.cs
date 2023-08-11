@@ -69,10 +69,16 @@ namespace HostApis
         }
 
 
+        public GraphicsDevice Device;
+        public TextureBatcher Batcher;
+        public SimpleShaderProgram Shader;
         public IScriptContext BoundContext;
 
         public EasyFunctions(IScriptContext boundContext, GraphicsDevice device, SimpleShaderProgram shader, TextureBatcher batcher)
         {
+            Device = device;
+            Batcher = batcher;
+            Shader = shader;
             BoundContext = boundContext;
 
             boundContext.SetValue(VAR_DEVICE, device);

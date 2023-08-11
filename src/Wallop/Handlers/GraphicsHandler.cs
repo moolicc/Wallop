@@ -15,6 +15,7 @@ using Wallop.Types.Plugins;
 using Wallop.Types.Plugins.EndPoints;
 using Silk.NET.Windowing.Sdl;
 using Silk.NET.Core.Contexts;
+using TrippyGL.ImageSharp;
 
 namespace Wallop.Handlers
 {
@@ -27,6 +28,10 @@ namespace Wallop.Handlers
         private GL _gl;
         private IWindow _window;
         private GraphicsSettings _graphicsSettings;
+
+        public TrippyGL.GraphicsDevice _dev;
+        public TrippyGL.TextureBatcher _bat;
+        public TrippyGL.Texture2D _tex;
 
         public GraphicsHandler(EngineApp engineInstance, GraphicsSettings graphicsSettings) : base(engineInstance)
         {
@@ -217,8 +222,11 @@ namespace Wallop.Handlers
         {
             var pluginContext = App.GetService<PluginPantry.PluginContext>().OrThrow();
             _gl = _window.CreateOpenGL();
-            _window.GLContext.MakeCurrent();
-            
+
+            _dev = new TrippyGL.GraphicsDevice(_gl);
+            _bat = new TrippyGL.TextureBatcher(_dev);
+            _tex = Texture2DExtensions.FromFile(_dev, "C:\\test.png");
+
 
             var GLMajorVersion = _gl.GetInteger(GLEnum.MajorVersion);
             var GLMinorVersion = _gl.GetInteger(GLEnum.MinorVersion);

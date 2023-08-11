@@ -189,6 +189,8 @@ namespace Wallop.Handlers
                         Name = "layout1",
                         Active = true,
                         ScreenIndex = 1,
+                        RenderWidth = 100,
+                        RenderHeight = 100,
                         ActorModules = new List<StoredModule>()
                         {
                             new StoredModule()

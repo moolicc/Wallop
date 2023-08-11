@@ -17,7 +17,6 @@ namespace Scripting.IronPython
         {
             context.RegisterAction<ILoadingScriptEnginesEndPoint, ScriptPlugin>(id, nameof(LoadEngines));
             context.RegisterAction<IInjectScriptContextEndPoint, ScriptPlugin>(id, nameof(InjectScriptContext));
-            Console.WriteLine("PLUGIN REGISTERED");
         }
 
         public static void LoadEngines(ILoadingScriptEnginesEndPoint endPoint)

@@ -215,6 +215,7 @@ namespace Wallop
             _sceneHandler.SceneDraw();
 
 
+
             foreach (var handler in _handlers)
             {
                 handler.AfterDraw();
