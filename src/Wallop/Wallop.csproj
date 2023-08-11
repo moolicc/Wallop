@@ -11,8 +11,11 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="PluginManagement\**" />
+    <Compile Remove="SceneManagement\**" />
     <EmbeddedResource Remove="PluginManagement\**" />
+    <EmbeddedResource Remove="SceneManagement\**" />
     <None Remove="PluginManagement\**" />
+    <None Remove="SceneManagement\**" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Cog\Cog\Cog.csproj" />
@@ -34,9 +37,6 @@
     <PackageReference Include="System.CommandLine.NamingConventionBinder" Version="2.0.0-beta4.22272.1" />
     <PackageReference Include="TrippyGL" Version="1.1.1" />
     <PackageReference Include="TrippyGL.ImageSharp" Version="1.1.1" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="SceneManagement\" />
   </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="call ../../util/copy_packages.bat bin/$(Configuration)/net6.0/modules" />
