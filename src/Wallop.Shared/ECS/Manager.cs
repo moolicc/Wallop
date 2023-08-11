@@ -52,6 +52,21 @@ namespace Wallop.Shared.ECS
             _actors.Remove(actor);
         }
 
+        public int RemoveNull()
+        {
+            int count = 0;
+            for (int i = 0; i < _actors.Count; i++)
+            {
+                if (_actors[i] == null)
+                {
+                    count++;
+                    _actors.RemoveAt(i);
+                    i--;
+                }
+            }
+            return count;
+        }
+
         public void AddActor(IActor actor)
         {
             _actors.Add(actor);

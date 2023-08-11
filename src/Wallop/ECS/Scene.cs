@@ -10,6 +10,9 @@ using Wallop.Scripting.ECS;
 using Wallop.Shared.Scripting;
 using Wallop.Shared.Types.Plugin;
 using Wallop.Shared.ECS;
+using System.Numerics;
+using System.IO;
+using NLog;
 
 namespace Wallop.ECS
 {
@@ -74,8 +77,18 @@ namespace Wallop.ECS
             {
                 return;
             }
-            foreach (var director in Directors)
+
+            for (int i = 0; i < Directors.Count; i++)
             {
+                IDirector? director = Directors[i];
+                if (director == null)
+                {
+                    EngineLog.For<Scene>().Error("Null director detected! Did a module fail to load?");
+                    EngineLog.For<Scene>().Warn($"Pruning null director from scene.");
+                    Directors.RemoveAt(i);
+                    i--;
+                    continue;
+                }
                 director.Update();
             }
             foreach (var director in Directors)
@@ -86,12 +99,27 @@ namespace Wallop.ECS
                 }
             }
 
+
             foreach (var layout in activeLayouts)
             {
+                bool containsNullActors = false;
                 foreach (var actor in layout.EntityRoot.GetActors())
                 {
+                    if (actor == null)
+                    {
+                        containsNullActors = true;
+                        EngineLog.For<Scene>().Error("Null actor detected! Did a module fail to load?");
+                        continue;
+                    }
                     actor.Update();
                 }
+
+                if(containsNullActors)
+                {
+                    int nullCount = layout.EntityRoot.RemoveNull();
+                    EngineLog.For<Scene>().Warn($"Pruned {nullCount} null actors from scene.");
+                }
+
                 foreach (var actor in layout.EntityRoot.GetActors())
                 {
                     if (actor is ScriptedElement ele)
